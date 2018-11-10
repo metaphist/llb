@@ -226,6 +226,10 @@
 				"industrial": {
 					canvasSize: [1200, 490],
 					canvasOffset: [0, 30] // left, top
+				},
+				"subway": {
+					canvasSize: [1020, 500],
+					canvasOffset: [0, 30] // left, top
 				}
 			}
 
@@ -245,6 +249,7 @@
 				canvas.height = stage.canvasSize[1]
 				$('#myCanvas').css('left', stage.canvasOffset[0])
 				$('#myCanvas').css('top', stage.canvasOffset[1])
+				$('#wrapper').css('background-image', 'url(assets/'+stageName+'.jpg)')
 
 				draw()
 			})
