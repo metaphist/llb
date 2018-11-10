@@ -196,7 +196,7 @@
 		  }
 		}
 
-		var characters = [], loadedChars = []
+		var stages = [], characters = [], loadedChars = []
 
 		function loadEvent(func) {
 			var oldOnLoad = window.onload;
@@ -221,6 +221,37 @@
 		}
 
 		loadEvent(function() {
+			/** stages **/
+			var stageJSON = {
+				"industrial": {
+					canvasSize: [1200, 490],
+					canvasOffset: [0, 30] // left, top
+				}
+			}
+
+			for(var i in stageJSON) {
+				var stageName = i
+				var stage = stageJSON[i]
+				stage.name = stageName
+				stages.push(stage)
+				$('select[name="stage"]').append('<option value="'+stageName+'">'+stageName+'</option>')
+			};
+
+			$('select[name="stage"]').on('change', function(e) {
+				//console.log('stage change')
+				var stageName = $(e.target).find(':selected').attr('value'); //console.log(stageName)
+				var stage = stages.find(function(e) { return e.name == stageName }); //console.log('stage:', stage)
+				canvas.width = stage.canvasSize[0]
+				canvas.height = stage.canvasSize[1]
+				$('#myCanvas').css('left', stage.canvasOffset[0])
+				$('#myCanvas').css('top', stage.canvasOffset[1])
+
+				draw()
+			})
+
+			// select first stage
+			$('select[name="stage"]').change()
+
 			/** add chars and angles */
 			$.getJSON('characters.json', function(charData) {
 				for(var i in charData) {
@@ -328,22 +359,21 @@
 			margin: auto;
 		}
 		#myCanvas {
-			border: 2px solid #888;
+			border: 2px solid gold;
 			background: rgba(0, 0, 0, 0.5);
-			margin: 0px auto;
+			margin: 0 auto;
 			display: block;
 			position: relative;
-			top: 5px;
+			left: 0; top: 30px;
 		}
 		#wrapper {
 			/*float: left;*/
 			position: relative;
 			margin: 20px auto;
 			display: block;
-			width: 1250px;
+			width: 1270px;
 			height: 600px;
-			background: url('assets/pool.jpg') top center #fff;
-			background-position: -5px 0px;
+			background: url('assets/industrial.jpg') top center #fff;
 		}
 		#menu {
 			/*float: left;*/
@@ -386,11 +416,14 @@
 <body>
 	<h1 style="text-align:center">Lethal League Blaze Angle Tool</h1>
 	<div id="menu">
+		<select name="stage">
+			<!--<option value="">stage select</option>-->
+		</select>
 		<ul>
 		</ul>
 	</div>
 	<div id="wrapper">
-		<canvas id="myCanvas" width=1185 height=550></canvas>
+		<canvas id="myCanvas" width=1200 height=490></canvas>
 	</div>
 </body>
 </html>
