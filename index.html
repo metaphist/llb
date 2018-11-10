@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="paper-full.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<!-- Define inlined PaperScript associate it with myCanvas -->
+	<script type="text/paperscript" canvas="myCanvas">
+		/** some globals **/
+		var circleRadius = 20
+		var strokeWidthOuter = 6
+		var strokeWidthInner = 2
+
+		var canvas = document.getElementById('myCanvas')
+		var ctx = canvas.getContext("2d");
+		var cBB = canvas.getBoundingClientRect();
+		var offsetX = cBB.left;
+		var offsetY = cBB.top;
+		
+		window.onresize = function() {
+			cBB = canvas.getBoundingClientRect();
+			offsetX = cBB.left;
+			offsetY = cBB.top;
+		}
+		
+		canvas.onmousedown = myDown;
+		canvas.onmouseup = myUp;
+		canvas.onmousemove = myMove;
+		
+		var stage = new Path()
+		stage.add(new Point(0, 0), new Point(canvas.width, 0), new Point(canvas.width, canvas.height), new Point(0, canvas.height))
+		stage.closed = true
+		
+		var dragok = false;
+		var startX;
+		var startY;
+		
+		function drawSegment(properties, start, degrees) {
+			var p = new Path({
+				strokeWidth: properties.strokeWidth,
+				strokeColor: properties.stroke
+			})
+			var end = new Point(start.x + canvas.width, start.y)
+			p.add(start, end)
+			p.rotate(degrees, start)			
+			var i = p.getIntersections(stage)
+			return i.length ? i[i.length-1].point : false
+		}
+		
+		function drawAngle(properties, angle) {
+			if(angle.reflections == 0) angle.reflections = 1
+			var degrees = properties.facing == 'left' ? (angle.degrees + 180) * -1 : angle.degrees
+			var start = new Point(properties.x, properties.y)
+			
+			// no ground down unless on the ground, fool
+			// no latch wall unless on the correct wall
+			var invalid = 
+				angle.ground && start.y < canvas.height - 70 ||
+				(angle.wall && properties.facing == 'right' && start.x < canvas.width - 70) || 
+				(angle.wall && properties.facing == 'left' && start.x > 70)
+			
+			for(var i = 0; i < angle.reflections; ++i) {
+				// outside line
+				properties.strokeWidth = strokeWidthOuter
+				properties.stroke = invalid ? 'grey' : properties.strokeColor
+				drawSegment(properties, start, degrees) 
+				
+				// inside line
+				properties.strokeWidth = strokeWidthInner
+				properties.stroke = invalid ? 'grey' : properties.color
+				start = drawSegment(properties, start, degrees)
+				
+				if(!start) break
+				
+				degrees *= -1 // any hit
+				if(start.x >= canvas.width - 1 || start.x <= 1)
+					degrees += 180 // side wall hit
+			}
+		}
+		
+		// redraw the scene
+		function draw() {
+			paper.project.activeLayer.removeChildren()
+			
+			for(var i = 0; i < loadedChars.length; i++) {
+				var s = loadedChars[i]
+				if(!s.x) {
+					s.x = Math.floor(Math.random() * (canvas.width - 300)) + 300
+					s.y = Math.floor(Math.random() * (canvas.height - 100)) + 100
+				}
+				for(var j = 0; j < s.angles.length; j++) {
+					var angle = s.angles[j]
+					if(angle.visible) drawAngle(s, angle);
+				}
+				
+				// draw circle last so it's on top
+				new Path.Circle({
+					center: [s.x, s.y],
+					radius: 20,
+					fillColor: s.color,
+					strokeColor: s.strokeColor,
+					strokeWidth: 3
+				})
+			}
+			
+			paper.view.update()
+		}
+
+		// handle mousedown events
+		function myDown(e){
+
+		  // tell the browser we're handling this mouse event
+		  e.preventDefault();
+		  e.stopPropagation();
+
+		  // get the current mouse position
+		  var mx=parseInt(e.clientX-offsetX);
+		  var my=parseInt(e.clientY-offsetY);
+
+		  // test each shape to see if mouse is inside
+		  dragok=false;
+		  for(var i=0;i<loadedChars.length;i++){
+			var s=loadedChars[i];
+			// decide if the shape is a rect or circle               
+			if(s.width){
+			  // test if the mouse is inside this rect
+			  if(mx>s.x && mx<s.x+s.width && my>s.y && my<s.y+s.height){
+				// if yes, set that rects isDragging=true
+				dragok=true;
+				s.isDragging=true;
+			  }
+			}else{
+			  var dx=s.x-mx;
+			  var dy=s.y-my;
+			  // test if the mouse is inside this circle
+			  if(dx*dx+dy*dy<circleRadius*circleRadius){
+				dragok=true;
+				s.isDragging=true;
+			  }
+			}
+		  }
+		  // save the current mouse position
+		  startX=mx;
+		  startY=my;
+		}
+
+		// handle mouseup events
+		function myUp(e){
+		  // tell the browser we're handling this mouse event
+		  e.preventDefault();
+		  e.stopPropagation();
+
+		  // clear all the dragging flags
+		  dragok = false;
+		  for(var i = 0; i < loadedChars.length; i++){
+			loadedChars[i].isDragging = false;
+		  }
+		}
+
+		// handle mouse moves
+		function myMove(e){
+		  // if we're dragging anything...
+		  if (dragok) {
+
+			// tell the browser we're handling this mouse event
+			e.preventDefault();
+			e.stopPropagation();
+
+			// get the current mouse position
+			var mx = parseInt(e.clientX - offsetX);
+			var my = parseInt(e.clientY - offsetY);
+
+			// calculate the distance the mouse has moved
+			// since the last mousemove
+			var dx = mx - startX;
+			var dy = my - startY;
+
+			// move each rect that isDragging 
+			// by the distance the mouse has moved
+			// since the last mousemove
+			for(var i = 0; i < loadedChars.length; i++){
+			  var s = loadedChars[i];
+			  if(s.isDragging){
+				s.x += dx;
+				s.y += dy;
+			  }
+			}
+
+			// redraw the scene with the new rect positions
+			draw();
+
+			// reset the starting mouse position for the next mousemove
+			startX = mx;
+			startY = my;
+
+		  }
+		}
+
+		var characters = [], loadedChars = []
+
+		function loadEvent(func) {
+			var oldOnLoad = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func()
+			} else {
+				window.onload = function () {
+					oldOnLoad();
+					func();
+				}
+			}
+		}
+		
+		function loadChar(charName) {
+			var char = loadedChars.find(function(e){ return e.name == charName })
+			if(!char) {
+				char = characters.find(function(e){ return e.name == charName })
+				loadedChars.push(char)
+			}
+			
+			return char
+		}
+
+		loadEvent(function() {
+			/** add chars and angles */
+			$.getJSON('characters.json', function(charData) {
+				for(var i in charData) {
+					var char = charData[i]
+					char.name = i
+					char.angles.push({ name: 'straight', degrees: 0, reflections: 0 })
+					char.facing = 'right'
+					char.isDragging = false
+					characters.push(char)
+
+					$('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
+					for(var j = 0; j < char.angles.length; j++) {
+						var angle = char.angles[j]
+						$('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
+					}
+				};
+
+				/** toggle chars */
+				$('.character').on('click', function(e) {
+					console.log('char click')
+					var charName = $(e.target).text()
+					var isLoaded = loadedChars.find(function(e){ return e.name == charName })
+					if(!isLoaded) {
+						var char = characters.find(function(e){ return e.name == charName })
+						loadedChars.push(char)
+					} else {
+						// unload em
+						var i = loadedChars.findIndex(function(e){ return e.name == charName })
+						loadedChars.splice(i, 1)
+					}
+
+					draw();
+				})
+				
+				/** turn around */
+				$('.turn').on('click', function(e) {
+					var charName = $(e.target).parent().attr('id')
+					var char = loadedChars.find(function(e){ return e.name == charName })
+					if(!char) char = characters.find(function(e){ return e.name == charName })
+					char.facing = char.facing == 'right' ? 'left' : 'right'
+					
+					draw();
+				})
+
+				/** toggle angles */
+				$('.angles li').on('click', function(e) {
+					console.log('angle click')
+					var classes = $(e.target).attr('class').split(/\s+/)
+					var charName = classes[0]
+					var angleName = classes[1]
+					
+					var char = loadChar(charName)
+					
+					var angle = char.angles.find(function(e){ return e.name == angleName })
+					if(angle.visible) angle.visible = false
+					else {
+						angle.visible = true
+						if(angle.reflections == undefined || angle.reflections <= 0)
+							angle.reflections = 1
+					}
+
+					draw();
+				})
+				
+				/** angle reflections */
+				$('.plus, .minus').on('click', function(e) {
+					console.log('refl click')
+					e.preventDefault();
+					e.stopPropagation();
+					
+					var classes = $(e.target).parent().attr('class').split(/\s+/)
+					var charName = classes[0]
+					var angleName = classes[1]
+					
+					var char = loadChar(charName);
+					
+					// show angle
+					var angle = char.angles.find(function(e){ return e.name == angleName })
+					angle.visible = true;
+					
+					var sign = $(e.target).attr('class')
+					if(angle.reflections == 'undefined' || isNaN(angle.reflections)) 
+						angle.reflections = 0
+						
+					if(sign == 'plus') angle.reflections += 1 
+					else angle.reflections -= 1
+					if(angle.reflections <= 0) {
+						angle.reflections = 0
+						angle.visible = false
+					}
+					
+					draw();
+				})
+			})
+		});
+	</script>
+	<style>
+		body {
+			background: #ccc;
+			font-family: helvetica;
+			color: #555;
+		}
+		#container {
+			display: block;
+			margin: auto;
+		}
+		#myCanvas {
+			border: 2px solid #888;
+			background: rgba(0, 0, 0, 0.5);
+			margin: 0px auto;
+			display: block;
+			position: relative;
+			top: 5px;
+		}
+		#wrapper {
+			/*float: left;*/
+			position: relative;
+			margin: 20px auto;
+			display: block;
+			width: 1250px;
+			height: 600px;
+			background: url('bg.jpg') top center #fff;
+			background-position: -5px 0px;
+		}
+		#menu {
+			/*float: left;*/
+			position: fixed;
+			top: 0; left: 0; bottom: 0;
+			margin: 5px;
+			overflow-y: scroll;
+			background: gold;
+			border: 2px solid goldenrod;
+			z-index: 10;
+			text-transform: uppercase;
+			font-size: 12px;
+		}
+		#menu ol, #menu ul {
+			margin: 0;
+			padding: 5px;
+			list-style: none;
+		}
+		#menu ul { list-style: none; }
+		#menu li {
+			padding: 2px;
+			font-weight: bold;
+			z-index: 99;
+		}
+		#menu ol li {
+			margin: 5px 0;
+			padding-left: 10px;
+		}
+		#menu ol li:hover, #menu span:hover {
+			color: white;
+			cursor: pointer;
+		}
+		.plus, .minus, .turn {
+			padding: 3px 7px;
+			background: goldenrod;
+			border-radius: 5px;
+		}
+	</style>
+</head>
+<body>
+	<h1 style="text-align:center">Lethal League Blaze Angle Tool</h1>
+	<div id="menu">
+		<ul>
+		</ul>
+	</div>
+	<div id="wrapper">
+		<canvas id="myCanvas" width=1185 height=550></canvas>
+	</div>
+</body>
+</html>
+
+
+
+
+
+
