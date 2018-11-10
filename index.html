@@ -39,7 +39,8 @@
 				strokeWidth: properties.strokeWidth,
 				strokeColor: properties.stroke
 			})
-			var end = new Point(start.x + canvas.width, start.y)
+			// use canvas width * 2 to ensure line is long enough in any situation
+			var end = new Point(start.x + canvas.width*2, start.y)
 			p.add(start, end)
 			p.rotate(degrees, start)			
 			var i = p.getIntersections(stage)
@@ -341,7 +342,7 @@
 			display: block;
 			width: 1250px;
 			height: 600px;
-			background: url('bg.jpg') top center #fff;
+			background: url('assets/pool.jpg') top center #fff;
 			background-position: -5px 0px;
 		}
 		#menu {
