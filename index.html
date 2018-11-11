@@ -311,17 +311,17 @@
 				"degrees": -20
 			  },
 			  {
-				"name": "ground-down",
-				"degrees": 55,
-				"ground": "true"
-			  },
-			  {
 				"name": "smash",
 				"degrees": 55
 			  },
 			  {
 				"name": "air-down",
 				"degrees": 55
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 55,
+				"ground": "true"
 			  },
 			  {
 				"name": "spike-forward",
@@ -342,6 +342,10 @@
 				"degrees": -80
 			  },
 			  {
+				"name": "air-down",
+				"degrees": 46
+			  },
+			  {
 				"name": "ground-down",
 				"degrees": 46,
 				"ground": "true" 
@@ -349,10 +353,6 @@
 			  {
 				"name": "smash",
 				"degrees": 30
-			  },
-			  {
-				"name": "air-down",
-				"degrees": 46
 			  },
 			  {
 				"name": "spike-forward",
@@ -617,9 +617,17 @@
 					characters.push(char)
 
 					$('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
+					var prevAngle = null // for combining like angles
 					for(var j = 0; j < char.angles.length; j++) {
 						var angle = char.angles[j]
-						$('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
+						if(prevAngle && prevAngle.degrees == angle.degrees) {
+							//console.log('same angle', char.name, angle.name)
+							//console.log('li.'+char.name+'.'+angle.name)
+							$('li.'+char.name+'.'+prevAngle.name).append('<br>/ '+angle.name)
+						} else {
+							$('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
+							prevAngle = angle
+						}
 					}
 				};
 
@@ -794,7 +802,11 @@
 		}
 		#menu ol li {
 			margin: 5px 0;
-			padding-left: 10px;
+			padding-left: 20px;
+			text-indent: -15px;
+		}
+		#menu ol li br {
+			line-height: 20px;
 		}
 		#menu ol li:hover, #menu span:hover {
 			color: white;
