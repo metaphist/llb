@@ -744,10 +744,10 @@
 			/*
 			position: fixed;
 			top: 0; left: 0; bottom: 0;
+			overflow-y: scroll;
 			*/
 			float: left;
 			margin: 0;
-			overflow-y: scroll;
 			background: gold;
 			border: 1px solid goldenrod;
 			z-index: 10;
@@ -760,7 +760,11 @@
 			padding: 5px;
 			list-style: none;
 		}
-		#menu ul { list-style: none; }
+		#menu ul { 
+			overflow-y: scroll;
+			list-style: none;
+			height: 550px;
+		}
 		#menu li {
 			padding: 2px;
 			font-weight: bold;
