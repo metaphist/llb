@@ -19,6 +19,7 @@
 		window.onresize = function() {
 			offsetX = canvas.getBoundingClientRect().left;
 			offsetY = canvas.getBoundingClientRect().top;
+			//console.log(offsetX, offsetY)
 		}
 		
 		canvas.onmousedown = myDown;
@@ -189,7 +190,7 @@
 
 		var stages = [], characters = [], loadedChars = []
 
-		function loadEvent(func) {
+		/*function loadEvent(func) {
 			var oldOnLoad = window.onload;
 			if (typeof window.onload != 'function') {
 				window.onload = func()
@@ -199,7 +200,7 @@
 					func();
 				}
 			}
-		}
+		}*/
 		
 		function loadChar(charName) {
 			var char = loadedChars.find(function(e){ return e.name == charName })
@@ -211,16 +212,16 @@
 			return char
 		}
 
-		loadEvent(function() {
-			/** stages **/
+		$('document').ready(function() {
+			/** stages */
 			var stageJSON = {
-				"industrial": {
-					canvasSize: [1200, 490],
-					canvasOffset: [0, 30] // left, top
+				"Desolace": {
+					canvasSize: [1198, 493],
+					canvasOffset: [41, 31]
 				},
-				"subway": {
-					canvasSize: [1020, 500],
-					canvasOffset: [0, 30] // left, top
+				"Stadium": {
+					canvasSize: [1188, 521],
+					canvasOffset: [46, 3]
 				}
 			}
 
@@ -233,14 +234,12 @@
 			};
 
 			$('select[name="stage"]').on('change', function(e) {
-				//console.log('stage change')
+				console.log('stage change')
 				var stageName = $(e.target).find(':selected').attr('value'); //console.log(stageName)
 				var stage = stages.find(function(e) { return e.name == stageName }); //console.log('stage:', stage)
 
 				paper.view.viewSize.width = stage.canvasSize[0]
 				paper.view.viewSize.height = stage.canvasSize[1]
-				offsetX = canvas.getBoundingClientRect().left;
-				offsetY = canvas.getBoundingClientRect().top;
 
 				stageBounds = new Path()
 				stageBounds.add(new Point(0, 0), new Point(canvas.width, 0), new Point(canvas.width, canvas.height), new Point(0, canvas.height))
@@ -248,7 +247,9 @@
 
 				$('#myCanvas').css('left', stage.canvasOffset[0])
 				$('#myCanvas').css('top', stage.canvasOffset[1])
-				$('#wrapper').css('background-image', 'url(assets/'+stageName+'.jpg)')
+				$('#wrapper').css('background-image', 'url(assets/stages/'+stageName+'.png)')
+				
+				setTimeout(function() { $(window).trigger('resize'); }, 100)
 
 				draw()
 			})
@@ -357,39 +358,49 @@
 			background: #ccc;
 			font-family: helvetica;
 			color: #555;
+			margin: 0;
+			padding: 5px;
 		}
 		#container {
 			display: block;
 			margin: auto;
 		}
-		#myCanvas {
-			border: 2px solid gold;
-			background: rgba(0, 0, 0, 0.5);
-			margin: 0 auto;
-			display: block;
-			position: relative;
-			left: 0; top: 30px;
+		#header {
+			/*
+			text-align:center;
+			*/
+			margin: 0;
 		}
 		#wrapper {
-			/*float: left;*/
+			float: left;
 			position: relative;
-			margin: 20px auto;
 			display: block;
-			width: 1270px;
+			width: 1280px;
 			height: 600px;
-			background: url('assets/industrial.jpg') top center #fff;
+			margin: 0 5px;
+			/*
+			background: url('assets/stages/Desolace.png') top center #fff;
+			*/
 		}
-		#header {
-			text-align:center;
+		#myCanvas {
+			/*border: 2px solid red;
+			background: rgba(0, 0, 0, 0.5);
+			left: 0; top: 30px;
+			margin: 0 auto;
+			*/
+			display: block;
+			position: relative;
 		}
 		#menu {
-			/*float: left;*/
+			/*
 			position: fixed;
 			top: 0; left: 0; bottom: 0;
-			margin: 5px;
+			*/
+			float: left;
+			margin: 0;
 			overflow-y: scroll;
 			background: gold;
-			border: 2px solid goldenrod;
+			border: 1px solid goldenrod;
 			z-index: 10;
 			text-transform: uppercase;
 			font-size: 12px;
@@ -430,12 +441,18 @@
 			background: goldenrod;
 			border-radius: 5px;
 		}
+		h1 {
+			margin-bottom: 0;
+		}
+		p {
+			margin-top: 0;
+		}
 	</style>
 </head>
 <body>
 	<div id="header">
 		<h1>Lethal League Blaze Angle Tool</h1>
-		<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Project</a></p>
+		<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Repo</a></p>
 	</div>
 	<div id="menu">
 		<select name="stage">
