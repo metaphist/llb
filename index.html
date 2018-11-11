@@ -11,39 +11,30 @@
 		var strokeWidthInner = 2
 
 		var canvas = document.getElementById('myCanvas')
-		var ctx = canvas.getContext("2d");
-		var cBB = canvas.getBoundingClientRect();
-		var offsetX = cBB.left;
-		var offsetY = cBB.top;
+		var stageBounds, startX, startY
+		var offsetX = canvas.getBoundingClientRect().left;
+		var offsetY = canvas.getBoundingClientRect().top;
+		var dragok = false;
 		
 		window.onresize = function() {
-			cBB = canvas.getBoundingClientRect();
-			offsetX = cBB.left;
-			offsetY = cBB.top;
+			offsetX = canvas.getBoundingClientRect().left;
+			offsetY = canvas.getBoundingClientRect().top;
 		}
 		
 		canvas.onmousedown = myDown;
 		canvas.onmouseup = myUp;
 		canvas.onmousemove = myMove;
 		
-		var stage = new Path()
-		stage.add(new Point(0, 0), new Point(canvas.width, 0), new Point(canvas.width, canvas.height), new Point(0, canvas.height))
-		stage.closed = true
-		
-		var dragok = false;
-		var startX;
-		var startY;
-		
 		function drawSegment(properties, start, degrees) {
-			var p = new Path({
+			var segment = new Path({
 				strokeWidth: properties.strokeWidth,
 				strokeColor: properties.stroke
 			})
 			// use canvas width * 2 to ensure line is long enough in any situation
 			var end = new Point(start.x + canvas.width*2, start.y)
-			p.add(start, end)
-			p.rotate(degrees, start)			
-			var i = p.getIntersections(stage)
+			segment.add(start, end)
+			segment.rotate(degrees, start)
+			var i = segment.getIntersections(stageBounds)
 			return i.length ? i[i.length-1].point : false
 		}
 		
@@ -107,45 +98,45 @@
 		}
 
 		// handle mousedown events
-		function myDown(e){
+		function myDown(e) {
 
 		  // tell the browser we're handling this mouse event
 		  e.preventDefault();
 		  e.stopPropagation();
 
 		  // get the current mouse position
-		  var mx=parseInt(e.clientX-offsetX);
-		  var my=parseInt(e.clientY-offsetY);
+		  var mx = parseInt(e.clientX - offsetX);
+		  var my = parseInt(e.clientY - offsetY);
 
 		  // test each shape to see if mouse is inside
-		  dragok=false;
-		  for(var i=0;i<loadedChars.length;i++){
-			var s=loadedChars[i];
+		  dragok = false;
+		  for(var i = 0; i < loadedChars.length; i++){
+			var s = loadedChars[i];
 			// decide if the shape is a rect or circle               
 			if(s.width){
 			  // test if the mouse is inside this rect
-			  if(mx>s.x && mx<s.x+s.width && my>s.y && my<s.y+s.height){
+			  if(mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height){
 				// if yes, set that rects isDragging=true
-				dragok=true;
-				s.isDragging=true;
+				dragok = true;
+				s.isDragging = true;
 			  }
-			}else{
-			  var dx=s.x-mx;
-			  var dy=s.y-my;
+			} else {
+			  var dx = s.x - mx;
+			  var dy = s.y - my;
 			  // test if the mouse is inside this circle
-			  if(dx*dx+dy*dy<circleRadius*circleRadius){
-				dragok=true;
-				s.isDragging=true;
+			  if(dx * dx + dy * dy < circleRadius * circleRadius) {
+				dragok = true;
+				s.isDragging = true;
 			  }
 			}
 		  }
 		  // save the current mouse position
-		  startX=mx;
-		  startY=my;
+		  startX = mx;
+		  startY = my;
 		}
 
 		// handle mouseup events
-		function myUp(e){
+		function myUp(e) {
 		  // tell the browser we're handling this mouse event
 		  e.preventDefault();
 		  e.stopPropagation();
@@ -158,7 +149,7 @@
 		}
 
 		// handle mouse moves
-		function myMove(e){
+		function myMove(e) {
 		  // if we're dragging anything...
 		  if (dragok) {
 
@@ -245,8 +236,16 @@
 				//console.log('stage change')
 				var stageName = $(e.target).find(':selected').attr('value'); //console.log(stageName)
 				var stage = stages.find(function(e) { return e.name == stageName }); //console.log('stage:', stage)
-				canvas.width = stage.canvasSize[0]
-				canvas.height = stage.canvasSize[1]
+
+				paper.view.viewSize.width = stage.canvasSize[0]
+				paper.view.viewSize.height = stage.canvasSize[1]
+				offsetX = canvas.getBoundingClientRect().left;
+				offsetY = canvas.getBoundingClientRect().top;
+
+				stageBounds = new Path()
+				stageBounds.add(new Point(0, 0), new Point(canvas.width, 0), new Point(canvas.width, canvas.height), new Point(0, canvas.height))
+				stageBounds.closed = true
+
 				$('#myCanvas').css('left', stage.canvasOffset[0])
 				$('#myCanvas').css('top', stage.canvasOffset[1])
 				$('#wrapper').css('background-image', 'url(assets/'+stageName+'.jpg)')
