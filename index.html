@@ -5,6 +5,335 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<!-- Define inlined PaperScript associate it with myCanvas -->
 	<script type="text/paperscript" canvas="myCanvas">
+		var stageJSON = {
+			"Outskirts": {
+				canvasSize: [1198, 493],
+				canvasOffset: [41, 31]
+			},
+			"Stadium": {
+				canvasSize: [1188, 521],
+				canvasOffset: [46, 3]
+			}
+		}
+		
+		var characterJSON = {
+		  "Latch": {
+			"color": "lightgreen",
+			"strokeColor": "green",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -38
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 28,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 38
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 38
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 66
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 110
+			  },
+			  {
+				"name": "wall-down",
+				"degrees": 60,
+				"wall": "true"
+			  }
+			]
+		  },
+		  "Raptor": {
+			"color": "red",
+			"strokeColor": "purple",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -60
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 30,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 42
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 42
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 83
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 97
+			  }
+			]
+		  },
+		  "Jet": {
+			"color": "lightskyblue",
+			"strokeColor": "royalblue",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -60
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 17,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 35
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 35
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 80
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 100
+			  }
+			]
+		  },
+		  "Nitro": {
+			"color": "white",
+			"strokeColor": "black",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -20
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 62,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 41
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 62
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 83
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 180
+			  }
+			]
+		  },
+		  "Doombox": {
+			"color": "#444",
+			"strokeColor": "royalblue",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -60
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 50,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 45
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 64
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 59
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 160
+			  }
+			]
+		  },
+		  "Grid": {
+			"color": "yellow",
+			"strokeColor": "mediumpurple",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -50
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 50,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 28
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 15
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 32
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 117
+			  }
+			]
+		  },
+		  "Switch": {
+			"color": "slategrey",
+			"strokeColor": "navy",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -120
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 17,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 38
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 38
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 71
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 109
+			  }
+			]
+		  },
+		  "Candyman": {
+			"color": "gold",
+			"strokeColor": "brown",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -25
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 55,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 70
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 8
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 25
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 105
+			  }
+			]
+		  },
+		  "Sonata": {
+			"color": "#3349cb",
+			"strokeColor": "darkviolet",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -20
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 55,
+				"ground": "true"
+			  },
+			  {
+				"name": "smash",
+				"degrees": 55
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 55
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 55
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": -165
+			  }
+			]
+		  },
+		  "Dice": {
+			"color": "saddlebrown",
+			"strokeColor": "#c8de0a",
+			"angles": [
+			  {
+				"name": "up",
+				"degrees": -80
+			  },
+			  {
+				"name": "ground-down",
+				"degrees": 46,
+				"ground": "true" 
+			  },
+			  {
+				"name": "smash",
+				"degrees": 30
+			  },
+			  {
+				"name": "air-down",
+				"degrees": 46
+			  },
+			  {
+				"name": "spike-forward",
+				"degrees": 80
+			  },
+			  {
+				"name": "spike-backward",
+				"degrees": 110
+			  }
+			]
+		  }
+		}
+	
 		/** some globals **/
 		var circleRadius = 20
 		var strokeWidthOuter = 6
@@ -214,23 +543,11 @@
 
 		$('document').ready(function() {
 			/** stages */
-			var stageJSON = {
-				"Desolace": {
-					canvasSize: [1198, 493],
-					canvasOffset: [41, 31]
-				},
-				"Stadium": {
-					canvasSize: [1188, 521],
-					canvasOffset: [46, 3]
-				}
-			}
-
 			for(var i in stageJSON) {
-				var stageName = i
 				var stage = stageJSON[i]
-				stage.name = stageName
+				stage.name = i
 				stages.push(stage)
-				$('select[name="stage"]').append('<option value="'+stageName+'">'+stageName+'</option>')
+				$('select[name="stage"]').append('<option value="'+stage.name+'">'+stage.name+'</option>')
 			};
 
 			$('select[name="stage"]').on('change', function(e) {
@@ -249,7 +566,7 @@
 				$('#myCanvas').css('top', stage.canvasOffset[1])
 				$('#wrapper').css('background-image', 'url(assets/stages/'+stageName+'.png)')
 				
-				setTimeout(function() { $(window).trigger('resize'); }, 100)
+				setTimeout(function() { $(window).trigger('resize'); }, 500)
 
 				draw()
 			})
@@ -258,9 +575,9 @@
 			$('select[name="stage"]').change()
 
 			/** add chars and angles */
-			$.getJSON('characters.json', function(charData) {
-				for(var i in charData) {
-					var char = charData[i]
+			//$.getJSON('characters.json', function(charData) {
+				for(var i in characterJSON) {
+					var char = characterJSON[i]
 					char.name = i
 					char.angles.push({ name: 'straight', degrees: 0, reflections: 0 })
 					char.facing = 'right'
@@ -350,7 +667,7 @@
 					
 					draw();
 				})
-			})
+			//})
 		});
 	</script>
 	<style>
@@ -404,6 +721,7 @@
 			z-index: 10;
 			text-transform: uppercase;
 			font-size: 12px;
+			height: 599px;
 		}
 		#menu ol, #menu ul {
 			margin: 0;
