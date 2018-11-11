@@ -701,6 +701,15 @@
 				})
 			//})
 		});
+		
+		/** options */
+		$('#overlay').on('click', function(e) {
+			e.preventDefault
+			var bg = $('#myCanvas').css('background-color')
+			if(bg == 'rgba(0, 0, 0, 0)') $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0.7)')
+			else $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0)')
+			
+		})
 	</script>
 	<style>
 		body {
@@ -715,10 +724,23 @@
 			margin: auto;
 		}
 		#header {
-			/*
-			text-align:center;
-			*/
+			height: 100px;
 			margin: 0;
+		}
+		#options, #title {
+			float: left;
+		}
+		#options {
+			padding: 25px;
+		}
+		#options a {
+			cursor: pointer;
+		    height: 100%;
+			display: block;
+			background: #444;
+			padding: 15px 20px;
+			color: white;
+			border-radius: 5px;
 		}
 		#wrapper {
 			float: left;
@@ -805,8 +827,13 @@
 </head>
 <body>
 	<div id="header">
-		<h1>Lethal League Blaze Angle Tool</h1>
-		<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Repo</a></p>
+		<div id="title">
+			<h1>Lethal League Blaze Angle Tool</h1>
+			<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Repo</a></p>
+		</div>
+		<div id="options">
+			<a herf="#" id="overlay">Contrast</a>
+		</div>
 	</div>
 	<div id="menu">
 		<select name="stage">
