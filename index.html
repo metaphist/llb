@@ -253,6 +253,10 @@
 				"degrees": 17,
 				"ground": "true"
 			  },
+				{
+					"name": "special",
+					"degrees": 17
+				},
 			  {
 				"name": "smash",
 				"degrees": 38
@@ -407,20 +411,20 @@
 			
 			// no ground down unless on the ground, fool
 			// no latch wall unless on the correct wall
-			var invalid = 
+			var invalid =
 				angle.ground && start.y < canvas.height - 70 ||
-				(angle.wall && properties.facing == 'right' && start.x < canvas.width - 70) || 
+				(angle.wall && properties.facing == 'right' && start.x < canvas.width - 70) ||
 				(angle.wall && properties.facing == 'left' && start.x > 70)
 			
 			for(var i = 0; i < angle.reflections; ++i) {
 				// outside line
 				properties.strokeWidth = strokeWidthOuter
-				properties.stroke = invalid ? 'grey' : properties.strokeColor
+				properties.stroke = /*invalid ? 'grey' :*/ properties.strokeColor
 				drawSegment(properties, start, degrees) 
 				
 				// inside line
 				properties.strokeWidth = strokeWidthInner
-				properties.stroke = invalid ? 'grey' : properties.color
+				properties.stroke = /*invalid ? 'grey' :*/ properties.color
 				start = drawSegment(properties, start, degrees)
 				
 				if(!start) break
