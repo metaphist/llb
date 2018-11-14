@@ -5,6 +5,15 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<!-- Define inlined PaperScript associate it with myCanvas -->
 	<script type="text/paperscript" canvas="myCanvas">
+        /** some globals **/
+        var circleRadius = 20
+        var strokeWidthOuter = 6
+        var strokeWidthInner = 2
+        var labelFontSize = 20
+
+		/**
+		 * names map to stage images in assets/stages
+		 */
 		var stageJSON = {
 			"Outskirts": {
 				canvasSize: [1198, 492],
@@ -47,7 +56,12 @@
 				canvasOffset: [108, 19]
 			}
 		}
-		
+
+		/**
+		 * like-angles should be adjacent to be grouped visually
+		 * wall and ground property will "invalidate" the angle if character is out of position
+		 */
+
 		var characterJSON = {
 		  "Latch": {
 			"color": "lightgreen",
@@ -253,10 +267,10 @@
 				"degrees": 17,
 				"ground": "true"
 			  },
-				{
-					"name": "special",
-					"degrees": 17
-				},
+                {
+                    "name": "special",
+                    "degrees": 17
+                },
 			  {
 				"name": "smash",
 				"degrees": 38
@@ -369,97 +383,163 @@
 			]
 		  }
 		}
-	
-		/** some globals **/
-		var circleRadius = 20
-		var strokeWidthOuter = 6
-		var strokeWidthInner = 2
+
+		/** angle aliases for labels */
+		var angleAlias = {
+			"up": "UP",
+			"ground-down": "GD",
+			"smash": "SMASH",
+			"air-down": "AD",
+			"spike-forward": "SK-F",
+			"spike-backward": "SK-B",
+			"wall-down": "WD"
+		}
+
 
 		var canvas = document.getElementById('myCanvas')
 		var stageBounds, startX, startY
 		var offsetX = canvas.getBoundingClientRect().left;
 		var offsetY = canvas.getBoundingClientRect().top;
 		var dragok = false;
-		
+        var labels = [], labelsOn = false
+
 		window.onresize = function() {
 			offsetX = canvas.getBoundingClientRect().left;
 			offsetY = canvas.getBoundingClientRect().top;
-			//console.log(offsetX, offsetY)
 		}
-		
+
 		canvas.onmousedown = myDown;
 		canvas.onmouseup = myUp;
 		canvas.onmousemove = myMove;
-		
-		function drawSegment(properties, start, degrees) {
-			var segment = new Path({
+
+		function drawLine(properties, start, degrees) {
+			var line = new Path({
 				strokeWidth: properties.strokeWidth,
 				strokeColor: properties.stroke
 			})
 			// use canvas width * 2 to ensure line is long enough in any situation
-			var end = new Point(start.x + canvas.width*2, start.y)
-			segment.add(start, end)
-			segment.rotate(degrees, start)
-			var i = segment.getIntersections(stageBounds)
-			return i.length ? i[i.length-1].point : false
+			var end = new Point(start.x + canvas.width * 2, start.y)
+			line.add(start, end)
+			line.rotate(degrees, start)
+
+			return line
 		}
-		
-		function drawAngle(properties, angle) {
+
+		function drawAngle(properties) {
+		    var angle = properties.curAngle
 			if(angle.reflections == 0) angle.reflections = 1
 			var degrees = properties.facing == 'left' ? (angle.degrees + 180) * -1 : angle.degrees
 			var start = new Point(properties.x, properties.y)
-			
+
 			// no ground down unless on the ground, fool
 			// no latch wall unless on the correct wall
-			var invalid =
+			/*var invalid =
 				angle.ground && start.y < canvas.height - 70 ||
 				(angle.wall && properties.facing == 'right' && start.x < canvas.width - 70) ||
-				(angle.wall && properties.facing == 'left' && start.x > 70)
-			
+				(angle.wall && properties.facing == 'left' && start.x > 70)*/
+			var invalid = false // no use-y for now
+
 			for(var i = 0; i < angle.reflections; ++i) {
 				// outside line
 				properties.strokeWidth = strokeWidthOuter
-				properties.stroke = /*invalid ? 'grey' :*/ properties.strokeColor
-				drawSegment(properties, start, degrees) 
-				
+				properties.stroke = invalid ? 'grey' : properties.strokeColor
+				drawLine(properties, start, degrees)
+
 				// inside line
 				properties.strokeWidth = strokeWidthInner
-				properties.stroke = /*invalid ? 'grey' :*/ properties.color
-				start = drawSegment(properties, start, degrees)
-				
+				properties.stroke = invalid ? 'grey' : properties.color
+				var line = drawLine(properties, start, degrees)
+
+				/** text label */
+				if(labelsOn && i == 0) {
+				    //var comparePoint
+					var reposition = 0 // will turn true if label is too close to another
+                    var done = false
+					do {
+				        console.log(angle.name, reposition)
+						var label = new PointText(start)
+						var fontSize = labelFontSize
+						var yOffset = degrees > 90 || degrees < -90 ? fontSize : fontSize * -0.4
+						label.position.x += circleRadius + 5 + reposition
+						label.position.y += yOffset
+						label.rotate(degrees, start);
+						//comparePoint = label.point
+						label.fillColor = 'white'
+						label.fontSize = fontSize
+						label.fontWeight = 'bold'
+						label.fontFamily = 'Arial'
+						var content = Array.isArray(angle.labels) ? angle.labels.join(' / ') : angle.name;
+						label.content = content.toUpperCase()
+						label.shadowColor = 'black'
+						label.shadowBlur = 5
+						//label.strokeWidth = 1
+
+						if(label && (degrees > 90 || degrees < -90))
+							label.rotate(180);
+
+                        // check proximity
+                        if(labels.length == 0) done = true
+                        else {
+                            var counter = 0
+                            for(var j = 0; j < labels.length; j++) {
+                                counter++
+                                var compare = labels[j]
+                                if(label.bounds.intersects(compare.bounds)) {
+                                    reposition = reposition + label.bounds.intersect(compare.bounds).height + 10;
+                                    label.remove()
+                                    break;
+                                } else {
+                                    if(counter == labels.length) done = true
+                                }
+                            }
+
+                        }
+					} while (!done)
+
+					labels.push(label)
+				}
+
+				// get new starting point from reflection point
+				var intersections = line.getIntersections(stageBounds)
+				start = intersections.length ? intersections[intersections.length-1].point : false
+
 				if(!start) break
-				
+
 				degrees *= -1 // any hit
 				if(start.x >= canvas.width - 1 || start.x <= 1)
 					degrees += 180 // side wall hit
 			}
 		}
-		
+
 		// redraw the scene
 		function draw() {
 			paper.project.activeLayer.removeChildren()
-			
+            labels = []
+
 			for(var i = 0; i < loadedChars.length; i++) {
-				var s = loadedChars[i]
-				if(!s.x) {
-					s.x = Math.floor(Math.random() * (canvas.width - 300)) + 300
-					s.y = Math.floor(Math.random() * (canvas.height - 100)) + 100
+				var char = loadedChars[i]
+				if(!char.x) {
+					char.x = Math.floor(Math.random() * (canvas.width - 400)) + 200
+					char.y = Math.floor(Math.random() * (canvas.height - 100)) + 50
 				}
-				for(var j = 0; j < s.angles.length; j++) {
-					var angle = s.angles[j]
-					if(angle.visible) drawAngle(s, angle);
+
+				for(var j = 0; j < char.angles.length; j++) {
+					char.curAngle = char.angles[j]
+					if(char.curAngle.visible) drawAngle(char);
 				}
-				
+
 				// draw circle last so it's on top
 				new Path.Circle({
-					center: [s.x, s.y],
-					radius: 20,
-					fillColor: s.color,
-					strokeColor: s.strokeColor,
+					center: [char.x, char.y],
+					radius: circleRadius,
+					fillColor: char.color,
+					strokeColor: char.strokeColor,
 					strokeWidth: 3
 				})
+
+                labels.forEach(function(e) { e.bringToFront(); })
 			}
-			
+
 			paper.view.update()
 		}
 
@@ -478,7 +558,7 @@
 		  dragok = false;
 		  for(var i = 0; i < loadedChars.length; i++){
 			var s = loadedChars[i];
-			// decide if the shape is a rect or circle               
+			// decide if the shape is a rect or circle
 			if(s.width){
 			  // test if the mouse is inside this rect
 			  if(mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height){
@@ -532,7 +612,7 @@
 			var dx = mx - startX;
 			var dy = my - startY;
 
-			// move each rect that isDragging 
+			// move each rect that isDragging
 			// by the distance the mouse has moved
 			// since the last mousemove
 			for(var i = 0; i < loadedChars.length; i++){
@@ -555,25 +635,13 @@
 
 		var stages = [], characters = [], loadedChars = []
 
-		/*function loadEvent(func) {
-			var oldOnLoad = window.onload;
-			if (typeof window.onload != 'function') {
-				window.onload = func()
-			} else {
-				window.onload = function () {
-					oldOnLoad();
-					func();
-				}
-			}
-		}*/
-		
 		function loadChar(charName) {
 			var char = loadedChars.find(function(e){ return e.name == charName })
 			if(!char) {
 				char = characters.find(function(e){ return e.name == charName })
 				loadedChars.push(char)
 			}
-			
+
 			return char
 		}
 
@@ -587,7 +655,6 @@
 			};
 
 			$('select[name="stage"]').on('change', function(e) {
-				console.log('stage change')
 				var stageName = $(e.target).find(':selected').attr('value'); //console.log(stageName)
 				var stage = stages.find(function(e) { return e.name == stageName }); //console.log('stage:', stage)
 
@@ -601,7 +668,7 @@
 				$('#myCanvas').css('left', stage.canvasOffset[0])
 				$('#myCanvas').css('top', stage.canvasOffset[1])
 				$('#wrapper').css('background-image', 'url(assets/stages/'+stageName+'.png)')
-				
+
 				setTimeout(function() { $(window).trigger('resize'); }, 500)
 
 				draw()
@@ -611,116 +678,120 @@
 			$('select[name="stage"]').change()
 
 			/** add chars and angles */
-			//$.getJSON('characters.json', function(charData) {
-				for(var i in characterJSON) {
-					var char = characterJSON[i]
-					char.name = i
-					char.angles.push({ name: 'straight', degrees: 0, reflections: 0 })
-					char.facing = 'right'
-					char.isDragging = false
-					characters.push(char)
+			for(var i in characterJSON) {
+				var char = characterJSON[i]
+				char.name = i
+				char.angles.push({ name: 'straight', degrees: 0, reflections: 0 })
+				char.facing = 'right'
+				char.isDragging = false
+				characters.push(char)
 
-					$('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
-					var prevAngle = null // for combining like angles
-					for(var j = 0; j < char.angles.length; j++) {
-						var angle = char.angles[j]
-						if(prevAngle && prevAngle.degrees == angle.degrees) {
-							//console.log('same angle', char.name, angle.name)
-							//console.log('li.'+char.name+'.'+angle.name)
-							$('li.'+char.name+'.'+prevAngle.name).append('<br>/ '+angle.name)
-						} else {
-							$('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
-							prevAngle = angle
-						}
-					}
-				};
-
-				/** toggle chars */
-				$('.character').on('click', function(e) {
-					console.log('char click')
-					var charName = $(e.target).text()
-					var isLoaded = loadedChars.find(function(e){ return e.name == charName })
-					if(!isLoaded) {
-						var char = characters.find(function(e){ return e.name == charName })
-						loadedChars.push(char)
+				$('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
+				var prevAngle = null // for combining like angles
+				for(var j = 0; j < char.angles.length; j++) {
+					var angle = char.angles[j]
+					if(prevAngle && prevAngle.degrees == angle.degrees) {
+						$('li.'+char.name+'.'+prevAngle.name).append('<br>/ '+angle.name)
+						if(!Array.isArray(prevAngle.labels))
+						    prevAngle.labels = []
+						prevAngle.labels.push(angleAlias[angle.name] || angle.name)
 					} else {
-						// unload em
-						var i = loadedChars.findIndex(function(e){ return e.name == charName })
-						loadedChars.splice(i, 1)
+						$('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
+						angle.labels = [angleAlias[angle.name] || angle.name]
+						prevAngle = angle
 					}
+				}
+			};
 
-					draw();
-				})
-				
-				/** turn around */
-				$('.turn').on('click', function(e) {
-					var charName = $(e.target).parent().attr('id')
-					var char = loadedChars.find(function(e){ return e.name == charName })
-					if(!char) char = characters.find(function(e){ return e.name == charName })
-					char.facing = char.facing == 'right' ? 'left' : 'right'
-					
-					draw();
-				})
+			/** toggle chars */
+			$('.character').on('click', function(e) {
+				console.log('char click')
+				var charName = $(e.target).text()
+				var isLoaded = loadedChars.find(function(e){ return e.name == charName })
+				if(!isLoaded) {
+					var char = characters.find(function(e){ return e.name == charName })
+					loadedChars.push(char)
+				} else {
+					// unload em
+					var i = loadedChars.findIndex(function(e){ return e.name == charName })
+					loadedChars.splice(i, 1)
+				}
 
-				/** toggle angles */
-				$('.angles li').on('click', function(e) {
-					console.log('angle click')
-					var classes = $(e.target).attr('class').split(/\s+/)
-					var charName = classes[0]
-					var angleName = classes[1]
-					
-					var char = loadChar(charName)
-					
-					var angle = char.angles.find(function(e){ return e.name == angleName })
-					if(angle.visible) angle.visible = false
-					else {
-						angle.visible = true
-						if(angle.reflections == undefined || angle.reflections <= 0)
-							angle.reflections = 1
-					}
+				draw()
+			})
 
-					draw();
-				})
-				
-				/** angle reflections */
-				$('.plus, .minus').on('click', function(e) {
-					console.log('refl click')
-					e.preventDefault();
-					e.stopPropagation();
-					
-					var classes = $(e.target).parent().attr('class').split(/\s+/)
-					var charName = classes[0]
-					var angleName = classes[1]
-					
-					var char = loadChar(charName);
-					
-					// show angle
-					var angle = char.angles.find(function(e){ return e.name == angleName })
-					angle.visible = true;
-					
-					var sign = $(e.target).attr('class')
-					if(angle.reflections == 'undefined' || isNaN(angle.reflections)) 
-						angle.reflections = 0
-						
-					if(sign == 'plus') angle.reflections += 1 
-					else angle.reflections -= 1
-					if(angle.reflections <= 0) {
-						angle.reflections = 0
-						angle.visible = false
-					}
-					
-					draw();
-				})
-			//})
-		});
-		
+			/** turn around */
+			$('.turn').on('click', function(e) {
+				var charName = $(e.target).parent().attr('id')
+				var char = loadedChars.find(function(e){ return e.name == charName })
+				if(!char) char = characters.find(function(e){ return e.name == charName })
+				char.facing = char.facing == 'right' ? 'left' : 'right'
+
+				draw()
+			})
+
+			/** toggle angles */
+			$('.angles li').on('click', function(e) {
+				var classes = $(e.target).attr('class').split(/\s+/)
+				var charName = classes[0]
+				var angleName = classes[1]
+
+				var char = loadChar(charName)
+
+				var angle = char.angles.find(function(e){ return e.name == angleName })
+				if(angle.visible) angle.visible = false
+				else {
+					angle.visible = true
+					if(angle.reflections == undefined || angle.reflections <= 0)
+						angle.reflections = 1
+				}
+
+				draw()
+			})
+
+			/** angle reflections */
+			$('.plus, .minus').on('click', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				var classes = $(e.target).parent().attr('class').split(/\s+/)
+				var charName = classes[0]
+				var angleName = classes[1]
+
+				var char = loadChar(charName);
+
+				// show angle
+				var angle = char.angles.find(function(e){ return e.name == angleName })
+				angle.visible = true;
+
+				var sign = $(e.target).attr('class')
+				if(angle.reflections == 'undefined' || isNaN(angle.reflections))
+					angle.reflections = 0
+
+				if(sign == 'plus') angle.reflections += 1
+				else angle.reflections -= 1
+				if(angle.reflections <= 0) {
+					angle.reflections = 0
+					angle.visible = false
+				}
+
+				draw()
+			})
+		})
+
 		/** options */
 		$('#overlay').on('click', function(e) {
 			e.preventDefault
 			var bg = $('#myCanvas').css('background-color')
 			if(bg == 'rgba(0, 0, 0, 0)') $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0.7)')
 			else $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0)')
-			
+
+		})
+
+		/** options */
+		$('#labels').on('click', function(e) {
+			labelsOn = !labelsOn
+            draw()
 		})
 	</script>
 	<style>
@@ -747,10 +818,11 @@
 		}
 		#options a {
 			cursor: pointer;
-		    height: 100%;
-			display: block;
+			height: 100%;
+			display: inline-block;
 			background: #444;
 			padding: 15px 20px;
+            margin-right: 10px;
 			color: white;
 			border-radius: 5px;
 		}
@@ -794,7 +866,7 @@
 			padding: 5px;
 			list-style: none;
 		}
-		#menu ul { 
+		#menu ul {
 			overflow-y: scroll;
 			list-style: none;
 			height: 550px;
@@ -842,30 +914,25 @@
 	</style>
 </head>
 <body>
-	<div id="header">
-		<div id="title">
-			<h1>Lethal League Blaze Angle Tool</h1>
-			<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Repo</a></p>
-		</div>
-		<div id="options">
-			<a herf="#" id="overlay">Contrast</a>
-		</div>
+<div id="header">
+	<div id="title">
+		<h1>Lethal League Blaze Angle Tool</h1>
+		<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Repo</a></p>
 	</div>
-	<div id="menu">
-		<select name="stage">
-			<!--<option value="">stage select</option>-->
-		</select>
-		<ul>
-		</ul>
+	<div id="options">
+		<a herf="#" id="overlay">Contrast</a>
+		<a herf="#" id="labels">Labels</a>
 	</div>
-	<div id="wrapper">
-		<canvas id="myCanvas" width=1200 height=490></canvas>
-	</div>
+</div>
+<div id="menu">
+	<select name="stage">
+		<!--<option value="">stage select</option>-->
+	</select>
+	<ul>
+	</ul>
+</div>
+<div id="wrapper">
+	<canvas id="myCanvas" width=1200 height=490></canvas>
+</div>
 </body>
 </html>
-
-
-
-
-
-
