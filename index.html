@@ -5,6 +5,12 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<!-- Define inlined PaperScript associate it with myCanvas -->
 	<script type="text/paperscript" canvas="myCanvas">
+        /** some globals **/
+        var circleRadius = 20
+        var strokeWidthOuter = 6
+        var strokeWidthInner = 2
+        var labelFontSize = 20
+
 		/**
 		 * names map to stage images in assets/stages
 		 */
@@ -389,23 +395,17 @@
 			"wall-down": "WD"
 		}
 
-		/** some globals **/
-		var circleRadius = 20
-		var strokeWidthOuter = 6
-		var strokeWidthInner = 2
-		var labelFontSize = 20
-		var labelPoints = []
 
 		var canvas = document.getElementById('myCanvas')
 		var stageBounds, startX, startY
 		var offsetX = canvas.getBoundingClientRect().left;
 		var offsetY = canvas.getBoundingClientRect().top;
 		var dragok = false;
+        var labels = [], labelsOn = false
 
 		window.onresize = function() {
 			offsetX = canvas.getBoundingClientRect().left;
 			offsetY = canvas.getBoundingClientRect().top;
-			//console.log(offsetX, offsetY)
 		}
 
 		canvas.onmousedown = myDown;
@@ -451,52 +451,52 @@
 				var line = drawLine(properties, start, degrees)
 
 				/** text label */
-				if(i == 0) {
-				    var comparePoint
+				if(labelsOn && i == 0) {
+				    //var comparePoint
 					var reposition = 0 // will turn true if label is too close to another
+                    var done = false
 					do {
-				        console.log(angle.name)
+				        console.log(angle.name, reposition)
 						var label = new PointText(start)
 						var fontSize = labelFontSize
 						var yOffset = degrees > 90 || degrees < -90 ? fontSize : fontSize * -0.4
 						label.position.x += circleRadius + 5 + reposition
 						label.position.y += yOffset
-						label.rotate(degrees, start)
-						comparePoint = label.point
+						label.rotate(degrees, start);
+						//comparePoint = label.point
 						label.fillColor = 'white'
 						label.fontSize = fontSize
 						label.fontWeight = 'bold'
-						label.fontFamily = 'Helvetica'
-						label.content = Array.isArray(angle.labels) ? angle.labels.join(' / ') : angle.name
-						//label.strokeColor = 'black'
+						label.fontFamily = 'Arial'
+						var content = Array.isArray(angle.labels) ? angle.labels.join(' / ') : angle.name;
+						label.content = content.toUpperCase()
+						label.shadowColor = 'black'
+						label.shadowBlur = 5
 						//label.strokeWidth = 1
-						//new Path.Circle({center: label.position, radius: 5, fillColor: 'red'})
-						//new Path.Circle({center: label.bounds.point, radius: 5, fillColor: 'blue'})
-						//new Path.Circle({center: label.point, radius: 5, fillColor: 'blue'})
-
-						// check proximity
-						/*for(var j = 0; j < labelPoints.length; j++) {
-						    var compare = labelPoints[j]
-							var dist = label.point.getDistance(compare)
-							//console.log(label.content, dist, checkLabel.content)
-							if(dist < 20 && reposition < 20) {
-								label.remove()
-								reposition += 5
-								console.log('repos', label.content, dist, reposition)
-							} else {
-						        console.log('final dist:', dist)
-						        reposition = 0
-							}
-						}*/
 
 						if(label && (degrees > 90 || degrees < -90))
-							label.rotate(180)
+							label.rotate(180);
 
-						//new Path.Circle({center: label.point, radius: 5, fillColor: 'red'})
+                        // check proximity
+                        if(labels.length == 0) done = true
+                        else {
+                            var counter = 0
+                            for(var j = 0; j < labels.length; j++) {
+                                counter++
+                                var compare = labels[j]
+                                if(label.bounds.intersects(compare.bounds)) {
+                                    reposition = reposition + label.bounds.intersect(compare.bounds).height + 10;
+                                    label.remove()
+                                    break;
+                                } else {
+                                    if(counter == labels.length) done = true
+                                }
+                            }
 
-					} while (reposition > 0)
+                        }
+					} while (!done)
 
-					labelPoints.push(comparePoint)
+					labels.push(label)
 				}
 
 				// get new starting point from reflection point
@@ -514,13 +514,13 @@
 		// redraw the scene
 		function draw() {
 			paper.project.activeLayer.removeChildren()
-			labelPoints = []
+            labels = []
 
 			for(var i = 0; i < loadedChars.length; i++) {
 				var char = loadedChars[i]
 				if(!char.x) {
-					char.x = Math.floor(Math.random() * (canvas.width - 300)) + 300
-					char.y = Math.floor(Math.random() * (canvas.height - 100)) + 100
+					char.x = Math.floor(Math.random() * (canvas.width - 400)) + 200
+					char.y = Math.floor(Math.random() * (canvas.height - 100)) + 50
 				}
 
 				for(var j = 0; j < char.angles.length; j++) {
@@ -536,6 +536,8 @@
 					strokeColor: char.strokeColor,
 					strokeWidth: 3
 				})
+
+                labels.forEach(function(e) { e.bringToFront(); })
 			}
 
 			paper.view.update()
@@ -715,7 +717,7 @@
 					loadedChars.splice(i, 1)
 				}
 
-				draw();
+				draw()
 			})
 
 			/** turn around */
@@ -725,7 +727,7 @@
 				if(!char) char = characters.find(function(e){ return e.name == charName })
 				char.facing = char.facing == 'right' ? 'left' : 'right'
 
-				draw();
+				draw()
 			})
 
 			/** toggle angles */
@@ -744,7 +746,7 @@
 						angle.reflections = 1
 				}
 
-				draw();
+				draw()
 			})
 
 			/** angle reflections */
@@ -773,9 +775,9 @@
 					angle.visible = false
 				}
 
-				draw();
+				draw()
 			})
-		});
+		})
 
 		/** options */
 		$('#overlay').on('click', function(e) {
@@ -784,6 +786,12 @@
 			if(bg == 'rgba(0, 0, 0, 0)') $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0.7)')
 			else $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0)')
 
+		})
+
+		/** options */
+		$('#labels').on('click', function(e) {
+			labelsOn = !labelsOn
+            draw()
 		})
 	</script>
 	<style>
@@ -811,9 +819,10 @@
 		#options a {
 			cursor: pointer;
 			height: 100%;
-			display: block;
+			display: inline-block;
 			background: #444;
 			padding: 15px 20px;
+            margin-right: 10px;
 			color: white;
 			border-radius: 5px;
 		}
@@ -912,6 +921,7 @@
 	</div>
 	<div id="options">
 		<a herf="#" id="overlay">Contrast</a>
+		<a herf="#" id="labels">Labels</a>
 	</div>
 </div>
 <div id="menu">
