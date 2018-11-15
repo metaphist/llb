@@ -366,7 +366,7 @@
 			  {
 				"name": "ground-down",
 				"degrees": 46,
-				"ground": "true" 
+				"ground": "true"
 			  },
 			  {
 				"name": "smash",
@@ -412,13 +412,10 @@
 		canvas.onmouseup = myUp;
 		canvas.onmousemove = myMove;
 
-		function drawLine(properties, start, degrees) {
-			var line = new Path({
-				strokeWidth: properties.strokeWidth,
-				strokeColor: properties.stroke
-			})
+		function drawLine(start, degrees) {
 			// use canvas width * 2 to ensure line is long enough in any situation
 			var end = new Point(start.x + canvas.width * 2, start.y)
+			var line = new Path()
 			line.add(start, end)
 			line.rotate(degrees, start)
 
@@ -440,30 +437,17 @@
 			var invalid = false // no use-y for now
 
 			for(var i = 0; i < angle.reflections; ++i) {
-				// outside line
-				properties.strokeWidth = strokeWidthOuter
-				properties.stroke = invalid ? 'grey' : properties.strokeColor
-				drawLine(properties, start, degrees)
-
-				// inside line
-				properties.strokeWidth = strokeWidthInner
-				properties.stroke = invalid ? 'grey' : properties.color
-				var line = drawLine(properties, start, degrees)
-
 				/** text label */
 				if(labelsOn && i == 0) {
-				    //var comparePoint
 					var reposition = 0 // will turn true if label is too close to another
                     var done = false
 					do {
-				        console.log(angle.name, reposition)
 						var label = new PointText(start)
 						var fontSize = labelFontSize
 						var yOffset = degrees > 90 || degrees < -90 ? fontSize : fontSize * -0.4
 						label.position.x += circleRadius + 5 + reposition
 						label.position.y += yOffset
-						label.rotate(degrees, start);
-						//comparePoint = label.point
+						label.rotate(degrees, start)
 						label.fillColor = 'white'
 						label.fontSize = fontSize
 						label.fontWeight = 'bold'
@@ -499,15 +483,83 @@
 					labels.push(label)
 				}
 
+				var line = drawLine(start, degrees)
+
 				// get new starting point from reflection point
 				var intersections = line.getIntersections(stageBounds)
-				start = intersections.length ? intersections[intersections.length-1].point : false
+				var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
+				if(!intersectPoint) break
 
-				if(!start) break
+				// outer line
+				var line = new Path({
+					segments: [start, intersectPoint],
+					strokeWidth: strokeWidthOuter,
+					strokeColor: invalid ? 'grey' : properties.strokeColor
+				})
+				// inner line
+				line.clone().style = {
+					strokeWidth: strokeWidthInner,
+					strokeColor: invalid ? 'grey' : properties.color
+				}
+				var vector = intersectPoint - start
+				//new Path.Circle({center:start, radius: 5 }).style = { fillColor: 'blue' }
+				//new Path.Circle({radius: 5, center:intersectPoint}).style = { fillColor: 'green' }
+				//new Path(vector).style = { strokeWidth: 5, strokeColor: 'red' }
+				//console.log(start, intersectPoint, vector)
 
-				degrees *= -1 // any hit
-				if(start.x >= canvas.width - 1 || start.x <= 1)
-					degrees += 180 // side wall hit
+				//if(angle.guide) {
+					var arrowVector = vector.normalize(20);
+					var end = start + vector;
+					var vectorItem = new Group([
+						new Path([
+							end + arrowVector.rotate(150),
+							end,
+							end + arrowVector.rotate(-150)
+						])
+					]);
+					vectorItem.strokeWidth = strokeWidthInner;
+					vectorItem.strokeColor = 'red'
+					vectorItem.strokeCap = 'round'
+					/*vectorItem.clone().style = {
+						strokeWidth: strokeWidthInner,
+						strokeColor: invalid ? 'grey' : properties.color
+					}*/
+				//}
+
+				// new start for next reflection
+				start = intersectPoint.clone()
+
+				if(properties.name == 'Candyman' && angle.special) {
+				    var oldStart = start.clone()
+
+					// move start to opposite wall
+					if(start.x >= canvas.width - 1)
+						start.x = 1;
+					else if(start.x <= 1)
+					    start.x = canvas.width
+
+					if(start.y >= canvas.height - 1)
+					    start.y = 0
+					else if(start.y <= 1)
+					    start.y = canvas.height
+
+					if(angle.guide) {
+					    // warp indicator
+						new Path({
+							segments: [oldStart, start],
+							strokeWidth: 1,
+							dashArray: [1, 1],
+							strokeColor: 'white'
+						})
+					}
+
+				} else {
+					// on all reflections
+					degrees *= -1
+					// on side reflections only
+					if(start.x >= canvas.width - 1 || start.x <= 1)
+						degrees += 180
+				}
 			}
 		}
 
@@ -652,7 +704,7 @@
 				stage.name = i
 				stages.push(stage)
 				$('select[name="stage"]').append('<option value="'+stage.name+'">'+stage.name+'</option>')
-			};
+			}
 
 			$('select[name="stage"]').on('change', function(e) {
 				var stageName = $(e.target).find(':selected').attr('value'); //console.log(stageName)
@@ -699,18 +751,21 @@
 						$('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
 						angle.labels = [angleAlias[angle.name] || angle.name]
 						prevAngle = angle
+
+						// special butttons
+						if(char.name == 'Candyman' && ['up', 'straight', 'air-down', 'ground-down'].indexOf(angle.name) > -1) {
+						    $('li.'+char.name+'.'+angle.name).append('<span class="special">S</span>')
+						}
 					}
 				}
 			};
 
 			/** toggle chars */
 			$('.character').on('click', function(e) {
-				console.log('char click')
 				var charName = $(e.target).text()
 				var isLoaded = loadedChars.find(function(e){ return e.name == charName })
 				if(!isLoaded) {
-					var char = characters.find(function(e){ return e.name == charName })
-					loadedChars.push(char)
+					loadChar(charName)
 				} else {
 					// unload em
 					var i = loadedChars.findIndex(function(e){ return e.name == charName })
@@ -751,8 +806,8 @@
 
 			/** angle reflections */
 			$('.plus, .minus').on('click', function(e) {
-				e.preventDefault();
-				e.stopPropagation();
+				e.preventDefault()
+				e.stopPropagation()
 
 				var classes = $(e.target).parent().attr('class').split(/\s+/)
 				var charName = classes[0]
@@ -773,6 +828,34 @@
 				if(angle.reflections <= 0) {
 					angle.reflections = 0
 					angle.visible = false
+				}
+
+				draw()
+			})
+
+			/** dem specials */
+			$('.special').on('click', function(e) {
+				e.preventDefault()
+				e.stopPropagation()
+
+				var classes = $(e.target).parent().attr('class').split(/\s+/)
+				var charName = classes[0]
+				var angleName = classes[1]
+
+				var char = loadChar(charName);
+
+				// show angle
+				var angle = char.angles.find(function(e){ return e.name == angleName })
+				angle.visible = true
+				if(angle.reflections == 'undefined' || isNaN(angle.reflections))
+					angle.reflections = 0
+				// makes first click turn on special, second turn on guides, third turn everything off
+				if(angle.guide) {
+				    angle.special = false
+					angle.guide = false
+				} else {
+				    if(angle.special) angle.guide = true
+				    angle.special = true
 				}
 
 				draw()
@@ -900,10 +983,15 @@
 			font-size: 2em;
 			font-weight: bold;
 		}
-		.plus, .minus, .turn {
+		.plus, .minus, .turn, .special {
 			padding: 3px 7px;
 			background: goldenrod;
 			border-radius: 5px;
+		}
+		.special {
+			margin-left: 3px;
+			background: orangered;
+			color: navajowhite;
 		}
 		h1 {
 			margin-bottom: 0;
