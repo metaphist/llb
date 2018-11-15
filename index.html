@@ -10,6 +10,7 @@
         var strokeWidthOuter = 6
         var strokeWidthInner = 2
         var labelFontSize = 20
+        var guideColor = 'white'
 
 		/**
 		 * names map to stage images in assets/stages
@@ -402,6 +403,7 @@
 		var offsetY = canvas.getBoundingClientRect().top;
 		var dragok = false;
         var labels = [], labelsOn = false
+		var guides = [], guidesOn = false
 
 		window.onresize = function() {
 			offsetX = canvas.getBoundingClientRect().left;
@@ -424,7 +426,7 @@
 
 		function drawAngle(properties) {
 		    var angle = properties.curAngle
-			if(angle.reflections == 0) angle.reflections = 1
+			//if(angle.reflections == 0) angle.reflections = 1
 			var degrees = properties.facing == 'left' ? (angle.degrees + 180) * -1 : angle.degrees
 			var start = new Point(properties.x, properties.y)
 
@@ -435,8 +437,8 @@
 				(angle.wall && properties.facing == 'right' && start.x < canvas.width - 70) ||
 				(angle.wall && properties.facing == 'left' && start.x > 70)*/
 			var invalid = false // no use-y for now
-
-			for(var i = 0; i < angle.reflections; ++i) {
+			console.log('refl:', angle.reflections)
+			for(var i = 0; i <= angle.reflections; ++i) {
 				/** text label */
 				if(labelsOn && i == 0) {
 					var reposition = 0 // will turn true if label is too close to another
@@ -491,45 +493,27 @@
 				if(!intersectPoint) break
 
 				// outer line
-				var line = new Path({
+				new Path({
 					segments: [start, intersectPoint],
 					strokeWidth: strokeWidthOuter,
 					strokeColor: invalid ? 'grey' : properties.strokeColor
-				})
-				// inner line
-				line.clone().style = {
+				}).clone().style = { // inner line
 					strokeWidth: strokeWidthInner,
 					strokeColor: invalid ? 'grey' : properties.color
 				}
-				var vector = intersectPoint - start
-				//new Path.Circle({center:start, radius: 5 }).style = { fillColor: 'blue' }
-				//new Path.Circle({radius: 5, center:intersectPoint}).style = { fillColor: 'green' }
-				//new Path(vector).style = { strokeWidth: 5, strokeColor: 'red' }
-				//console.log(start, intersectPoint, vector)
 
-				//if(angle.guide) {
-					var arrowVector = vector.normalize(20);
-					var end = start + vector;
-					var vectorItem = new Group([
-						new Path([
-							end + arrowVector.rotate(150),
-							end,
-							end + arrowVector.rotate(-150)
-						])
-					]);
-					vectorItem.strokeWidth = strokeWidthInner;
-					vectorItem.strokeColor = 'red'
-					vectorItem.strokeCap = 'round'
-					/*vectorItem.clone().style = {
-						strokeWidth: strokeWidthInner,
-						strokeColor: invalid ? 'grey' : properties.color
-					}*/
-				//}
+				var vector = intersectPoint - start
+
+				var arrows = new Group()
+				if(guidesOn) {
+					arrows.addChildren(addArrows(start, vector, 1, true))
+				}
 
 				// new start for next reflection
 				start = intersectPoint.clone()
 
-				if(properties.name == 'Candyman' && angle.special) {
+				/** candyman special */ //console.log(angle.special, i, angle.reflections)
+				if(properties.name == 'Candyman' && angle.special > i) {
 				    var oldStart = start.clone()
 
 					// move start to opposite wall
@@ -543,14 +527,17 @@
 					else if(start.y <= 1)
 					    start.y = canvas.height
 
-					if(angle.guide) {
+					if(guidesOn) {
 					    // warp indicator
 						new Path({
 							segments: [oldStart, start],
 							strokeWidth: 1,
-							dashArray: [1, 1],
+							dashArray: [1, 5],
 							strokeColor: 'white'
 						})
+
+						var warpVector = start - oldStart
+						arrows.addChildren(addArrows(oldStart, warpVector, 2, false))
 					}
 
 				} else {
@@ -560,7 +547,30 @@
 					if(start.x >= canvas.width - 1 || start.x <= 1)
 						degrees += 180
 				}
+
+				// style all arrows
+				arrows.strokeWidth = 4
+				arrows.strokeColor = guideColor
+				arrows.strokeCap = 'round'
+				guides.push(arrows)
 			}
+		}
+
+		function addArrows(start, vector, count, cap) {
+		    var arrows = []
+			var arrowVector = vector.normalize(10)
+			var division = vector / (count + 1)
+			var arrowHead = start + division;
+			for(var i = 0; i < count; i++) {
+				arrows.push(new Path([ arrowHead + arrowVector.rotate(160), arrowHead, arrowHead + arrowVector.rotate(-160) ]))
+				arrowHead += division
+			}
+			if(cap) {
+				arrowHead = start + vector;
+				arrows.push(new Path([ arrowHead + arrowVector.rotate(160), arrowHead, arrowHead + arrowVector.rotate(-160) ]))
+			}
+
+			return arrows
 		}
 
 		// redraw the scene
@@ -590,6 +600,7 @@
 				})
 
                 labels.forEach(function(e) { e.bringToFront(); })
+                guides.forEach(function(e) { e.bringToFront(); })
 			}
 
 			paper.view.update()
@@ -733,7 +744,7 @@
 			for(var i in characterJSON) {
 				var char = characterJSON[i]
 				char.name = i
-				char.angles.push({ name: 'straight', degrees: 0, reflections: 0 })
+				char.angles.push({ name: 'straight', degrees: 0})
 				char.facing = 'right'
 				char.isDragging = false
 				characters.push(char)
@@ -742,6 +753,7 @@
 				var prevAngle = null // for combining like angles
 				for(var j = 0; j < char.angles.length; j++) {
 					var angle = char.angles[j]
+					angle.reflections = 0
 					if(prevAngle && prevAngle.degrees == angle.degrees) {
 						$('li.'+char.name+'.'+prevAngle.name).append('<br>/ '+angle.name)
 						if(!Array.isArray(prevAngle.labels))
@@ -758,7 +770,7 @@
 						}
 					}
 				}
-			};
+			}
 
 			/** toggle chars */
 			$('.character').on('click', function(e) {
@@ -797,8 +809,8 @@
 				if(angle.visible) angle.visible = false
 				else {
 					angle.visible = true
-					if(angle.reflections == undefined || angle.reflections <= 0)
-						angle.reflections = 1
+					/*if(angle.reflections == undefined || angle.reflections <= 0)
+						angle.reflections = 1*/
 				}
 
 				draw()
@@ -814,22 +826,29 @@
 				var angleName = classes[1]
 
 				var char = loadChar(charName);
-
-				// show angle
 				var angle = char.angles.find(function(e){ return e.name == angleName })
-				angle.visible = true;
+				//console.log('pre event', angle.reflections)
+
+				/*if(angle.reflections == 'undefined' || isNaN(angle.reflections)) {
+					angle.reflections = -1
+					//console.log('setup refl', angle.reflections)
+				}*/
 
 				var sign = $(e.target).attr('class')
-				if(angle.reflections == 'undefined' || isNaN(angle.reflections))
-					angle.reflections = 0
+				if(angle.visible) {
+					if(sign == 'plus') angle.reflections += 1
+					else angle.reflections -= 1
+				}
 
-				if(sign == 'plus') angle.reflections += 1
-				else angle.reflections -= 1
-				if(angle.reflections <= 0) {
+				if(sign == 'plus')
+				    angle.visible = true;
+
+				if(angle.reflections < 0) {
 					angle.reflections = 0
 					angle.visible = false
 				}
 
+				//console.log('post event', angle.reflections)
 				draw()
 			})
 
@@ -849,13 +868,19 @@
 				angle.visible = true
 				if(angle.reflections == 'undefined' || isNaN(angle.reflections))
 					angle.reflections = 0
-				// makes first click turn on special, second turn on guides, third turn everything off
-				if(angle.guide) {
-				    angle.special = false
-					angle.guide = false
+
+				// candyman extend
+				if(charName == 'Candyman' && (!angle.special || angle.special < angle.reflections)) {
+				    if(!angle.special)
+				        angle.special = 1
+				    else angle.special++
+					// give at least one reflection to properly visualize special
+					if(angle.reflections <= 0)
+					    angle.reflections = 1
+					if(!guidesOn)
+					    guidesOn = true
 				} else {
-				    if(angle.special) angle.guide = true
-				    angle.special = true
+					angle.special = !angle.special
 				}
 
 				draw()
@@ -873,8 +898,25 @@
 
 		/** options */
 		$('#labels').on('click', function(e) {
+			e.preventDefault
 			labelsOn = !labelsOn
             draw()
+		})
+
+		/** guides */
+		$('#guides').on('click', function(e) {
+			e.preventDefault
+			guidesOn = !guidesOn
+            draw()
+		})
+
+		/** guides */
+		$('#clear').on('click', function(e) {
+			paper.project.activeLayer.removeChildren()
+			loadedChars = []
+			characters.forEach(function(e) {
+			    e.angles.forEach(function(e) { e.visible = false; e.reflections = 0; })
+			})
 		})
 	</script>
 	<style>
@@ -1008,8 +1050,10 @@
 		<p><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1555507458">Daioutzu Angle Guide</a> | <a href="https://github.com/metaphist/llb">GitHub Repo</a></p>
 	</div>
 	<div id="options">
+		<a herf="#" id="clear">Reset</a>
 		<a herf="#" id="overlay">Contrast</a>
 		<a herf="#" id="labels">Labels</a>
+		<a herf="#" id="guides">Guides</a>
 	</div>
 </div>
 <div id="menu">
