@@ -1,0 +1,121 @@
+body {
+    background: #ccc;
+    font-family: helvetica;
+    color: #555;
+    margin: 0;
+    padding: 5px;
+}
+#container {
+    display: block;
+    margin: auto;
+}
+#header {
+    height: 100px;
+    margin: 0;
+}
+#options, #title {
+    float: left;
+}
+#options {
+    padding: 25px;
+}
+#options a {
+    cursor: pointer;
+    height: 100%;
+    display: inline-block;
+    background: #444;
+    padding: 15px 20px;
+    margin-right: 10px;
+    color: white;
+    border-radius: 5px;
+}
+#wrapper {
+    float: left;
+    position: relative;
+    display: block;
+    width: 1280px;
+    height: 600px;
+    margin: 0 5px;
+    /*
+    background: url('assets/stages/Desolace.png') top center #fff;
+    */
+}
+#myCanvas {
+    /*border: 2px solid red;
+    background: rgba(0, 0, 0, 0.5);
+    left: 0; top: 30px;
+    margin: 0 auto;
+    */
+    display: block;
+    position: relative;
+}
+#menu {
+    /*
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: scroll;
+    */
+    float: left;
+    margin: 0;
+    background: gold;
+    border: 1px solid goldenrod;
+    z-index: 10;
+    text-transform: uppercase;
+    font-size: 12px;
+    height: 599px;
+}
+#menu ol, #menu ul {
+    margin: 0;
+    padding: 5px;
+    list-style: none;
+}
+#menu ul {
+    overflow-y: scroll;
+    list-style: none;
+    height: 550px;
+}
+#menu li {
+    padding: 2px;
+    font-weight: bold;
+    z-index: 99;
+}
+#menu ol li {
+    margin: 5px 0;
+    padding-left: 20px;
+    text-indent: -15px;
+}
+#menu ol li br {
+    line-height: 20px;
+}
+#menu ol li:hover, #menu span:hover {
+    color: white;
+    cursor: pointer;
+}
+#menu select {
+    border: 0;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 5px;
+    margin: 0;
+    width: 100%;
+    background: goldenrod;
+    color: gold;
+    font-size: 2em;
+    font-weight: bold;
+}
+.plus, .minus, .turn, .special {
+    padding: 3px 7px;
+    background: goldenrod;
+    border-radius: 5px;
+}
+.special {
+    margin-left: 3px;
+    background: orangered;
+    color: navajowhite;
+}
+h1 {
+    margin-bottom: 0;
+}
+p {
+    margin-top: 0;
+}
