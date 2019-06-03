@@ -56,7 +56,6 @@ var stageJSON = {
  * like-angles should be adjacent to be grouped visually
  * wall and ground property will "invalidate" the angle if character is out of position
  */
-
 var characterJSON = {
   "Toxic": {
     "color": "#ff3913",
@@ -421,7 +420,6 @@ var angleAlias = {
   "wall-down": "WD"
 }
 
-
 var canvas = document.getElementById('myCanvas')
 var stageBounds, startX, startY
 var offsetX = canvas.getBoundingClientRect().left;
@@ -455,12 +453,6 @@ function drawAngle(properties) {
   var degrees = properties.facing == 'left' ? (angle.degrees + 180) * -1 : angle.degrees
   var start = new Point(properties.x, properties.y)
 
-  // no ground down unless on the ground, fool
-  // no latch wall unless on the correct wall
-  /*var invalid =
-    angle.ground && start.y < canvas.height - 70 ||
-    (angle.wall && properties.facing == 'right' && start.x < canvas.width - 70) ||
-    (angle.wall && properties.facing == 'left' && start.x > 70)*/
   var invalid = false // no use-y for now
   console.log('refl:', angle.reflections)
   for(var i = 0; i <= angle.reflections; ++i) {
@@ -537,7 +529,9 @@ function drawAngle(properties) {
     // new start for next reflection
     start = intersectPoint.clone()
 
-    /** candyman special */ //console.log(angle.special, i, angle.reflections)
+    /**
+     * Handle Candyman warp
+     */
     if(properties.name == 'Candyman' && angle.special > i) {
       var oldStart = start.clone()
 
@@ -742,9 +736,12 @@ $('document').ready(function() {
     $('select[name="stage"]').append('<option value="'+stage.name+'">'+stage.name+'</option>')
   }
 
+  /**
+   * Stage change event
+   */
   $('select[name="stage"]').on('change', function(e) {
-    var stageName = $(e.target).find(':selected').attr('value'); //console.log(stageName)
-    var stage = stages.find(function(e) { return e.name == stageName }); //console.log('stage:', stage)
+    var stageName = $(e.target).find(':selected').attr('value');
+    var stage = stages.find(function(e) { return e.name == stageName });
 
     paper.view.viewSize.width = stage.canvasSize[0]
     paper.view.viewSize.height = stage.canvasSize[1]
@@ -834,14 +831,14 @@ $('document').ready(function() {
     if(angle.visible) angle.visible = false
     else {
       angle.visible = true
-      /*if(angle.reflections == undefined || angle.reflections <= 0)
-        angle.reflections = 1*/
     }
 
     draw()
   })
 
-  /** angle reflections */
+  /**
+   * Add/subtract angle click event
+   */
   $('.plus, .minus').on('click', function(e) {
     e.preventDefault()
     e.stopPropagation()
@@ -852,12 +849,6 @@ $('document').ready(function() {
 
     var char = loadChar(charName);
     var angle = char.angles.find(function(e){ return e.name == angleName })
-    //console.log('pre event', angle.reflections)
-
-    /*if(angle.reflections == 'undefined' || isNaN(angle.reflections)) {
-      angle.reflections = -1
-      //console.log('setup refl', angle.reflections)
-    }*/
 
     var sign = $(e.target).attr('class')
     if(angle.visible) {
@@ -873,11 +864,13 @@ $('document').ready(function() {
       angle.visible = false
     }
 
-    //console.log('post event', angle.reflections)
     draw()
   })
 
-  /** dem specials */
+  /**
+   * Special angle click event
+   * toggle or increment Candyman warp
+   */
   $('.special').on('click', function(e) {
     e.preventDefault()
     e.stopPropagation()
@@ -894,7 +887,6 @@ $('document').ready(function() {
     if(angle.reflections == 'undefined' || isNaN(angle.reflections))
       angle.reflections = 0
 
-    // candyman extend
     if(charName == 'Candyman' && (!angle.special || angle.special < angle.reflections)) {
       if(!angle.special)
         angle.special = 1
@@ -912,30 +904,28 @@ $('document').ready(function() {
   })
 })
 
-/** options */
+/**
+ * Option bar events
+ */
 $('#overlay').on('click', function(e) {
   e.preventDefault
   var bg = $('#myCanvas').css('background-color')
   if(bg == 'rgba(0, 0, 0, 0)') $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0.7)')
   else $('#myCanvas').css('background-color', 'rgba(0, 0, 0, 0)')
-
 })
 
-/** options */
 $('#labels').on('click', function(e) {
   e.preventDefault
   labelsOn = !labelsOn
   draw()
 })
 
-/** guides */
 $('#guides').on('click', function(e) {
   e.preventDefault
   guidesOn = !guidesOn
   draw()
 })
 
-/** guides */
 $('#clear').on('click', function(e) {
   paper.project.activeLayer.removeChildren()
   loadedChars = []
