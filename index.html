@@ -807,7 +807,7 @@
 						prevAngle = angle
 
 						// special butttons
-						if(char.name == 'Candyman' && ['up', 'air-down', 'ground-down'].indexOf(angle.name) > -1) {
+						if(char.name == 'Candyman' /* && ['up', 'air-down', 'ground-down'].indexOf(angle.name) > -1 */) {
 						    $('li.'+char.name+'.'+angle.name).append('<span class="special" title="Add bounces (+) and click again to warp them">S</span>')
 						}
 					}
