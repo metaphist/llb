@@ -439,7 +439,7 @@ canvas.onmousemove = myMove;
 
 function drawLine(start, degrees) {
   // use canvas width * 2 to ensure line is long enough in any situation
-  var end = new Point(start.x + canvas.width * 2, start.y)
+  var end = new Point(start.x + canvas.getBoundingClientRect().width * 2, start.y)
   var line = new Path()
   line.add(start, end)
   line.rotate(degrees, start)
@@ -454,7 +454,6 @@ function drawAngle(properties) {
   var start = new Point(properties.x, properties.y)
 
   var invalid = false // no use-y for now
-  console.log('refl:', angle.reflections)
   for(var i = 0; i <= angle.reflections; ++i) {
     /** text label */
     if(labelsOn && i == 0) {
@@ -505,7 +504,8 @@ function drawAngle(properties) {
     var line = drawLine(start, degrees)
 
     // get new starting point from reflection point
-    var intersections = line.getIntersections(stageBounds)
+    var intersections = line.getIntersections(stageBounds);
+    //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
     var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
     if(!intersectPoint) break
 
@@ -536,15 +536,15 @@ function drawAngle(properties) {
       var oldStart = start.clone()
 
       // move start to opposite wall
-      if(start.x >= canvas.width - 1)
+      if(start.x >= canvas.getBoundingClientRect().width - 1)
         start.x = 1;
       else if(start.x <= 1)
-        start.x = canvas.width
+        start.x = canvas.getBoundingClientRect().width
 
-      if(start.y >= canvas.height - 1)
+      if(start.y >= canvas.getBoundingClientRect().height - 1)
         start.y = 0
       else if(start.y <= 1)
-        start.y = canvas.height
+        start.y = canvas.getBoundingClientRect().height
 
       if(guidesOn) {
         // warp indicator
@@ -563,7 +563,7 @@ function drawAngle(properties) {
       // on all reflections
       degrees *= -1
       // on side reflections only
-      if(start.x >= canvas.width - 1 || start.x <= 1)
+      if(start.x >= canvas.getBoundingClientRect().width - 1 || start.x <= 1)
         degrees += 180
     }
 
@@ -600,8 +600,8 @@ function draw() {
   for(var i = 0; i < loadedChars.length; i++) {
     var char = loadedChars[i]
     if(!char.x) {
-      char.x = Math.floor(Math.random() * (canvas.width - 400)) + 200
-      char.y = Math.floor(Math.random() * (canvas.height - 100)) + 50
+      char.x = Math.floor(Math.random() * (canvas.getBoundingClientRect().width - 400)) + 200
+      char.y = Math.floor(Math.random() * (canvas.getBoundingClientRect().height - 100)) + 50
     }
 
     for(var j = 0; j < char.angles.length; j++) {
@@ -623,6 +623,8 @@ function draw() {
   }
 
   paper.view.update()
+  window.canvas = canvas;
+  window.sb = stageBounds;
 }
 
 // handle mousedown events
@@ -747,7 +749,12 @@ $('document').ready(function() {
     paper.view.viewSize.height = stage.canvasSize[1]
 
     stageBounds = new Path()
-    stageBounds.add(new Point(0, 0), new Point(canvas.width, 0), new Point(canvas.width, canvas.height), new Point(0, canvas.height))
+    stageBounds.add(
+      new Point(0, 0),
+      new Point(canvas.getBoundingClientRect().width, 0),
+      new Point(canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height),
+      new Point(0, canvas.getBoundingClientRect().height)
+    )
     stageBounds.closed = true
 
     $('#myCanvas').css('left', stage.canvasOffset[0])
