@@ -407,7 +407,7 @@ var characterJSON = {
       }
     ]
   },
-  "Dust & Ashes": {
+  "DustAndAshes": {
     "color": "#5d68b3",
     "strokeColor": "#23da7d",
     "angles": [
