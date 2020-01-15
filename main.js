@@ -406,6 +406,37 @@ var characterJSON = {
         "degrees": 110
       }
     ]
+  },
+  "DustAndAshes": {
+    "color": "#5d68b3",
+    "strokeColor": "#23da7d",
+    "angles": [
+      {
+        "name": "up",
+        "degrees": -15
+      },
+      {
+        "name": "air-down",
+        "degrees": 21
+      },
+      {
+        "name": "ground-down",
+        "degrees": 57,
+        "ground": "true"
+      },
+      {
+        "name": "smash",
+        "degrees": 33
+      },
+      {
+        "name": "spike-forward",
+        "degrees": 44
+      },
+      {
+        "name": "spike-backward",
+        "degrees": 163
+      }
+    ]
   }
 }
 
