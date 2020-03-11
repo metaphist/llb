@@ -674,7 +674,7 @@ function draw() {
     // TODO: Add the character PNGs here
     //
     // Create a raster item using the image tag with id='mona'
-    var raster = new Raster('assets/characters/RaptorSwing.png');
+    var raster = new Raster(char.image);
     raster.position.x = char.x;
     raster.position.y = char.y
 
