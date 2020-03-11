@@ -1,3 +1,12 @@
+/** TODO
+ * Add Sonata Special Angles
+   * Learn to draw segments
+   * Add 45 segments to each 
+   * limit to 3 and make last a normal reflection
+   * Add "nice" & "bring it" angles as third reflection
+ * Add character portraits instead of drawing a circle
+   * Ball should be placed in the caracter's hitbox (must be shown)
+ **/
 
 /** some globals **/
 var circleRadius = 15
@@ -373,6 +382,14 @@ var characterJSON = {
       {
         "name": "spike-backward",
         "degrees": -165
+      },
+      {
+        "name": "bring-it",
+        "degrees": 90
+      },
+      {
+        "name": "nice",
+        "degrees": -90
       }
     ]
   },
@@ -448,7 +465,8 @@ var angleAlias = {
   "air-down": "AD",
   "spike-forward": "SK-F",
   "spike-backward": "SK-B",
-  "wall-down": "WD"
+  "wall-down": "WD",
+  "nice": "nice"
 }
 
 var canvas = document.getElementById('myCanvas')
@@ -641,6 +659,7 @@ function draw() {
     }
 
     // draw circle last so it's on top
+    // TODO: Add the character PNGs here
     new Path.Circle({
       center: [char.x, char.y],
       radius: circleRadius,
