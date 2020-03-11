@@ -68,6 +68,7 @@ var stageJSON = {
 var characterJSON = {
   "Toxic": {
     "color": "#ff3913",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "#75ff13",
     "angles": [
       {
@@ -99,6 +100,7 @@ var characterJSON = {
   },
   "Latch": {
     "color": "lightgreen",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "green",
     "angles": [
       {
@@ -135,6 +137,7 @@ var characterJSON = {
   },
   "Raptor": {
     "color": "red",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "purple",
     "angles": [
       {
@@ -166,6 +169,7 @@ var characterJSON = {
   },
   "Jet": {
     "color": "lightskyblue",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "royalblue",
     "angles": [
       {
@@ -197,6 +201,7 @@ var characterJSON = {
   },
   "Nitro": {
     "color": "white",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "black",
     "angles": [
       {
@@ -228,6 +233,7 @@ var characterJSON = {
   },
   "Doombox": {
     "color": "#444",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "royalblue",
     "angles": [
       {
@@ -259,6 +265,7 @@ var characterJSON = {
   },
   "Grid": {
     "color": "yellow",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "mediumpurple",
     "angles": [
       {
@@ -290,6 +297,7 @@ var characterJSON = {
   },
   "Switch": {
     "color": "slategrey",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "navy",
     "angles": [
       {
@@ -325,6 +333,7 @@ var characterJSON = {
   },
   "Candyman": {
     "color": "gold",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "brown",
     "angles": [
       {
@@ -356,6 +365,7 @@ var characterJSON = {
   },
   "Sonata": {
     "color": "#3349cb",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "darkviolet",
     "angles": [
       {
@@ -395,6 +405,7 @@ var characterJSON = {
   },
   "Dice": {
     "color": "saddlebrown",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "#c8de0a",
     "angles": [
       {
@@ -426,6 +437,7 @@ var characterJSON = {
   },
   "DustAndAshes": {
     "color": "#5d68b3",
+    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "#23da7d",
     "angles": [
       {
@@ -466,7 +478,7 @@ var angleAlias = {
   "spike-forward": "SK-F",
   "spike-backward": "SK-B",
   "wall-down": "WD",
-  "nice": "nice"
+  "nice": "Nice"
 }
 
 var canvas = document.getElementById('myCanvas')
@@ -660,6 +672,13 @@ function draw() {
 
     // draw circle last so it's on top
     // TODO: Add the character PNGs here
+    //
+    // Create a raster item using the image tag with id='mona'
+    var raster = new Raster('assets/characters/RaptorSwing.png');
+    raster.position.x = char.x;
+    raster.position.y = char.y
+
+    /*
     new Path.Circle({
       center: [char.x, char.y],
       radius: circleRadius,
@@ -667,6 +686,7 @@ function draw() {
       strokeColor: char.strokeColor,
       strokeWidth: 3
     })
+    */
 
     labels.forEach(function(e) { e.bringToFront(); })
     guides.forEach(function(e) { e.bringToFront(); })
