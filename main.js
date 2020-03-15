@@ -70,7 +70,7 @@ var stageJSON = {
 var characterJSON = {
   "Toxic": {
     "color": "#ff3913",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/ToxicSwing.png",
     "strokeColor": "#75ff13",
     "angles": [
       {
@@ -367,7 +367,7 @@ var characterJSON = {
   },
   "Sonata": {
     "color": "#3349cb",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/SonataSwing.png",
     "strokeColor": "darkviolet",
     "angles": [
       {
@@ -674,8 +674,8 @@ function draw() {
 
     // Draw character last so it's on top
     // Create a raster item using the image tag 
-    debugger;
-    r = new Raster(char.image)
+    //debugger;
+    var r = new Raster(char.image)
     r.position.x = char.x;
     r.position.y = char.y
     if(char.facing == "left"){
@@ -715,7 +715,7 @@ function myDown(e) {
   // test each shape to see if mouse is inside
   dragok = false;
   for(var i = 0; i < loadedChars.length; i++){
-    debugger;
+    //debugger;
     var s = loadedChars[i];
     // decide if the shape is a rect or circle
     if(s.width){
