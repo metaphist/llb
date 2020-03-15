@@ -1,4 +1,6 @@
 /** TODO
+ * Nosy little one aren't you...
+ *
  * Add Sonata Special Angles
    * Learn to draw segments
    * Add 45 segments to each 
@@ -670,13 +672,15 @@ function draw() {
       if(char.curAngle.visible) drawAngle(char);
     }
 
-    // draw circle last so it's on top
-    // TODO: Add the character PNGs here
-    //
-    // Create a raster item using the image tag with id='mona'
-    var raster = new Raster(char.image);
-    raster.position.x = char.x;
-    raster.position.y = char.y
+    // Draw character last so it's on top
+    // Create a raster item using the image tag 
+    debugger;
+    r = new Raster(char.image)
+    r.position.x = char.x;
+    r.position.y = char.y
+    if(char.facing == "left"){
+      r.scale(-1,1);
+    }
 
     /*
     new Path.Circle({
@@ -711,6 +715,7 @@ function myDown(e) {
   // test each shape to see if mouse is inside
   dragok = false;
   for(var i = 0; i < loadedChars.length; i++){
+    debugger;
     var s = loadedChars[i];
     // decide if the shape is a rect or circle
     if(s.width){
@@ -720,14 +725,14 @@ function myDown(e) {
         dragok = true;
         s.isDragging = true;
       }
-    } else {
-      var dx = s.x - mx;
-      var dy = s.y - my;
-      // test if the mouse is inside this circle
-      if(dx * dx + dy * dy < circleRadius * circleRadius) {
+    } else if (s.raster){
+      // s.x and s.y are in the middle of the image
+      var sx_half = s.raster.width/2;
+      var sy_half = s.raster.height/2;
+      if(mx > s.x-sx_half && mx < s.x + sx_half && my > s.y-sy_half && my < s.y + sy_half){
         dragok = true;
         s.isDragging = true;
-      }
+      }    
     }
   }
   // save the current mouse position
@@ -777,6 +782,8 @@ function myMove(e) {
       }
     }
 
+    //TODO: Make sure we limit where a character is drawn
+
     // redraw the scene with the new rect positions
     draw();
 
@@ -796,6 +803,8 @@ function loadChar(charName) {
     loadedChars.push(char)
   }
 
+  // Create a raster item using the image tag with id='mona'
+  char.raster = new Raster(char.image);
   return char
 }
 
