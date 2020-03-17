@@ -8,6 +8,7 @@
    * Add "nice" & "bring it" angles as third reflection
  * Add character portraits instead of drawing a circle
    * Ball should be placed in the caracter's hitbox (must be shown)
+   * Add button to enable/disable character views
  **/
 
 /** some globals **/
@@ -102,7 +103,7 @@ var characterJSON = {
   },
   "Latch": {
     "color": "lightgreen",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/LatchSwing.png",
     "strokeColor": "green",
     "angles": [
       {
@@ -171,7 +172,7 @@ var characterJSON = {
   },
   "Jet": {
     "color": "lightskyblue",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/JetSwing.png",
     "strokeColor": "royalblue",
     "angles": [
       {
@@ -203,7 +204,7 @@ var characterJSON = {
   },
   "Nitro": {
     "color": "white",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/NitroSwing.png",
     "strokeColor": "black",
     "angles": [
       {
@@ -235,7 +236,7 @@ var characterJSON = {
   },
   "Doombox": {
     "color": "#444",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/DBSwing.png",
     "strokeColor": "royalblue",
     "angles": [
       {
@@ -267,7 +268,7 @@ var characterJSON = {
   },
   "Grid": {
     "color": "yellow",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/GridSwing.png",
     "strokeColor": "mediumpurple",
     "angles": [
       {
@@ -299,7 +300,7 @@ var characterJSON = {
   },
   "Switch": {
     "color": "slategrey",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/SwitchSwing.png",
     "strokeColor": "navy",
     "angles": [
       {
@@ -335,7 +336,7 @@ var characterJSON = {
   },
   "Candyman": {
     "color": "gold",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/CandySwing.png",
     "strokeColor": "brown",
     "angles": [
       {
@@ -407,7 +408,7 @@ var characterJSON = {
   },
   "Dice": {
     "color": "saddlebrown",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/DiceSwing.png",
     "strokeColor": "#c8de0a",
     "angles": [
       {
@@ -439,7 +440,7 @@ var characterJSON = {
   },
   "DustAndAshes": {
     "color": "#5d68b3",
-    "image": "assets/characters/RaptorSwing.png",
+    "image": "assets/characters/DustAshesSwing.png",
     "strokeColor": "#23da7d",
     "angles": [
       {
@@ -490,6 +491,7 @@ var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
 var labels = [], labelsOn = false
 var guides = [], guidesOn = false
+var charImages= [], charImagesOn= false
 
 window.onresize = function() {
   offsetX = canvas.getBoundingClientRect().left;
@@ -1009,6 +1011,12 @@ $('#labels').on('click', function(e) {
 $('#guides').on('click', function(e) {
   e.preventDefault
   guidesOn = !guidesOn
+  draw()
+})
+
+$('#characters').on('click', function(e) {
+  e.preventDefault
+  charImagesON = !charImagesOn
   draw()
 })
 
