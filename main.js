@@ -21,6 +21,7 @@ var guideColor = 'white'
 /**
  * names map to stage images in assets/stages
  */
+debugger;
 var stageJSON = {
   "Outskirts": {
     canvasSize: [1198, 492],
@@ -677,23 +678,22 @@ function draw() {
     // Draw character last so it's on top
     // Create a raster item using the image tag 
     //debugger;
-    var r = new Raster(char.image)
-    r.position.x = char.x;
-    r.position.y = char.y
-    if(char.facing == "left"){
-      r.scale(-1,1);
+    if (charImagesON) { = false
+      var r = new Raster(char.image)
+      r.position.x = char.x;
+      r.position.y = char.y
+      if(char.facing == "left"){
+        r.scale(-1,1);
+      }
+    } else {
+      new Path.Circle({
+        center: [char.x, char.y],
+        radius: circleRadius,
+        fillColor: char.color,
+        strokeColor: char.strokeColor,
+        strokeWidth: 3
+      })
     }
-
-    /*
-    new Path.Circle({
-      center: [char.x, char.y],
-      radius: circleRadius,
-      fillColor: char.color,
-      strokeColor: char.strokeColor,
-      strokeWidth: 3
-    })
-    */
-
     labels.forEach(function(e) { e.bringToFront(); })
     guides.forEach(function(e) { e.bringToFront(); })
   }
@@ -1014,7 +1014,7 @@ $('#guides').on('click', function(e) {
   draw()
 })
 
-$('#characters').on('click', function(e) {
+$('#charImages').on('click', function(e) {
   e.preventDefault
   charImagesON = !charImagesOn
   draw()
