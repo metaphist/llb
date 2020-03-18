@@ -678,7 +678,7 @@ function draw() {
     // Draw character last so it's on top
     // Create a raster item using the image tag 
     //debugger;
-    if (charImagesON) { = false
+    if(charImagesON) { 
       var r = new Raster(char.image)
       r.position.x = char.x;
       r.position.y = char.y
