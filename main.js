@@ -21,7 +21,6 @@ var guideColor = 'white'
 /**
  * names map to stage images in assets/stages
  */
-debugger;
 var stageJSON = {
   "Outskirts": {
     canvasSize: [1198, 492],
@@ -678,7 +677,7 @@ function draw() {
     // Draw character last so it's on top
     // Create a raster item using the image tag 
     //debugger;
-    if(charImagesON) { 
+    if(charImagesOn) { 
       var r = new Raster(char.image)
       r.position.x = char.x;
       r.position.y = char.y
@@ -1016,7 +1015,7 @@ $('#guides').on('click', function(e) {
 
 $('#charImages').on('click', function(e) {
   e.preventDefault
-  charImagesON = !charImagesOn
+  charImagesOn = !charImagesOn
   draw()
 })
 
