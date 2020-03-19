@@ -726,14 +726,23 @@ function myDown(e) {
         dragok = true;
         s.isDragging = true;
       }
-    } else if (s.raster){
+    } else if (s.raster && charImagesOn ){
       // s.x and s.y are in the middle of the image
       var sx_half = s.raster.width/2;
       var sy_half = s.raster.height/2;
       if(mx > s.x-sx_half && mx < s.x + sx_half && my > s.y-sy_half && my < s.y + sy_half){
         dragok = true;
         s.isDragging = true;
-      }    
+      }
+    } else { 
+        //check for circle
+        var dx = s.x - mx;
+        var dy = s.y - my;
+        // test if the mouse is inside this circle
+        if(dx * dx + dy * dy < circleRadius * circleRadius) {
+            dragok = true;
+            s.isDragging = true;
+        }
     }
   }
   // save the current mouse position
