@@ -2,6 +2,8 @@
 
 For exploring character angles and intersections. Mostly JavaScript and utilizes [paper.js](http://paperjs.org/).
 
+**Want to run it locally?** Checkout branch `local`
+
 ## Notes
 
 * Angles were taken from [Daiotzu's angle guide](https://imgur.com/a/OftNrZ8)
