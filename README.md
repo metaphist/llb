@@ -4,6 +4,8 @@ For exploring character angles and intersections. Mostly JavaScript and utilizes
 
 **Want to run it locally?** Checkout branch `local`
 
+*Guides currently do not work locally!*
+
 ## Notes
 
 * Angles were taken from [Daiotzu's angle guide](https://imgur.com/a/OftNrZ8)
