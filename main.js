@@ -497,6 +497,7 @@ var dragok = false;
 var labels = [], labelsOn = false
 var guides = [], guidesOn = false
 var charImages= [], charImagesOn= false
+var showBallImpactLocations = true
 
 window.onresize = function() {
   offsetX = canvas.getBoundingClientRect().left;
@@ -578,6 +579,14 @@ function drawAngle(properties) {
     //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
     var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
     if(!intersectPoint) break
+
+    // draw ball hitbox at impact location
+    if(showBallImpactLocations) {
+      var ballHitbox = new Rectangle(new Point(intersectPoint.x - ballRadius, intersectPoint.y - ballRadius), new Size(ballDiameter, ballDiameter))
+      var ballHitboxPath = new Path.Rectangle(ballHitbox)
+      ballHitboxPath.strokeColor = 'blue'
+      ballHitboxPath.strokeWidth = 3
+    }
 
     // outer line
     new Path({
@@ -1033,6 +1042,12 @@ $('#guides').on('click', function(e) {
 $('#charImages').on('click', function(e) {
   e.preventDefault
   charImagesOn = !charImagesOn
+  draw()
+})
+
+$('#ballImpacts').on('click', function(e) {
+  e.preventDefault
+  showBallImpactLocations = !showBallImpactLocations
   draw()
 })
 
