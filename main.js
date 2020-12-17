@@ -18,49 +18,53 @@ var strokeWidthInner = 2
 var labelFontSize = 20
 var guideColor = 'white'
 
+
+var ballRadius = 10
+var ballDiameter = 2 * ballRadius
+
 /**
  * names map to stage images in assets/stages
  */
 var stageJSON = {
   "Outskirts": {
-    canvasSize: [1198, 492],
-    canvasOffset: [41, 32]
+    canvasSize: [1240, 510],
+    canvasOffset: [43, 33]
   },
   "Stadium": {
-    canvasSize: [1188, 521],
-    canvasOffset: [46, 3]
+    canvasSize: [1230, 540],
+    canvasOffset: [48, 4]
   },
   "Desert": {
-    canvasSize: [1092, 492],
-    canvasOffset: [94, 32]
+    canvasSize: [1130, 510],
+    canvasOffset: [98, 33]
   },
   "Elevator": {
-    canvasSize: [1280, 455],
-    canvasOffset: [0, 79]
+    canvasSize: [1492, 522],
+    canvasOffset: [0, 92]
   },
   "Factory": {
-    canvasSize: [1242, 481],
-    canvasOffset: [19, 51]
+    canvasSize: [1400, 542],
+    canvasOffset: [21, 58]
   },
   "Streets": {
-    canvasSize: [1275, 497],
-    canvasOffset: [3, 27]
+    canvasSize: [1320, 515],
+    canvasOffset: [3, 29]
   },
   "Sewer": {
-    canvasSize: [1198, 492],
-    canvasOffset: [41, 32]
+    canvasSize: [1240, 510],
+    canvasOffset: [43, 33]
   },
   "Pool": {
-    canvasSize: [1168, 525],
-    canvasOffset: [56, 0]
+    canvasSize: [1210, 575],
+    canvasOffset: [58, 0]
   },
   "Subway": {
-    canvasSize: [1014, 492],
-    canvasOffset: [133, 32]
+    canvasSize: [1050, 510],
+    canvasOffset: [138, 33]
   },
   "Room": {
-    canvasSize: [1063, 531],
-    canvasOffset: [108, 19]
+    canvasSize: [1100, 550],
+    canvasOffset: [113, 20]
   }
 }
 
@@ -486,6 +490,7 @@ var angleAlias = {
 
 var canvas = document.getElementById('myCanvas')
 var stageBounds, startX, startY
+var stageRect
 var offsetX = canvas.getBoundingClientRect().left;
 var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
@@ -601,15 +606,15 @@ function drawAngle(properties) {
       var oldStart = start.clone()
 
       // move start to opposite wall
-      if(start.x >= canvas.getBoundingClientRect().width - 1)
-        start.x = 1;
-      else if(start.x <= 1)
-        start.x = canvas.getBoundingClientRect().width
+      if(start.x >= stageRect.x + stageRect.width - 1)
+        start.x = stageRect.x;
+      else if(start.x <= stageRect.x + 1)
+        start.x = stageRect.x + stageRect.width
 
-      if(start.y >= canvas.getBoundingClientRect().height - 1)
-        start.y = 0
-      else if(start.y <= 1)
-        start.y = canvas.getBoundingClientRect().height
+      if(start.y >= stageRect.y + stageRect.height - 1)
+        start.y = stageRect.y
+      else if(start.y <= stageRect.y + 1)
+        start.y = stageRect.y + stageRect.height
 
       if(guidesOn) {
         // warp indicator
@@ -628,7 +633,7 @@ function drawAngle(properties) {
       // on all reflections
       degrees *= -1
       // on side reflections only
-      if(start.x >= canvas.getBoundingClientRect().width - 1 || start.x <= 1)
+      if(start.x >= stageRect.x + stageRect.width - 1 || start.x <= stageRect.x + 1)
         degrees += 180
     }
 
@@ -837,14 +842,8 @@ $('document').ready(function() {
     paper.view.viewSize.width = stage.canvasSize[0]
     paper.view.viewSize.height = stage.canvasSize[1]
 
-    stageBounds = new Path()
-    stageBounds.add(
-      new Point(0, 0),
-      new Point(canvas.getBoundingClientRect().width, 0),
-      new Point(canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height),
-      new Point(0, canvas.getBoundingClientRect().height)
-    )
-    stageBounds.closed = true
+    stageRect = new Rectangle(new Point(ballRadius, ballRadius), new Size(stage.canvasSize[0] - ballDiameter, stage.canvasSize[1] - ballDiameter))
+    stageBounds = new Path.Rectangle(stageRect)
 
     $('#myCanvas').css('left', stage.canvasOffset[0])
     $('#myCanvas').css('top', stage.canvasOffset[1])
