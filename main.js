@@ -630,11 +630,20 @@ function drawAngle(properties) {
       }
 
     } else {
-      // on all reflections
-      degrees *= -1
-      // on side reflections only
-      if(start.x >= stageRect.x + stageRect.width - 1 || start.x <= stageRect.x + 1)
+      var hitSides = start.x >= stageRect.x + stageRect.width - 1 || start.x <= stageRect.x + 1
+      var hitFloorOrCeiling = start.y >= stageRect.y + stageRect.height - 1 || start.y <= stageRect.y + 1
+
+      if(hitSides && hitFloorOrCeiling) {
+        // on corners invert direction
         degrees += 180
+      } else if(hitSides) {
+        // on side reflections flip angle horizontally
+        degrees *= -1
+        degrees += 180
+      } else {
+        // on floor or ceiling reflection flip angle vertically
+        degrees *= -1
+      }
     }
 
     // style all arrows
