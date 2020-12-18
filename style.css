@@ -33,9 +33,10 @@ body {
     float: left;
     position: relative;
     display: block;
-    width: 1280px;
-    height: 600px;
+    width: 1492px;
+    height: 650px;
     margin: 0 5px;
+    background-repeat: no-repeat;
     /*
     background: url('assets/stages/Desolace.png') top center #fff;
     */
