@@ -137,8 +137,12 @@ var characterJSON = {
       },
       {
         "name": "wall-down",
-        "degrees": 60,
+        "degrees": 120,
         "wall": "true"
+      },
+      {
+        "name": "special-down-forward",
+        "degrees": 18
       }
     ]
   },
@@ -485,7 +489,8 @@ var angleAlias = {
   "spike-forward": "SK-F",
   "spike-backward": "SK-B",
   "wall-down": "WD",
-  "nice": "Nice"
+  "nice": "Nice",
+  "special-down-forward": "Latchflip"
 }
 
 var canvas = document.getElementById('myCanvas')
