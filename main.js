@@ -225,12 +225,12 @@ var characterJSON = {
         "ground": "true"
       },
       {
-        "name": "smash",
-        "degrees": 41
-      },
-      {
         "name": "air-down",
         "degrees": 62
+      },
+      {
+        "name": "smash",
+        "degrees": 41
       },
       {
         "name": "spike-forward",
@@ -488,6 +488,7 @@ var angleAlias = {
   "air-down": "AD",
   "spike-forward": "SK-F",
   "spike-backward": "SK-B",
+  "spike": "SK",
   "wall-down": "WD",
   "nice": "Nice",
   "special-down-forward": "Latchflip"
@@ -501,7 +502,7 @@ var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
 var labels = [], labelsOn = false
 var guides = [], guidesOn = false
-var charImages= [], charImagesOn= false
+var charImages= [], charImagesOn = false
 var showBallImpactLocations = true
 
 window.onresize = function() {
@@ -512,6 +513,59 @@ window.onresize = function() {
 canvas.onmousedown = myDown;
 canvas.onmouseup = myUp;
 canvas.onmousemove = myMove;
+
+document.documentElement.addEventListener('mouseup', myUp);
+
+var stages = [], characters = [], loadedChars = []
+
+function loadChar(charName) {
+  var char = loadedChars.find(function(e){ return e.name == charName })
+  if(!char) {
+    char = characters.find(function(e){ return e.name == charName })
+    loadedChars.push(char)
+  }
+
+  // Create a raster item using the image tag with id='mona'
+  char.raster = new Raster(char.image);
+  return char
+}
+
+function addReflectionsToAngle(charName, angleName, amount) {
+  var char = loadChar(charName);
+  var angle = char.angles.find(function(e){ return e.name == angleName })
+
+  if(angle.visible) {
+    angle.reflections += amount
+  }
+
+  if(amount > 0) {
+    angle.visible = true;
+  }
+
+  if(angle.reflections < 0) {
+    angle.reflections = 0
+    angle.visible = false
+  }
+}
+
+function flipDirectionFacing(char) {
+  char.facing = char.facing == 'right' ? 'left' : 'right'
+}
+
+function toggleDirectButtons(char) {
+  char.showDirectButtons = !char.showDirectButtons;
+}
+
+function startDragging(char) {
+  dragok = true;
+  char.isDragging = true;
+}
+
+function startDraggingCharImage(char) {
+  dragok = true;
+  char.isDragging = false;
+  char.isDraggingCharImage = true;
+}
 
 function drawLine(start, degrees) {
   // use canvas width * 2 to ensure line is long enough in any situation
@@ -587,10 +641,10 @@ function drawAngle(properties) {
 
     // draw ball hitbox at impact location
     if(showBallImpactLocations) {
-      var ballHitbox = new Rectangle(new Point(intersectPoint.x - ballRadius, intersectPoint.y - ballRadius), new Size(ballDiameter, ballDiameter))
+      var ballHitbox = new Rectangle(new Point(intersectPoint.x - ballRadius + 2, intersectPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4))
       var ballHitboxPath = new Path.Rectangle(ballHitbox)
       ballHitboxPath.strokeColor = 'blue'
-      ballHitboxPath.strokeWidth = 3
+      ballHitboxPath.strokeWidth = 4
     }
 
     // outer line
@@ -697,20 +751,36 @@ function draw() {
       char.y = Math.floor(Math.random() * (canvas.getBoundingClientRect().height - 100)) + 50
     }
 
-    for(var j = 0; j < char.angles.length; j++) {
-      char.curAngle = char.angles[j]
-      if(char.curAngle.visible) drawAngle(char);
-    }
-
-    // Draw character last so it's on top
-    // Create a raster item using the image tag 
-    //debugger;
+    // Draw character first so it's below lines and icon buttons
     if(charImagesOn) { 
-      var r = new Raster(char.image)
-      r.position.x = char.x;
-      r.position.y = char.y
-      if(char.facing == "left"){
-        r.scale(-1,1);
+      var r = new Raster(char.image);
+      r.position.x = char.x + char.imgOffset.x;
+      r.position.y = char.y + char.imgOffset.y;
+      if(char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
+        r.scale(-1, 1);
+      }
+      var icon = new Raster("assets/icons/move.png");
+      icon.position.x = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2;
+      icon.position.y = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      icon.char = char;
+      icon.onMouseDown = function(event) {
+        startDraggingCharImage(this.char);
+      }
+      var icon = new Raster("assets/icons/flip.png");
+      icon.position.x = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2 + 22;
+      icon.position.y = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      icon.char = char;
+      icon.onMouseDown = function(event) {
+        flipDirectionFacing(this.char);
+        draw();
+      }
+      var icon = new Raster("assets/icons/toggle.png");
+      icon.position.x = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2 + 44;
+      icon.position.y = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      icon.char = char;
+      icon.onMouseDown = function(event) {
+        toggleDirectButtons(this.char);
+        draw();
       }
     } else {
       new Path.Circle({
@@ -721,6 +791,60 @@ function draw() {
         strokeWidth: 3
       })
     }
+
+    for(var j = 0; j < char.angles.length; j++) {
+      char.curAngle = char.angles[j]
+      if(char.curAngle.visible) {
+        drawAngle(char);
+      }
+      if (char.showDirectButtons) {
+        if(char.curAngle.labels === undefined) {
+          //angles that are identical to other angles have no labels; skip those
+          continue;
+        }
+        var icon = new Raster("assets/icons/plus.png")
+        var vector = new Point(80 + j * 10, 0);
+        vector = vector.rotate(char.curAngle.degrees);
+        if (char.facing == 'left') {
+          vector.x *= -1;
+        }
+        icon.position.x = char.x + vector.x;
+        icon.position.y = char.y + vector.y;
+        icon.angleName = char.curAngle.name;
+        icon.charName = char.name;
+        icon.labels = char.curAngle.labels;
+        icon.onMouseEnter = function(event) {
+          //TODO: show tooltip with angle label
+          //console.log(this.charName + " " + this.labels + "+");
+        }
+        icon.onMouseDown = function(event) {
+          addReflectionsToAngle(this.charName, this.angleName, 1);
+          draw();
+        }
+        if(char.curAngle.visible){
+          var icon = new Raster("assets/icons/minus.png")
+          var vector = new Point(60 + j * 10, 0);
+          vector = vector.rotate(char.curAngle.degrees);
+          if (char.facing == 'left') {
+            vector.x *= -1;
+          }
+          icon.position.x = char.x + vector.x;
+          icon.position.y = char.y + vector.y;
+          icon.angleName = char.curAngle.name;
+          icon.charName = char.name;
+          icon.labels = char.curAngle.labels;
+          icon.onMouseEnter = function(event) {
+            //TODO: show tooltip with angle label
+            //console.log(this.charName + " " + this.labels + "-");
+          }
+          icon.onMouseDown = function(event) {
+            addReflectionsToAngle(this.charName, this.angleName, -1);
+            draw();
+          }
+        }
+      }
+    }
+
     labels.forEach(function(e) { e.bringToFront(); })
     guides.forEach(function(e) { e.bringToFront(); })
   }
@@ -734,15 +858,14 @@ function draw() {
 function myDown(e) {
 
   // tell the browser we're handling this mouse event
-  e.preventDefault();
-  e.stopPropagation();
+  //e.preventDefault();
+  //e.stopPropagation();
 
   // get the current mouse position
   var mx = parseInt(e.clientX - offsetX);
   var my = parseInt(e.clientY - offsetY);
 
   // test each shape to see if mouse is inside
-  dragok = false;
   for(var i = 0; i < loadedChars.length; i++){
     //debugger;
     var s = loadedChars[i];
@@ -751,16 +874,17 @@ function myDown(e) {
       // test if the mouse is inside this rect
       if(mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height){
         // if yes, set that rects isDragging=true
-        dragok = true;
-        s.isDragging = true;
+        startDragging(s);
       }
-    } else if (s.raster && charImagesOn ){
+    } else if (s.raster && charImagesOn) {
       // s.x and s.y are in the middle of the image
-      var sx_half = s.raster.width/2;
-      var sy_half = s.raster.height/2;
-      if(mx > s.x-sx_half && mx < s.x + sx_half && my > s.y-sy_half && my < s.y + sy_half){
-        dragok = true;
-        s.isDragging = true;
+      var sx_half = s.raster.width / 2;
+      var sy_half = s.raster.height / 2;
+      var upperLeftCornerOfImage = new Point(s.x - sx_half + s.imgOffset.x, s.y - sy_half + s.imgOffset.y);
+      var charImageRect = new Rectangle(upperLeftCornerOfImage, new Size(s.raster.width, s.raster.height));
+      var mousePoint = new Point(mx, my);
+      if (charImageRect.contains(mousePoint)) {
+        startDragging(s);
       }
     } else { 
         //check for circle
@@ -768,8 +892,7 @@ function myDown(e) {
         var dy = s.y - my;
         // test if the mouse is inside this circle
         if(dx * dx + dy * dy < circleRadius * circleRadius) {
-            dragok = true;
-            s.isDragging = true;
+          startDragging(s);
         }
     }
   }
@@ -781,13 +904,14 @@ function myDown(e) {
 // handle mouseup events
 function myUp(e) {
   // tell the browser we're handling this mouse event
-  e.preventDefault();
-  e.stopPropagation();
+  //e.preventDefault();
+  //e.stopPropagation();
 
   // clear all the dragging flags
   dragok = false;
-  for(var i = 0; i < loadedChars.length; i++){
+  for(var i = 0; i < loadedChars.length; i++) {
     loadedChars[i].isDragging = false;
+    loadedChars[i].isDraggingCharImage = false;
   }
 }
 
@@ -795,10 +919,15 @@ function myUp(e) {
 function myMove(e) {
   // if we're dragging anything...
   if (dragok) {
+    // it the mouse is released outside the browser window, we can miss the mouseup event
+    if(e.buttons == 0) {
+      myUp(e);
+      return
+    }
 
     // tell the browser we're handling this mouse event
-    e.preventDefault();
-    e.stopPropagation();
+    //e.preventDefault();
+    //e.stopPropagation();
 
     // get the current mouse position
     var mx = parseInt(e.clientX - offsetX);
@@ -817,6 +946,33 @@ function myMove(e) {
       if(s.isDragging){
         s.x += dx;
         s.y += dy;
+
+        if(s.x < stageRect.x) {
+          s.x = stageRect.x;
+        } else if(s.x > stageRect.x + stageRect.width){
+          s.x = stageRect.x + stageRect.width;
+        }
+        if(s.y < stageRect.y) {
+          s.y = stageRect.y;
+        } else if(s.y > stageRect.y + stageRect.height){
+          s.y = stageRect.y + stageRect.height;
+        }
+      }
+      if (s.isDraggingCharImage) {
+        s.imgOffset.x += dx;
+        s.imgOffset.y += dy;
+        var sx_half = s.raster.width / 2;
+        var sy_half = s.raster.height / 2;
+        if (s.imgOffset.x < -sx_half) {
+          s.imgOffset.x = -sx_half;
+        } else if (s.imgOffset.x > sx_half) {
+          s.imgOffset.x = sx_half;
+        }
+        if (s.imgOffset.y < -sy_half) {
+          s.imgOffset.y = -sy_half;
+        } else if (s.imgOffset.y > sy_half) {
+          s.imgOffset.y = sy_half;
+        }
       }
     }
 
@@ -830,20 +986,6 @@ function myMove(e) {
     startY = my;
 
   }
-}
-
-var stages = [], characters = [], loadedChars = []
-
-function loadChar(charName) {
-  var char = loadedChars.find(function(e){ return e.name == charName })
-  if(!char) {
-    char = characters.find(function(e){ return e.name == charName })
-    loadedChars.push(char)
-  }
-
-  // Create a raster item using the image tag with id='mona'
-  char.raster = new Raster(char.image);
-  return char
 }
 
 $('document').ready(function() {
@@ -885,8 +1027,11 @@ $('document').ready(function() {
     var char = characterJSON[i]
     char.name = i
     char.angles.push({ name: 'straight', degrees: 0})
+    char.angles.push({ name: 'spike', degrees: 90})
+    char.showDirectButtons = false;
     char.facing = 'right'
     char.isDragging = false
+    char.imgOffset = {x: 0, y: 0}
     characters.push(char)
 
     $('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
@@ -946,8 +1091,9 @@ $('document').ready(function() {
     var char = loadChar(charName)
 
     var angle = char.angles.find(function(e){ return e.name == angleName })
-    if(angle.visible) angle.visible = false
-    else {
+    if(angle.visible) {
+      angle.visible = false
+    } else {
       angle.visible = true
     }
 
@@ -969,17 +1115,10 @@ $('document').ready(function() {
     var angle = char.angles.find(function(e){ return e.name == angleName })
 
     var sign = $(e.target).attr('class')
-    if(angle.visible) {
-      if(sign == 'plus') angle.reflections += 1
-      else angle.reflections -= 1
-    }
-
-    if(sign == 'plus')
-      angle.visible = true;
-
-    if(angle.reflections < 0) {
-      angle.reflections = 0
-      angle.visible = false
+    if(sign == 'plus') {
+      addReflectionsToAngle(charName, angleName, 1);
+    } else {
+      addReflectionsToAngle(charName, angleName, -1);
     }
 
     draw()
