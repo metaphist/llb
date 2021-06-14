@@ -75,406 +75,482 @@ var stageJSON = {
 var characterJSON = {
   "Toxic": {
     "color": "#ff3913",
-    "image": "assets/characters/ToxicSwing.png",
     "strokeColor": "#75ff13",
+    "img_name": "toxic",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -57
+        "degrees": -57,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 25,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 41
+        "degrees": 41,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 35
+        "degrees": 35,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 21
+        "degrees": 21,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 106
+        "degrees": 106,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Latch": {
     "color": "lightgreen",
-    "image": "assets/characters/LatchSwing.png",
     "strokeColor": "green",
+    "img_name": "latch",
+    "poses": ["swing", "smash", "spike", "wallswing", "bunt", "stand", "crouch", "lay"],
     "angles": [
       {
         "name": "up",
-        "degrees": -38
+        "degrees": -38,
+        "validWhen": ["swing", "wallswing"]
       },
       {
         "name": "ground-down",
         "degrees": 28,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 38
+        "degrees": 38,
+        "validWhen": ["smash", "swing"] //currently this angle gets combined with the next angle
       },
       {
         "name": "air-down",
-        "degrees": 38
+        "degrees": 38,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 66
+        "degrees": 66,
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
-        "degrees": -116
+        "degrees": -116,
+        "validWhen": ["spike"]
       },
       {
         "name": "wall-down",
         "degrees": 120,
-        "wall": "true"
+        "validWhen": ["wallswing"]
       },
       {
         "name": "special-down-forward",
-        "degrees": 18
+        "degrees": 18,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Raptor": {
     "color": "red",
-    "image": "assets/characters/RaptorSwing.png",
     "strokeColor": "purple",
+    "img_name": "raptor",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -60
+        "degrees": -60,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 30,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 42
+        "degrees": 42,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 42
+        "degrees": 42,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 83
+        "degrees": 83,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 97
+        "degrees": 97,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Jet": {
     "color": "lightskyblue",
-    "image": "assets/characters/JetSwing.png",
     "strokeColor": "royalblue",
+    "img_name": "jet",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -60
+        "degrees": -60,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 17,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 35
+        "degrees": 35,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 35
+        "degrees": 35,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 80
+        "degrees": 80,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 100
+        "degrees": 100,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Nitro": {
     "color": "white",
-    "image": "assets/characters/NitroSwing.png",
     "strokeColor": "black",
+    "img_name": "nitro",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -20
+        "degrees": -20,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 62,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 62
+        "degrees": 62,
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 41
+        "degrees": 41,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 83
+        "degrees": 83,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 180
+        "degrees": 180,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Doombox": {
     "color": "#444",
-    "image": "assets/characters/DBSwing.png",
     "strokeColor": "royalblue",
+    "img_name": "db",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -60
+        "degrees": -60,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 50,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 45
+        "degrees": 45,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 64
+        "degrees": 64,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 59
+        "degrees": 59,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 160
+        "degrees": 160,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Grid": {
     "color": "yellow",
-    "image": "assets/characters/GridSwing.png",
     "strokeColor": "mediumpurple",
+    "img_name": "grid",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -50
+        "degrees": -50,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 50,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 28
+        "degrees": 28,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 15
+        "degrees": 15,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 32
+        "degrees": 32,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 117
+        "degrees": 117,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Switch": {
     "color": "slategrey",
-    "image": "assets/characters/SwitchSwing.png",
     "strokeColor": "navy",
+    "img_name": "switch",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -120
+        "degrees": -120,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 17,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "special",
-        "degrees": 17
+        "degrees": 17,
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 38
+        "degrees": 38,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 38
+        "degrees": 38,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 71
+        "degrees": 71,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 109
+        "degrees": 109,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Candyman": {
     "color": "gold",
-    "image": "assets/characters/CandySwing.png",
     "strokeColor": "brown",
+    "img_name": "candy",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -25
+        "degrees": -25,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 55,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 70
+        "degrees": 70,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 8
+        "degrees": 8,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 25
+        "degrees": 25,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": -105
+        "degrees": -105,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Sonata": {
     "color": "#3349cb",
-    "image": "assets/characters/SonataSwing.png",
     "strokeColor": "darkviolet",
+    "img_name": "sonata",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -20
+        "degrees": -20,
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 55
+        "degrees": 55,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 55
+        "degrees": 55,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 55,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 55
+        "degrees": 55,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": -165
+        "degrees": -165,
+        "validWhen": ["swing"]
       },
       {
         "name": "bring-it",
-        "degrees": 90
+        "degrees": 90,
+        "validWhen": ["swing"]
       },
       {
         "name": "nice",
-        "degrees": -90
+        "degrees": -90,
+        "validWhen": ["swing"]
       }
     ]
   },
   "Dice": {
     "color": "saddlebrown",
-    "image": "assets/characters/DiceSwing.png",
     "strokeColor": "#c8de0a",
+    "img_name": "dice",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -80
+        "degrees": -80,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 46
+        "degrees": 46,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 46,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 30
+        "degrees": 30,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 80
+        "degrees": 80,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 110
+        "degrees": 110,
+        "validWhen": ["swing"]
       }
     ]
   },
   "DustAndAshes": {
     "color": "#5d68b3",
-    "image": "assets/characters/DustAshesSwing.png",
     "strokeColor": "#23da7d",
+    "img_name": "dust",
+    "poses": ["swing"],
     "angles": [
       {
         "name": "up",
-        "degrees": -15
+        "degrees": -15,
+        "validWhen": ["swing"]
       },
       {
         "name": "air-down",
-        "degrees": 21
+        "degrees": 21,
+        "validWhen": ["swing"]
       },
       {
         "name": "ground-down",
         "degrees": 57,
-        "ground": "true"
+        "validWhen": ["swing"]
       },
       {
         "name": "smash",
-        "degrees": 33
+        "degrees": 33,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-forward",
-        "degrees": 44
+        "degrees": 44,
+        "validWhen": ["swing"]
       },
       {
         "name": "spike-backward",
-        "degrees": 163
+        "degrees": 163,
+        "validWhen": ["swing"]
       }
     ]
   }
@@ -525,8 +601,8 @@ function loadChar(charName) {
     loadedChars.push(char)
   }
 
-  // Create a raster item using the image tag with id='mona'
-  char.raster = new Raster(char.image);
+  // Create a raster item
+  char.raster = new Raster(char.getImage());
   return char
 }
 
@@ -554,6 +630,11 @@ function flipDirectionFacing(char) {
 
 function toggleDirectButtons(char) {
   char.showDirectButtons = !char.showDirectButtons;
+}
+
+function nextPose(char) {
+  var index = char.poses.indexOf(char.pose);
+  char.pose = char.poses[(index + 1) % char.poses.length];
 }
 
 function startDragging(char) {
@@ -753,33 +834,45 @@ function draw() {
 
     // Draw character first so it's below lines and icon buttons
     if(charImagesOn) { 
-      var r = new Raster(char.image);
+      var r = new Raster(char.getImage());
       r.position.x = char.x + char.imgOffset.x;
       r.position.y = char.y + char.imgOffset.y;
       if(char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
       }
       var icon = new Raster("assets/icons/move.png");
-      icon.position.x = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2;
-      icon.position.y = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      var iconsX = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2;
+      var iconsY = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      iconsX = Math.max(icon.width / 2, iconsX);
+      iconsY = Math.max(icon.height / 2, iconsY);
+      icon.position.x = iconsX;
+      icon.position.y = iconsY;
       icon.char = char;
       icon.onMouseDown = function(event) {
         startDraggingCharImage(this.char);
       }
       var icon = new Raster("assets/icons/flip.png");
-      icon.position.x = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2 + 22;
-      icon.position.y = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      icon.position.x = iconsX + 22;
+      icon.position.y = iconsY;
       icon.char = char;
       icon.onMouseDown = function(event) {
         flipDirectionFacing(this.char);
         draw();
       }
       var icon = new Raster("assets/icons/toggle.png");
-      icon.position.x = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2 + 44;
-      icon.position.y = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
+      icon.position.x = iconsX + 44;
+      icon.position.y = iconsY;
       icon.char = char;
       icon.onMouseDown = function(event) {
         toggleDirectButtons(this.char);
+        draw();
+      }
+      var icon = new Raster("assets/icons/pose.png");
+      icon.position.x = iconsX + 66;
+      icon.position.y = iconsY;
+      icon.char = char;
+      icon.onMouseDown = function(event) {
+        nextPose(this.char);
         draw();
       }
     } else {
@@ -794,6 +887,9 @@ function draw() {
 
     for(var j = 0; j < char.angles.length; j++) {
       char.curAngle = char.angles[j]
+      if(char.curAngle.validWhen.indexOf(char.pose) < 0){
+        continue;
+      }
       if(char.curAngle.visible) {
         drawAngle(char);
       }
@@ -887,13 +983,13 @@ function myDown(e) {
         startDragging(s);
       }
     } else { 
-        //check for circle
-        var dx = s.x - mx;
-        var dy = s.y - my;
-        // test if the mouse is inside this circle
-        if(dx * dx + dy * dy < circleRadius * circleRadius) {
-          startDragging(s);
-        }
+      //check for circle
+      var dx = s.x - mx;
+      var dy = s.y - my;
+      // test if the mouse is inside this circle
+      if(dx * dx + dy * dy < circleRadius * circleRadius) {
+        startDragging(s);
+      }
     }
   }
   // save the current mouse position
@@ -1026,12 +1122,16 @@ $('document').ready(function() {
   for(var i in characterJSON) {
     var char = characterJSON[i]
     char.name = i
-    char.angles.push({ name: 'straight', degrees: 0})
-    char.angles.push({ name: 'spike', degrees: 90})
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing"]})
+    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"]})
     char.showDirectButtons = false;
+    char.pose = char.poses[0];
     char.facing = 'right'
     char.isDragging = false
     char.imgOffset = {x: 0, y: 0}
+    char.getImage = function() {
+      return "assets/characters/" + this.img_name + "_" + this.pose + "_r.png";
+    }
     characters.push(char)
 
     $('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
