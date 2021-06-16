@@ -77,7 +77,13 @@ var characterJSON = {
     "color": "#ff3913",
     "strokeColor": "#75ff13",
     "img_name": "toxic",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 208, 149]],
+        "hitboxes": [[0, 0, 208, 149]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -115,7 +121,53 @@ var characterJSON = {
     "color": "lightgreen",
     "strokeColor": "green",
     "img_name": "latch",
-    "poses": ["swing", "smash", "spike", "wallswing", "bunt", "stand", "crouch", "lay"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes":[[43, 11, 80, 136]],
+        "hitboxes":[[78, 11, 124, 136]],
+      },
+      {
+        "name": "smash",
+        "hurtboxes":[[76, 80, 80, 136]],
+        "hitboxes":[[61, 8, 110, 72], [111, 80, 124, 136]],
+      },
+      {
+        "name": "spike",
+        "hurtboxes":[[33, 0, 80, 136]],
+        "hitboxes":[[13, 78, 120, 170]],
+      },
+      {
+        "name": "wallswing",
+        "hurtboxes":[[22, 22, 80, 136]],
+        "hitboxes":[[52, 0, 130, 158]],
+      },
+      {
+        "name": "bunt",
+        "hurtboxes":[[68, 40, 80, 136]],
+        "hitboxes":[[148, 0, 79, 74], [103, 74, 124, 102]],
+      },
+      {
+        "name": "grab",
+        "hurtboxes":[[49, 0, 80, 135]],
+        "hitboxes":[[84, 0, 124, 136]],
+      },
+      {
+        "name": "stand",
+        "hurtboxes":[[46, 0, 80, 136]],
+        "hitboxes":[],
+      },
+      {
+        "name": "crouch",
+        "hurtboxes":[[26, 5, 80, 60]],
+        "hitboxes":[],
+      },
+      {
+        "name": "lay",
+        "hurtboxes":[[28, 1, 136, 45]],
+        "hitboxes":[],
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -163,7 +215,13 @@ var characterJSON = {
     "color": "red",
     "strokeColor": "purple",
     "img_name": "raptor",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 180, 156]],
+        "hitboxes": [[0, 0, 180, 156]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -201,7 +259,13 @@ var characterJSON = {
     "color": "lightskyblue",
     "strokeColor": "royalblue",
     "img_name": "jet",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 170, 165]],
+        "hitboxes": [[0, 0, 170, 165]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -239,7 +303,13 @@ var characterJSON = {
     "color": "white",
     "strokeColor": "black",
     "img_name": "nitro",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 236, 170]],
+        "hitboxes": [[0, 0, 236, 170]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -277,7 +347,13 @@ var characterJSON = {
     "color": "#444",
     "strokeColor": "royalblue",
     "img_name": "db",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 351, 198]],
+        "hitboxes": [[0, 0, 351, 198]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -315,7 +391,13 @@ var characterJSON = {
     "color": "yellow",
     "strokeColor": "mediumpurple",
     "img_name": "grid",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 242, 180]],
+        "hitboxes": [[0, 0, 242, 180]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -353,7 +435,13 @@ var characterJSON = {
     "color": "slategrey",
     "strokeColor": "navy",
     "img_name": "switch",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 238, 164]],
+        "hitboxes": [[0, 0, 238, 164]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -396,7 +484,13 @@ var characterJSON = {
     "color": "gold",
     "strokeColor": "brown",
     "img_name": "candy",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 213, 176]],
+        "hitboxes": [[0, 0, 213, 176]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -434,7 +528,13 @@ var characterJSON = {
     "color": "#3349cb",
     "strokeColor": "darkviolet",
     "img_name": "sonata",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 213, 165]],
+        "hitboxes": [[0, 0, 213, 165]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -482,7 +582,13 @@ var characterJSON = {
     "color": "saddlebrown",
     "strokeColor": "#c8de0a",
     "img_name": "dice",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 201, 169]],
+        "hitboxes": [[0, 0, 201, 169]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -520,7 +626,13 @@ var characterJSON = {
     "color": "#5d68b3",
     "strokeColor": "#23da7d",
     "img_name": "dust",
-    "poses": ["swing"],
+    "poses": [
+      {
+        "name": "swing",
+        "hurtboxes": [[0, 0, 249, 158]],
+        "hitboxes": [[0, 0, 249, 158]]
+      }
+    ],
     "angles": [
       {
         "name": "up",
@@ -571,8 +683,9 @@ var angleAlias = {
 }
 
 var canvas = document.getElementById('myCanvas')
-var stageBounds, startX, startY
-var stageRect
+var ballStageBounds, startX, startY
+var ballStageRect
+var trueStageRect
 var offsetX = canvas.getBoundingClientRect().left;
 var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
@@ -635,6 +748,7 @@ function toggleDirectButtons(char) {
 function nextPose(char) {
   var index = char.poses.indexOf(char.pose);
   char.pose = char.poses[(index + 1) % char.poses.length];
+  char.raster = new Raster(char.getImage());
 }
 
 function startDragging(char) {
@@ -715,7 +829,7 @@ function drawAngle(properties) {
     var line = drawLine(start, degrees)
 
     // get new starting point from reflection point
-    var intersections = line.getIntersections(stageBounds);
+    var intersections = line.getIntersections(ballStageBounds);
     //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
     var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
     if(!intersectPoint) break
@@ -755,15 +869,15 @@ function drawAngle(properties) {
       var oldStart = start.clone()
 
       // move start to opposite wall
-      if(start.x >= stageRect.x + stageRect.width - 1)
-        start.x = stageRect.x;
-      else if(start.x <= stageRect.x + 1)
-        start.x = stageRect.x + stageRect.width
+      if(start.x >= ballStageRect.x + ballStageRect.width - 1)
+        start.x = ballStageRect.x;
+      else if(start.x <= ballStageRect.x + 1)
+        start.x = ballStageRect.x + ballStageRect.width
 
-      if(start.y >= stageRect.y + stageRect.height - 1)
-        start.y = stageRect.y
-      else if(start.y <= stageRect.y + 1)
-        start.y = stageRect.y + stageRect.height
+      if(start.y >= ballStageRect.y + ballStageRect.height - 1)
+        start.y = ballStageRect.y
+      else if(start.y <= ballStageRect.y + 1)
+        start.y = ballStageRect.y + ballStageRect.height
 
       if(guidesOn) {
         // warp indicator
@@ -779,8 +893,8 @@ function drawAngle(properties) {
       }
 
     } else {
-      var hitSides = start.x >= stageRect.x + stageRect.width - 1 || start.x <= stageRect.x + 1
-      var hitFloorOrCeiling = start.y >= stageRect.y + stageRect.height - 1 || start.y <= stageRect.y + 1
+      var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
+      var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
 
       if(hitSides && hitFloorOrCeiling) {
         // on corners invert direction
@@ -887,7 +1001,7 @@ function draw() {
 
     for(var j = 0; j < char.angles.length; j++) {
       char.curAngle = char.angles[j]
-      if(char.curAngle.validWhen.indexOf(char.pose) < 0){
+      if(char.curAngle.validWhen.indexOf(char.pose.name) < 0){
         continue;
       }
       if(char.curAngle.visible) {
@@ -947,7 +1061,7 @@ function draw() {
 
   paper.view.update()
   window.canvas = canvas;
-  window.sb = stageBounds;
+  window.sb = ballStageBounds;
 }
 
 // handle mousedown events
@@ -1043,15 +1157,19 @@ function myMove(e) {
         s.x += dx;
         s.y += dy;
 
-        if(s.x < stageRect.x) {
-          s.x = stageRect.x;
-        } else if(s.x > stageRect.x + stageRect.width){
-          s.x = stageRect.x + stageRect.width;
+        if(s.x < ballStageRect.left) {
+          s.imgOffset.x -= ballStageRect.left - s.x
+          s.x = ballStageRect.left;
+        } else if(s.x > ballStageRect.right){
+          s.imgOffset.x -= ballStageRect.right - s.x
+          s.x = ballStageRect.right;
         }
-        if(s.y < stageRect.y) {
-          s.y = stageRect.y;
-        } else if(s.y > stageRect.y + stageRect.height){
-          s.y = stageRect.y + stageRect.height;
+        if(s.y < ballStageRect.top) {
+          s.imgOffset.y -= ballStageRect.top - s.y
+          s.y = ballStageRect.top;
+        } else if(s.y > ballStageRect.bottom){
+          s.imgOffset.y -= ballStageRect.bottom - s.y
+          s.y = ballStageRect.bottom;
         }
       }
       if (s.isDraggingCharImage) {
@@ -1068,6 +1186,21 @@ function myMove(e) {
           s.imgOffset.y = -sy_half;
         } else if (s.imgOffset.y > sy_half) {
           s.imgOffset.y = sy_half;
+        }
+      }
+      var hurtbox = s.getHurtbox()
+      if(charImagesOn && !trueStageRect.contains(hurtbox)) {
+        if(hurtbox.left < trueStageRect.left) {
+          s.x += trueStageRect.left - hurtbox.left
+        }
+        if(hurtbox.right > trueStageRect.right) {
+          s.x += trueStageRect.right - hurtbox.right
+        }
+        if(hurtbox.top < trueStageRect.top) {
+          s.y += trueStageRect.top - hurtbox.top
+        }
+        if(hurtbox.bottom > trueStageRect.bottom) {
+          s.y += trueStageRect.bottom - hurtbox.bottom
         }
       }
     }
@@ -1103,8 +1236,9 @@ $('document').ready(function() {
     paper.view.viewSize.width = stage.canvasSize[0]
     paper.view.viewSize.height = stage.canvasSize[1]
 
-    stageRect = new Rectangle(new Point(ballRadius, ballRadius), new Size(stage.canvasSize[0] - ballDiameter, stage.canvasSize[1] - ballDiameter))
-    stageBounds = new Path.Rectangle(stageRect)
+    trueStageRect = new Rectangle(new Point(0, 0), new Size(stage.canvasSize[0], stage.canvasSize[1]))
+    ballStageRect = new Rectangle(new Point(ballRadius, ballRadius), new Size(stage.canvasSize[0] - ballDiameter, stage.canvasSize[1] - ballDiameter))
+    ballStageBounds = new Path.Rectangle(ballStageRect)
 
     $('#myCanvas').css('left', stage.canvasOffset[0])
     $('#myCanvas').css('top', stage.canvasOffset[1])
@@ -1130,7 +1264,15 @@ $('document').ready(function() {
     char.isDragging = false
     char.imgOffset = {x: 0, y: 0}
     char.getImage = function() {
-      return "assets/characters/" + this.img_name + "_" + this.pose + "_r.png";
+      return "assets/characters/" + this.img_name + "_" + this.pose.name + "_r.png";
+    }
+    char.getHurtbox = function() {
+      var box = this.pose.hurtboxes[0]
+      if(this.facing == 'right') {
+        return new Rectangle(new Point(this.x + this.imgOffset.x - this.raster.width / 2 + box[0], this.y + this.imgOffset.y - this.raster.height / 2 + box[1]), new Size(box[2], box[3]));
+      } else {
+        return new Rectangle(new Point(this.x + this.imgOffset.x - this.raster.width / 2 + (this.raster.width - box[0] - box[2]), this.y + this.imgOffset.y - this.raster.height / 2 + box[1]), new Size(box[2], box[3]));
+      }
     }
     characters.push(char)
 
