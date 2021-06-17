@@ -77,9 +77,11 @@ var characterJSON = {
     "color": "#ff3913",
     "strokeColor": "#75ff13",
     "img_name": "toxic",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [208, 149],
         "hurtboxes": [[0, 0, 208, 149]],
         "hitboxes": [[0, 0, 208, 149]]
       }
@@ -121,49 +123,59 @@ var characterJSON = {
     "color": "lightgreen",
     "strokeColor": "green",
     "img_name": "latch",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [209, 163],
         "hurtboxes":[[43, 11, 80, 136]],
         "hitboxes":[[78, 11, 124, 136]],
       },
       {
         "name": "smash",
+        "imgSize": [235, 231],
         "hurtboxes":[[76, 80, 80, 136]],
         "hitboxes":[[61, 8, 110, 72], [111, 80, 124, 136]],
       },
       {
         "name": "spike",
+        "imgSize": [141, 248],
         "hurtboxes":[[33, 0, 80, 136]],
         "hitboxes":[[13, 78, 120, 170]],
       },
       {
         "name": "wallswing",
+        "imgSize": [182, 158],
         "hurtboxes":[[22, 22, 80, 136]],
         "hitboxes":[[52, 0, 130, 158]],
       },
       {
         "name": "bunt",
+        "imgSize": [227, 188],
         "hurtboxes":[[68, 40, 80, 136]],
         "hitboxes":[[148, 0, 79, 74], [103, 74, 124, 102]],
       },
       {
         "name": "grab",
+        "imgSize": [208, 141],
         "hurtboxes":[[49, 0, 80, 135]],
         "hitboxes":[[84, 0, 124, 136]],
       },
       {
         "name": "stand",
+        "imgSize": [150, 149],
         "hurtboxes":[[46, 0, 80, 136]],
         "hitboxes":[],
       },
       {
         "name": "crouch",
+        "imgSize": [155, 82],
         "hurtboxes":[[26, 5, 80, 60]],
         "hitboxes":[],
       },
       {
         "name": "lay",
+        "imgSize": [186, 69],
         "hurtboxes":[[28, 1, 136, 45]],
         "hitboxes":[],
       }
@@ -218,6 +230,7 @@ var characterJSON = {
     "poses": [
       {
         "name": "swing",
+        "imgSize": [180, 156],
         "hurtboxes": [[0, 0, 180, 156]],
         "hitboxes": [[0, 0, 180, 156]]
       }
@@ -259,9 +272,11 @@ var characterJSON = {
     "color": "lightskyblue",
     "strokeColor": "royalblue",
     "img_name": "jet",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [170, 165],
         "hurtboxes": [[0, 0, 170, 165]],
         "hitboxes": [[0, 0, 170, 165]]
       }
@@ -303,9 +318,11 @@ var characterJSON = {
     "color": "white",
     "strokeColor": "black",
     "img_name": "nitro",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [236, 170],
         "hurtboxes": [[0, 0, 236, 170]],
         "hitboxes": [[0, 0, 236, 170]]
       }
@@ -347,9 +364,11 @@ var characterJSON = {
     "color": "#444",
     "strokeColor": "royalblue",
     "img_name": "db",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [351, 198],
         "hurtboxes": [[0, 0, 351, 198]],
         "hitboxes": [[0, 0, 351, 198]]
       }
@@ -391,9 +410,11 @@ var characterJSON = {
     "color": "yellow",
     "strokeColor": "mediumpurple",
     "img_name": "grid",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [242, 180],
         "hurtboxes": [[0, 0, 242, 180]],
         "hitboxes": [[0, 0, 242, 180]]
       }
@@ -435,9 +456,11 @@ var characterJSON = {
     "color": "slategrey",
     "strokeColor": "navy",
     "img_name": "switch",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [238, 164],
         "hurtboxes": [[0, 0, 238, 164]],
         "hitboxes": [[0, 0, 238, 164]]
       }
@@ -484,9 +507,11 @@ var characterJSON = {
     "color": "gold",
     "strokeColor": "brown",
     "img_name": "candy",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [213, 176],
         "hurtboxes": [[0, 0, 213, 176]],
         "hitboxes": [[0, 0, 213, 176]]
       }
@@ -528,9 +553,11 @@ var characterJSON = {
     "color": "#3349cb",
     "strokeColor": "darkviolet",
     "img_name": "sonata",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [213, 165],
         "hurtboxes": [[0, 0, 213, 165]],
         "hitboxes": [[0, 0, 213, 165]]
       }
@@ -582,9 +609,11 @@ var characterJSON = {
     "color": "saddlebrown",
     "strokeColor": "#c8de0a",
     "img_name": "dice",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [201, 169],
         "hurtboxes": [[0, 0, 201, 169]],
         "hitboxes": [[0, 0, 201, 169]]
       }
@@ -626,9 +655,11 @@ var characterJSON = {
     "color": "#5d68b3",
     "strokeColor": "#23da7d",
     "img_name": "dust",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
+        "imgSize": [249, 158],
         "hurtboxes": [[0, 0, 249, 158]],
         "hitboxes": [[0, 0, 249, 158]]
       }
@@ -714,8 +745,6 @@ function loadChar(charName) {
     loadedChars.push(char)
   }
 
-  // Create a raster item
-  char.raster = new Raster(char.getImage());
   return char
 }
 
@@ -738,7 +767,18 @@ function addReflectionsToAngle(charName, angleName, amount) {
 }
 
 function flipDirectionFacing(char) {
+  var hurtbox = char.getRelativeHurtbox();
+  var relativeBallPosition = hurtbox.bottomCenter;
+
   char.facing = char.facing == 'right' ? 'left' : 'right'
+
+  var nextHurtbox = char.getRelativeHurtbox();
+  var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
+  char.imgOffset.x += delta.x;
+  char.imgOffset.y += delta.y;
+
+  char.x += relativeBallPosition.x * 2;
+  char.imgOffset.x -= relativeBallPosition.x * 2;
 }
 
 function toggleDirectButtons(char) {
@@ -746,9 +786,15 @@ function toggleDirectButtons(char) {
 }
 
 function nextPose(char) {
+  var hurtbox = char.getRelativeHurtbox();
+
   var index = char.poses.indexOf(char.pose);
   char.pose = char.poses[(index + 1) % char.poses.length];
-  char.raster = new Raster(char.getImage());
+
+  var nextHurtbox = char.getRelativeHurtbox();
+  var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
+  char.imgOffset.x += delta.x;
+  char.imgOffset.y += delta.y;
 }
 
 function startDragging(char) {
@@ -954,11 +1000,13 @@ function draw() {
       if(char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
       }
+      var hurtbox = char.getRelativeHurtbox();
+      var iconSize = new Size(20, 20);
+      var iconsX = char.x + hurtbox.bottomCenter.x + iconSize.width / 2;
+      var iconsY = char.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
+      iconsX = Math.max(iconSize.width / 2, iconsX);
+      iconsY = Math.max(iconSize.height / 2, iconsY);
       var icon = new Raster("assets/icons/move.png");
-      var iconsX = char.x + char.imgOffset.x - char.raster.width / 2 + icon.width / 2;
-      var iconsY = char.y + char.imgOffset.y - char.raster.height / 2 - icon.height / 2;
-      iconsX = Math.max(icon.width / 2, iconsX);
-      iconsY = Math.max(icon.height / 2, iconsY);
       icon.position.x = iconsX;
       icon.position.y = iconsY;
       icon.char = char;
@@ -1077,8 +1125,11 @@ function myDown(e) {
 
   // test each shape to see if mouse is inside
   for(var i = 0; i < loadedChars.length; i++){
-    //debugger;
     var s = loadedChars[i];
+    if(s.isDraggingCharImage) {
+      //Do not drag img offset and position at the same time
+      continue;
+    }
     // decide if the shape is a rect or circle
     if(s.width){
       // test if the mouse is inside this rect
@@ -1086,12 +1137,12 @@ function myDown(e) {
         // if yes, set that rects isDragging=true
         startDragging(s);
       }
-    } else if (s.raster && charImagesOn) {
+    } else if (charImagesOn) {
       // s.x and s.y are in the middle of the image
-      var sx_half = s.raster.width / 2;
-      var sy_half = s.raster.height / 2;
+      var sx_half = s.pose.imgSize[0] / 2;
+      var sy_half = s.pose.imgSize[1] / 2;
       var upperLeftCornerOfImage = new Point(s.x - sx_half + s.imgOffset.x, s.y - sy_half + s.imgOffset.y);
-      var charImageRect = new Rectangle(upperLeftCornerOfImage, new Size(s.raster.width, s.raster.height));
+      var charImageRect = new Rectangle(upperLeftCornerOfImage, new Size(s.pose.imgSize[0], s.pose.imgSize[1]));
       var mousePoint = new Point(mx, my);
       if (charImageRect.contains(mousePoint)) {
         startDragging(s);
@@ -1175,8 +1226,8 @@ function myMove(e) {
       if (s.isDraggingCharImage) {
         s.imgOffset.x += dx;
         s.imgOffset.y += dy;
-        var sx_half = s.raster.width / 2;
-        var sy_half = s.raster.height / 2;
+        var sx_half = s.pose.imgSize[0] / 2;
+        var sy_half = s.pose.imgSize[1] / 2;
         if (s.imgOffset.x < -sx_half) {
           s.imgOffset.x = -sx_half;
         } else if (s.imgOffset.x > sx_half) {
@@ -1269,9 +1320,17 @@ $('document').ready(function() {
     char.getHurtbox = function() {
       var box = this.pose.hurtboxes[0]
       if(this.facing == 'right') {
-        return new Rectangle(new Point(this.x + this.imgOffset.x - this.raster.width / 2 + box[0], this.y + this.imgOffset.y - this.raster.height / 2 + box[1]), new Size(box[2], box[3]));
+        return new Rectangle(new Point(this.x + this.imgOffset.x - this.pose.imgSize[0] / 2 + box[0], this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       } else {
-        return new Rectangle(new Point(this.x + this.imgOffset.x - this.raster.width / 2 + (this.raster.width - box[0] - box[2]), this.y + this.imgOffset.y - this.raster.height / 2 + box[1]), new Size(box[2], box[3]));
+        return new Rectangle(new Point(this.x + this.imgOffset.x - this.pose.imgSize[0] / 2 + (this.pose.imgSize[0] - box[0] - box[2]), this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
+      }
+    }
+    char.getRelativeHurtbox = function() {
+      var box = this.pose.hurtboxes[0]
+      if(this.facing == 'right') {
+        return new Rectangle(new Point(this.imgOffset.x - this.pose.imgSize[0] / 2 + box[0], this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
+      } else {
+        return new Rectangle(new Point(this.imgOffset.x - this.pose.imgSize[0] / 2 + (this.pose.imgSize[0] - box[0] - box[2]), this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       }
     }
     characters.push(char)
