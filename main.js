@@ -175,7 +175,7 @@ var characterJSON = {
       },
       {
         "name": "lay",
-        "imgSize": [186, 69],
+        "imgSize": [196, 69],
         "hurtboxes":[[28, 1, 136, 45]],
         "hitboxes":[],
       }
@@ -874,28 +874,88 @@ function drawAngle(properties) {
 
     var line = drawLine(start, degrees)
 
-    // get new starting point from reflection point
-    var intersections = line.getIntersections(ballStageBounds);
-    //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
-    var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
-    if(!intersectPoint) break
+    var hitHurtBoxCollision = false;
+    var hitHurtBoxPoint;
+    var hitHurtBox;
+    var closestDistance;
+    var itHurts = false;
+    if (charImagesOn) {
+      for (var j = 0; j < loadedChars.length; j++) {
+        var char = loadedChars[j];
+        if (char == properties) {
+          continue;
+        }
+        var hitboxes = char.getHitboxes();
+        for (var k = 0; k < hitboxes.length; k++) {
+          var hitbox = hitboxes[k];
+          var hitboxPath = new Path.Rectangle(hitbox);
+          var intersections = line.getIntersections(hitboxPath);
+          for (var l = 0; l < intersections.length; l++) {
+            var intersection = intersections[l];
+            var dist = start.getDistance(intersection.point);
+            if (!hitHurtBoxCollision || dist < closestDistance) {
+              hitHurtBoxCollision = true;
+              hitHurtBoxPoint = intersection.point;
+              hitHurtBoxPath = hitboxPath;
+              closestDistance = dist;
+            }
+          }
+        }
+        var hurtbox = char.getHurtbox();
+        var hitboxPath = new Path.Rectangle(hurtbox);
+        var intersections = line.getIntersections(hitboxPath);
+        for (var l = 0; l < intersections.length; l++) {
+          var intersection = intersections[l];
+          var dist = start.getDistance(intersection.point);
+          if (!hitHurtBoxCollision || dist < closestDistance) {
+            hitHurtBoxCollision = true;
+            hitHurtBoxPoint = intersection.point;
+            hitHurtBoxPath = hitboxPath;
+            closestDistance = dist;
+            itHurts = true;
+          }
+        }
+      }
+    }
 
-    // draw ball hitbox at impact location
-    if(showBallImpactLocations) {
-      var ballHitbox = new Rectangle(new Point(intersectPoint.x - ballRadius + 2, intersectPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4))
-      var ballHitboxPath = new Path.Rectangle(ballHitbox)
-      ballHitboxPath.strokeColor = 'blue'
-      ballHitboxPath.strokeWidth = 4
+    var stopPoint = hitHurtBoxPoint;
+
+    if (!hitHurtBoxCollision) {
+      // get new starting point from reflection point
+      var intersections = line.getIntersections(ballStageBounds);
+      //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
+      var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
+      if(!intersectPoint) break
+
+      stopPoint = intersectPoint;
+
+      // draw ball hitbox at impact location
+      if(showBallImpactLocations) {
+        var ballHitbox = new Rectangle(new Point(intersectPoint.x - ballRadius + 2, intersectPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4))
+        var ballHitboxPath = new Path.Rectangle(ballHitbox)
+        ballHitboxPath.strokeColor = 'blue'
+        ballHitboxPath.strokeWidth = 4
+      }
     }
 
     // outer line
     new Path({
-      segments: [start, intersectPoint],
+      segments: [start, stopPoint],
       strokeWidth: strokeWidthOuter,
       strokeColor: invalid ? 'grey' : properties.strokeColor
     }).clone().style = { // inner line
       strokeWidth: strokeWidthInner,
       strokeColor: invalid ? 'grey' : properties.color
+    }
+
+    if (hitHurtBoxCollision) {
+      if (itHurts) {
+        hitHurtBoxPath.fillColor = 'lightskyblue';
+      } else {
+        hitHurtBoxPath.fillColor = '#ffc2c4';
+      }
+      hitHurtBoxPath.sendToBack();
+      break;
     }
 
     var vector = intersectPoint - start
@@ -1258,8 +1318,8 @@ function myMove(e) {
       var closestHitbox = null;
       var closestDistance = null;
       if (charImagesOn && hitboxes.length > 0) {
-        for (var i = 0; i < hitboxes.length; i++) {
-          var hitbox = hitboxes[i];
+        for (var j = 0; j < hitboxes.length; j++) {
+          var hitbox = hitboxes[j];
           var distance = new Point(0, 0);
           if (s.x < hitbox.left) {
             distance.x = s.x - hitbox.left;
