@@ -1254,9 +1254,36 @@ function myMove(e) {
           s.y += trueStageRect.bottom - hurtbox.bottom
         }
       }
+      var hitboxes = s.getHitboxes();
+      var closestHitbox = null;
+      var closestDistance = null;
+      if (charImagesOn && hitboxes.length > 0) {
+        for (var i = 0; i < hitboxes.length; i++) {
+          var hitbox = hitboxes[i];
+          var distance = new Point(0, 0);
+          if (s.x < hitbox.left) {
+            distance.x = s.x - hitbox.left;
+          } else if (s.x > hitbox.right) {
+            distance.x = s.x - hitbox.right;
+          }
+          if (s.y < hitbox.top) {
+            distance.y = s.y - hitbox.top;
+          } else if (s.y > hitbox.bottom) {
+            distance.y = s.y - hitbox.bottom;
+          }
+          if (closestDistance == null || closestDistance.length > distance.length) {
+            closestDistance = distance;
+            closestHitbox = hitbox;
+          }
+        }
+        if (closestDistance != null) {
+          s.x -= closestDistance.x;
+          s.y -= closestDistance.y;
+          s.imgOffset.x += closestDistance.x;
+          s.imgOffset.y += closestDistance.y;
+        }
+      }
     }
-
-    //TODO: Make sure we limit where a character is drawn
 
     // redraw the scene with the new rect positions
     draw();
@@ -1319,7 +1346,7 @@ $('document').ready(function() {
     }
     char.getHurtbox = function() {
       var box = this.pose.hurtboxes[0]
-      if(this.facing == 'right') {
+      if (this.facing == 'right') {
         return new Rectangle(new Point(this.x + this.imgOffset.x - this.pose.imgSize[0] / 2 + box[0], this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       } else {
         return new Rectangle(new Point(this.x + this.imgOffset.x - this.pose.imgSize[0] / 2 + (this.pose.imgSize[0] - box[0] - box[2]), this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
@@ -1327,11 +1354,23 @@ $('document').ready(function() {
     }
     char.getRelativeHurtbox = function() {
       var box = this.pose.hurtboxes[0]
-      if(this.facing == 'right') {
+      if (this.facing == 'right') {
         return new Rectangle(new Point(this.imgOffset.x - this.pose.imgSize[0] / 2 + box[0], this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       } else {
         return new Rectangle(new Point(this.imgOffset.x - this.pose.imgSize[0] / 2 + (this.pose.imgSize[0] - box[0] - box[2]), this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       }
+    }
+    char.getHitboxes = function() {
+      var calculatedHitboxes = []
+      for (var i = 0; i < this.pose.hitboxes.length; i++) {
+        var hitbox = this.pose.hitboxes[i];
+        if (this.facing == 'right') {
+          calculatedHitboxes.push(new Rectangle(new Point(this.x + this.imgOffset.x - this.pose.imgSize[0] / 2 + hitbox[0], this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + hitbox[1]), new Size(hitbox[2], hitbox[3])));
+        } else {
+          calculatedHitboxes.push(new Rectangle(new Point(this.x + this.imgOffset.x + this.pose.imgSize[0] / 2 - hitbox[0] - hitbox[2], this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + hitbox[1]), new Size(hitbox[2], hitbox[3])));
+        }
+      }
+      return calculatedHitboxes;
     }
     characters.push(char)
 
