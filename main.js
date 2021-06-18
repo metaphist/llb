@@ -148,6 +148,7 @@ var characterJSON = {
         "imgSize": [182, 158],
         "hurtboxes":[[22, 22, 80, 136]],
         "hitboxes":[[52, 0, 130, 158]],
+        "wall": true,
       },
       {
         "name": "bunt",
@@ -214,7 +215,8 @@ var characterJSON = {
       {
         "name": "wall-down",
         "degrees": 120,
-        "validWhen": ["wallswing"]
+        "validWhen": ["wallswing"],
+        "customOffset": 40,
       },
       {
         "name": "special-down-forward",
@@ -1062,7 +1064,7 @@ function draw() {
       }
       var hurtbox = char.getRelativeHurtbox();
       var iconSize = new Size(20, 20);
-      var iconsX = char.x + hurtbox.bottomCenter.x + iconSize.width / 2;
+      var iconsX = char.x + hurtbox.bottomCenter.x - 50 + iconSize.width / 2;
       var iconsY = char.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
       iconsX = Math.max(iconSize.width / 2, iconsX);
       iconsY = Math.max(iconSize.height / 2, iconsY);
@@ -1120,8 +1122,12 @@ function draw() {
           //angles that are identical to other angles have no labels; skip those
           continue;
         }
+        var offset = 80;
+        if (char.curAngle.customOffset) {
+          offset = char.curAngle.customOffset;
+        }
         var icon = new Raster("assets/icons/plus.png")
-        var vector = new Point(80 + j * 10, 0);
+        var vector = new Point(offset + j * 1, 0);
         vector = vector.rotate(char.curAngle.degrees);
         if (char.facing == 'left') {
           vector.x *= -1;
@@ -1141,7 +1147,7 @@ function draw() {
         }
         if(char.curAngle.visible){
           var icon = new Raster("assets/icons/minus.png")
-          var vector = new Point(60 + j * 10, 0);
+          var vector = new Point(offset - 20 + j * 1, 0);
           vector = vector.rotate(char.curAngle.degrees);
           if (char.facing == 'left') {
             vector.x *= -1;
@@ -1297,6 +1303,14 @@ function myMove(e) {
           s.imgOffset.y = -sy_half;
         } else if (s.imgOffset.y > sy_half) {
           s.imgOffset.y = sy_half;
+        }
+      }
+      if (charImagesOn && s.pose.wall) {
+        //just move it far out, it's gonna get snapped to the wall in the next step
+        if (s.facing == 'right') {
+          s.x -= trueStageRect.width;
+        } else {
+          s.x += trueStageRect.width;
         }
       }
       var hurtbox = s.getHurtbox()
