@@ -726,6 +726,7 @@ var labels = [], labelsOn = false
 var guides = [], guidesOn = false
 var charImages= [], charImagesOn = false
 var showBallImpactLocations = true
+var ignoreHitboxCollisions = false
 
 window.onresize = function() {
   offsetX = canvas.getBoundingClientRect().left;
@@ -881,7 +882,7 @@ function drawAngle(properties) {
     var hitHurtBox;
     var closestDistance;
     var itHurts = false;
-    if (charImagesOn) {
+    if (charImagesOn && !ignoreHitboxCollisions) {
       for (var j = 0; j < loadedChars.length; j++) {
         var char = loadedChars[j];
         if (char == properties) {
@@ -1606,6 +1607,12 @@ $('#charImages').on('click', function(e) {
 $('#ballImpacts').on('click', function(e) {
   e.preventDefault
   showBallImpactLocations = !showBallImpactLocations
+  draw()
+})
+
+$('#collision').on('click', function(e) {
+  e.preventDefault
+  ignoreHitboxCollisions = !ignoreHitboxCollisions
   draw()
 })
 
