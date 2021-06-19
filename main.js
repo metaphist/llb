@@ -724,7 +724,7 @@ var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
 var labels = [], labelsOn = false
 var guides = [], guidesOn = false
-var charImages= [], charImagesOn = false
+var charImages = [], charImagesOn = true
 var showBallImpactLocations = true
 var ignoreHitboxCollisions = false
 
@@ -1057,11 +1057,45 @@ function draw() {
 
     // Draw character first so it's below lines and icon buttons
     if(charImagesOn) { 
+      if (char.parry && char.pose.canParry) {
+        var parry = new Raster("assets/characters/parry.png");
+        parry.position.x = char.x;
+        parry.position.y = char.y;
+
+        var strokeWidth = 4;
+        var parryHitbox = new Rectangle(char.x - 50, char.y - 50, 100, 100);
+        var parryHitboxPath = new Path.Rectangle(char.x - 50 + strokeWidth / 2, char.y - 50 + strokeWidth / 2, 100 - strokeWidth, 100 - strokeWidth);
+        parryHitboxPath.strokeColor = 'green';
+        parryHitboxPath.strokeWidth = strokeWidth;
+        parryHitboxPath.sendToBack();
+        parry.sendToBack();
+
+        if (!ignoreHitboxCollisions) {
+          for (var j = 0; j < loadedChars.length; j++) {
+            var otherChar = loadedChars[j];
+            if (otherChar == char) {
+              continue;
+            }
+            var hitboxes = otherChar.getHitboxes();
+            for (var k = 0; k < hitboxes.length; k++) {
+              var hitbox = hitboxes[k];
+              if (hitbox.intersects(parryHitbox)) {
+                parryHitboxPath.fillColor = 'darkviolet';
+              }
+            }
+          }
+        }
+      }
       var r = new Raster(char.getImage());
       r.position.x = char.x + char.imgOffset.x;
       r.position.y = char.y + char.imgOffset.y;
       if(char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
+      }
+      if (char.pose.canParry) {
+        var ball = new Raster("assets/characters/ball.png");
+        ball.position.x = char.x;
+        ball.position.y = char.y;
       }
       var hurtbox = char.getRelativeHurtbox();
       var iconSize = new Size(20, 20);
@@ -1099,6 +1133,16 @@ function draw() {
       icon.onMouseDown = function(event) {
         nextPose(this.char);
         draw();
+      }
+      if (char.pose.canParry) {
+        var icon = new Raster("assets/icons/parry.png");
+        icon.position.x = iconsX + 88;
+        icon.position.y = iconsY;
+        icon.char = char;
+        icon.onMouseDown = function(event) {
+          this.char.parry = !this.char.parry;
+          draw();
+        }
       }
     } else {
       new Path.Circle({
@@ -1411,11 +1455,11 @@ $('document').ready(function() {
     char.name = i
     char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing"]})
     char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"]})
-    char.showDirectButtons = false;
+    char.showDirectButtons = true;
     char.pose = char.poses[0];
     char.facing = 'right'
     char.isDragging = false
-    char.imgOffset = {x: 0, y: 0}
+    char.imgOffset = {x: -55, y: 0}
     char.getImage = function() {
       return "assets/characters/" + this.img_name + "_" + this.pose.name + "_r.png";
     }
@@ -1446,6 +1490,16 @@ $('document').ready(function() {
         }
       }
       return calculatedHitboxes;
+    }
+    for (var j = 0; j < char.poses.length; j++) {
+      var pose = char.poses[j];
+      for (var k = 0; k < char.angles.length; k++) {
+        var angle = char.angles[k];
+        if (angle.validWhen.indexOf(pose.name) >= 0) {
+          pose.canParry = true;
+          break;
+        }
+      }
     }
     characters.push(char)
 
