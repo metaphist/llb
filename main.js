@@ -800,15 +800,10 @@ function nextPose(char) {
   char.imgOffset.y += delta.y;
 }
 
-function startDragging(char) {
+function startDragging(char, dontDragCharImage) {
   dragok = true;
   char.isDragging = true;
-}
-
-function startDraggingCharImage(char) {
-  dragok = true;
-  char.isDragging = false;
-  char.isDraggingCharImage = true;
+  char.dontDragCharImage = dontDragCharImage;
 }
 
 function drawLine(start, degrees) {
@@ -1103,15 +1098,8 @@ function draw() {
       var iconsY = char.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
       iconsX = Math.max(iconSize.width / 2, iconsX);
       iconsY = Math.max(iconSize.height / 2, iconsY);
-      var icon = new Raster("assets/icons/move.png");
-      icon.position.x = iconsX;
-      icon.position.y = iconsY;
-      icon.char = char;
-      icon.onMouseDown = function(event) {
-        startDraggingCharImage(this.char);
-      }
       var icon = new Raster("assets/icons/flip.png");
-      icon.position.x = iconsX + 22;
+      icon.position.x = iconsX;
       icon.position.y = iconsY;
       icon.char = char;
       icon.onMouseDown = function(event) {
@@ -1119,7 +1107,7 @@ function draw() {
         draw();
       }
       var icon = new Raster("assets/icons/toggle.png");
-      icon.position.x = iconsX + 44;
+      icon.position.x = iconsX + 22;
       icon.position.y = iconsY;
       icon.char = char;
       icon.onMouseDown = function(event) {
@@ -1127,7 +1115,7 @@ function draw() {
         draw();
       }
       var icon = new Raster("assets/icons/pose.png");
-      icon.position.x = iconsX + 66;
+      icon.position.x = iconsX + 44;
       icon.position.y = iconsY;
       icon.char = char;
       icon.onMouseDown = function(event) {
@@ -1136,7 +1124,7 @@ function draw() {
       }
       if (char.pose.canParry) {
         var icon = new Raster("assets/icons/parry.png");
-        icon.position.x = iconsX + 88;
+        icon.position.x = iconsX + 66;
         icon.position.y = iconsY;
         icon.char = char;
         icon.onMouseDown = function(event) {
@@ -1237,10 +1225,6 @@ function myDown(e) {
   // test each shape to see if mouse is inside
   for(var i = 0; i < loadedChars.length; i++){
     var s = loadedChars[i];
-    if(s.isDraggingCharImage) {
-      //Do not drag img offset and position at the same time
-      continue;
-    }
     // decide if the shape is a rect or circle
     if(s.width){
       // test if the mouse is inside this rect
@@ -1254,8 +1238,11 @@ function myDown(e) {
       var sy_half = s.pose.imgSize[1] / 2;
       var upperLeftCornerOfImage = new Point(s.x - sx_half + s.imgOffset.x, s.y - sy_half + s.imgOffset.y);
       var charImageRect = new Rectangle(upperLeftCornerOfImage, new Size(s.pose.imgSize[0], s.pose.imgSize[1]));
+      var ballRect = new Rectangle(s.x - 15, s.y - 15, 30, 30);
       var mousePoint = new Point(mx, my);
-      if (charImageRect.contains(mousePoint)) {
+      if (ballRect.contains(mousePoint)) {
+        startDragging(s, true);
+      } else if (charImageRect.contains(mousePoint)) {
         startDragging(s);
       }
     } else { 
@@ -1283,7 +1270,7 @@ function myUp(e) {
   dragok = false;
   for(var i = 0; i < loadedChars.length; i++) {
     loadedChars[i].isDragging = false;
-    loadedChars[i].isDraggingCharImage = false;
+    loadedChars[i].isDraggingBallLocation = false;
   }
 }
 
@@ -1318,6 +1305,10 @@ function myMove(e) {
       if(s.isDragging){
         s.x += dx;
         s.y += dy;
+        if (s.dontDragCharImage) {
+          s.imgOffset.x -= dx;
+          s.imgOffset.y -= dy;
+        }
 
         if(s.x < ballStageRect.left) {
           s.imgOffset.x -= ballStageRect.left - s.x
@@ -1333,10 +1324,6 @@ function myMove(e) {
           s.imgOffset.y -= ballStageRect.bottom - s.y
           s.y = ballStageRect.bottom;
         }
-      }
-      if (s.isDraggingCharImage) {
-        s.imgOffset.x += dx;
-        s.imgOffset.y += dy;
         var sx_half = s.pose.imgSize[0] / 2;
         var sy_half = s.pose.imgSize[1] / 2;
         if (s.imgOffset.x < -sx_half) {
