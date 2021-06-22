@@ -130,6 +130,7 @@ var characterJSON = {
         "imgSize": [209, 163],
         "hurtboxes":[[43, 11, 80, 136]],
         "hitboxes":[[78, 11, 124, 136]],
+        "canMirror": true,
       },
       {
         "name": "smash",
@@ -185,22 +186,26 @@ var characterJSON = {
       {
         "name": "up",
         "degrees": -38,
-        "validWhen": ["swing", "wallswing"]
+        "validWhen": ["swing", "wallswing"],
+        "mirror": true,
       },
       {
         "name": "ground-down",
         "degrees": 28,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "smash",
         "degrees": 38,
-        "validWhen": ["smash", "swing"] //currently this angle gets combined with the next angle
+        "validWhen": ["smash", "swing"], //currently this angle gets combined with the next angle
+        "mirror": true,
       },
       {
         "name": "air-down",
         "degrees": 38,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "spike-forward",
@@ -221,7 +226,8 @@ var characterJSON = {
       {
         "name": "special-down-forward",
         "degrees": 18,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       }
     ]
   },
@@ -229,12 +235,14 @@ var characterJSON = {
     "color": "red",
     "strokeColor": "purple",
     "img_name": "raptor",
+    "baseHeight": 136,
     "poses": [
       {
         "name": "swing",
         "imgSize": [180, 156],
         "hurtboxes": [[0, 0, 180, 156]],
-        "hitboxes": [[0, 0, 180, 156]]
+        "hitboxes": [[0, 0, 180, 156]],
+        "canMirror": true,
       }
     ],
     "angles": [
@@ -464,7 +472,8 @@ var characterJSON = {
         "name": "swing",
         "imgSize": [238, 164],
         "hurtboxes": [[0, 0, 238, 164]],
-        "hitboxes": [[0, 0, 238, 164]]
+        "hitboxes": [[0, 0, 238, 164]],
+        "canMirror": true,
       }
     ],
     "angles": [
@@ -755,15 +764,19 @@ function addReflectionsToAngle(charName, angleName, amount) {
   var char = loadChar(charName);
   var angle = char.angles.find(function(e){ return e.name == angleName })
 
-  if(angle.visible) {
+  if (angle.visible) {
     angle.reflections += amount
   }
 
-  if(amount > 0) {
+  if (angle.reflections > angle.maxReflections - 1) {
+    angle.reflections = angle.maxReflections - 1;
+  }
+
+  if (amount > 0) {
     angle.visible = true;
   }
 
-  if(angle.reflections < 0) {
+  if (angle.reflections < 0) {
     angle.reflections = 0
     angle.visible = false
   }
@@ -786,6 +799,10 @@ function flipDirectionFacing(char) {
 
 function toggleDirectButtons(char) {
   char.showDirectButtons = !char.showDirectButtons;
+}
+
+function toggleMirrorAngles(char) {
+  char.mirrorAngles = !char.mirrorAngles;
 }
 
 function nextPose(char) {
@@ -816,10 +833,9 @@ function drawLine(start, degrees) {
   return line
 }
 
-function drawAngle(properties) {
-  var angle = properties.curAngle
-  //if(angle.reflections == 0) angle.reflections = 1
-  var degrees = properties.facing == 'left' ? (angle.degrees + 180) * -1 : angle.degrees
+function drawAngle(properties, mirrored) {
+  var angle = properties.curAngle;
+  var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
   var start = new Point(properties.x, properties.y)
 
   var invalid = false // no use-y for now
@@ -1132,6 +1148,16 @@ function draw() {
           draw();
         }
       }
+      if (char.pose.canMirror) {
+        var icon = new Raster("assets/icons/mirror.png");
+        icon.position.x = iconsX + 88;
+        icon.position.y = iconsY;
+        icon.char = char;
+        icon.onMouseDown = function(event) {
+          toggleMirrorAngles(this.char);
+          draw();
+        }
+      }
     } else {
       new Path.Circle({
         center: [char.x, char.y],
@@ -1147,8 +1173,11 @@ function draw() {
       if(char.curAngle.validWhen.indexOf(char.pose.name) < 0){
         continue;
       }
-      if(char.curAngle.visible) {
-        drawAngle(char);
+      if (char.curAngle.visible) {
+        if (char.mirrorAngles && char.pose.canMirror && char.curAngle.mirror) {
+          drawAngle(char, true);
+        }
+        drawAngle(char, false);
       }
       if (char.showDirectButtons) {
         if(char.curAngle.labels === undefined) {
@@ -1440,8 +1469,11 @@ $('document').ready(function() {
   for(var i in characterJSON) {
     var char = characterJSON[i]
     char.name = i
-    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing"]})
-    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"]})
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing"], maxReflections: 2})
+    if (char.name == "Latch" || char.name == "Raptor") {
+      char.angles[char.angles.length - 1].mirror = true;
+    }
+    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2})
     char.showDirectButtons = true;
     char.pose = char.poses[0];
     char.facing = 'right'
