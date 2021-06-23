@@ -95,22 +95,26 @@ var characterJSON = {
       {
         "name": "ground-down",
         "degrees": 25,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 110,
       },
       {
         "name": "smash",
         "degrees": 41,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 110,
       },
       {
         "name": "air-down",
         "degrees": 35,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 70,
       },
       {
         "name": "spike-forward",
         "degrees": 21,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 70,
       },
       {
         "name": "spike-backward",
@@ -200,6 +204,7 @@ var characterJSON = {
         "degrees": 38,
         "validWhen": ["smash", "swing"], //currently this angle gets combined with the next angle
         "mirror": true,
+        "customOffset": 110,
       },
       {
         "name": "air-down",
@@ -228,6 +233,7 @@ var characterJSON = {
         "degrees": 18,
         "validWhen": ["swing"],
         "mirror": true,
+        "customOffset": 110,
       }
     ]
   },
@@ -392,22 +398,26 @@ var characterJSON = {
       {
         "name": "ground-down",
         "degrees": 50,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 70,
       },
       {
         "name": "smash",
         "degrees": 45,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 110,
       },
       {
         "name": "air-down",
         "degrees": 64,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 70,
       },
       {
         "name": "spike-forward",
         "degrees": 59,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 110,
       },
       {
         "name": "spike-backward",
@@ -443,7 +453,8 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 28,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 110,
       },
       {
         "name": "air-down",
@@ -453,7 +464,8 @@ var characterJSON = {
       {
         "name": "spike-forward",
         "degrees": 32,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 70,
       },
       {
         "name": "spike-backward",
@@ -490,7 +502,8 @@ var characterJSON = {
       {
         "name": "special",
         "degrees": 17,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "smash",
@@ -541,12 +554,14 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 70,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 90,
       },
       {
         "name": "air-down",
         "degrees": 8,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 110,
       },
       {
         "name": "spike-forward",
@@ -607,12 +622,14 @@ var characterJSON = {
       {
         "name": "bring-it",
         "degrees": 90,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "hidden": true,
       },
       {
         "name": "nice",
         "degrees": -90,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "hidden": true,
       }
     ]
   },
@@ -679,32 +696,38 @@ var characterJSON = {
       {
         "name": "up",
         "degrees": -15,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 100,
       },
       {
         "name": "air-down",
         "degrees": 21,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 100,
       },
       {
         "name": "ground-down",
         "degrees": 57,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 100,
       },
       {
         "name": "smash",
         "degrees": 33,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 100,
       },
       {
         "name": "spike-forward",
         "degrees": 44,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 100,
       },
       {
         "name": "spike-backward",
         "degrees": 163,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "customOffset": 100,
       }
     ]
   }
@@ -782,19 +805,48 @@ function addReflectionsToAngle(charName, angleName, amount) {
   }
 }
 
+function addCandySpecialToAngle(charName, angleName) {
+  var char = loadChar(charName);
+  var angle = char.angles.find(function(e){ return e.name == angleName });
+
+  angle.visible = true;
+  if (angle.reflections == 'undefined' || isNaN(angle.reflections)) {
+    angle.reflections = 0;
+  }
+
+  if (char.name == 'Candyman' && (!angle.special || angle.special < 2)) {
+    if (!angle.special) {
+      angle.special = 1;
+    } else {
+      angle.special++;
+    }
+    // give at least one reflection to properly visualize special
+    if (angle.reflections <= 0) {
+      angle.reflections = 1;
+    }
+    if (!guidesOn) {
+      guidesOn = true;
+    }
+  } else {
+    angle.special = !angle.special;
+  }
+}
+
 function flipDirectionFacing(char) {
   var hurtbox = char.getRelativeHurtbox();
   var relativeBallPosition = hurtbox.bottomCenter;
 
   char.facing = char.facing == 'right' ? 'left' : 'right'
 
-  var nextHurtbox = char.getRelativeHurtbox();
-  var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
-  char.imgOffset.x += delta.x;
-  char.imgOffset.y += delta.y;
+  if (charImagesOn) {
+    var nextHurtbox = char.getRelativeHurtbox();
+    var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
+    char.imgOffset.x += delta.x;
+    char.imgOffset.y += delta.y;
 
-  char.x += relativeBallPosition.x * 2;
-  char.imgOffset.x -= relativeBallPosition.x * 2;
+    char.x += relativeBallPosition.x * 2;
+    char.imgOffset.x -= relativeBallPosition.x * 2;
+  }
 }
 
 function toggleDirectButtons(char) {
@@ -1170,7 +1222,7 @@ function draw() {
 
     for(var j = 0; j < char.angles.length; j++) {
       char.curAngle = char.angles[j]
-      if(char.curAngle.validWhen.indexOf(char.pose.name) < 0){
+      if ((charImagesOn && char.curAngle.validWhen.indexOf(char.pose.name) < 0) || char.curAngle.hidden) {
         continue;
       }
       if (char.curAngle.visible) {
@@ -1225,6 +1277,27 @@ function draw() {
           }
           icon.onMouseDown = function(event) {
             addReflectionsToAngle(this.charName, this.angleName, -1);
+            draw();
+          }
+        }
+        if(char.name == "Candyman"){
+          var icon = new Raster("assets/icons/special.png")
+          var vector = new Point(offset + 20 + j * 1, 0);
+          vector = vector.rotate(char.curAngle.degrees);
+          if (char.facing == 'left') {
+            vector.x *= -1;
+          }
+          icon.position.x = char.x + vector.x;
+          icon.position.y = char.y + vector.y;
+          icon.angleName = char.curAngle.name;
+          icon.charName = char.name;
+          icon.labels = char.curAngle.labels;
+          icon.onMouseEnter = function(event) {
+            //TODO: show tooltip with angle label
+            //console.log(this.charName + " " + this.labels + "-");
+          }
+          icon.onMouseDown = function(event) {
+            addCandySpecialToAngle(this.charName, this.angleName);
             draw();
           }
         }
@@ -1473,7 +1546,7 @@ $('document').ready(function() {
     if (char.name == "Latch" || char.name == "Raptor") {
       char.angles[char.angles.length - 1].mirror = true;
     }
-    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2})
+    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40})
     char.showDirectButtons = true;
     char.pose = char.poses[0];
     char.facing = 'right'
@@ -1538,7 +1611,7 @@ $('document').ready(function() {
         prevAngle = angle
 
         // special butttons
-        if(char.name == 'Candyman' /* && ['up', 'air-down', 'ground-down'].indexOf(angle.name) > -1 */) {
+        if(char.name == 'Candyman') {
           $('li.'+char.name+'.'+angle.name).append('<span class="special" title="Add bounces (+) and click again to warp them">S</span>')
         }
       }
@@ -1565,7 +1638,7 @@ $('document').ready(function() {
     var charName = $(e.target).parent().attr('id')
     var char = loadedChars.find(function(e){ return e.name == charName })
     if(!char) char = characters.find(function(e){ return e.name == charName })
-    char.facing = char.facing == 'right' ? 'left' : 'right'
+    flipDirectionFacing(char);
 
     draw()
   })
@@ -1623,27 +1696,7 @@ $('document').ready(function() {
     var classes = $(e.target).parent().attr('class').split(/\s+/)
     var charName = classes[0]
     var angleName = classes[1]
-
-    var char = loadChar(charName);
-
-    // show angle
-    var angle = char.angles.find(function(e){ return e.name == angleName })
-    angle.visible = true
-    if(angle.reflections == 'undefined' || isNaN(angle.reflections))
-      angle.reflections = 0
-
-    if(charName == 'Candyman' && (!angle.special || angle.special < angle.reflections)) {
-      if(!angle.special)
-        angle.special = 1
-      else angle.special++
-      // give at least one reflection to properly visualize special
-      if(angle.reflections <= 0)
-        angle.reflections = 1
-      if(!guidesOn)
-        guidesOn = true
-    } else {
-      angle.special = !angle.special
-    }
+    addCandySpecialToAngle(charName, angleName);
 
     draw()
   })
