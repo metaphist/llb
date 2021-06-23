@@ -774,13 +774,22 @@ document.documentElement.addEventListener('mouseup', myUp);
 var stages = [], characters = [], loadedChars = []
 
 function loadChar(charName) {
-  var char = loadedChars.find(function(e){ return e.name == charName })
-  if(!char) {
-    char = characters.find(function(e){ return e.name == charName })
-    loadedChars.push(char)
+  var char = loadedChars.find(function(e){ return e.name == charName });
+  if (!char) {
+    char = characters.find(function(e){ return e.name == charName });
+    loadedChars.push(char);
+    $('li#' + charName + ' ol').removeClass("hidden");
   }
 
-  return char
+  return char;
+}
+
+function unloadChar(charName) {
+  var i = loadedChars.findIndex(function(e){ return e.name == charName });
+  if (i >= 0) {
+    loadedChars.splice(i, 1);
+    $('li#' + charName + ' ol').addClass("hidden");
+  }
 }
 
 function addReflectionsToAngle(charName, angleName, amount) {
@@ -802,6 +811,18 @@ function addReflectionsToAngle(charName, angleName, amount) {
   if (angle.reflections < 0) {
     angle.reflections = 0
     angle.visible = false
+  }
+
+  if (angle.visible && charImagesOn) {
+    if (angle.validWhen.indexOf(char.pose.name) < 0) {
+      for (var j = 0; j < char.poses.length; j++) {
+        var pose = char.poses[j];
+        if (angle.validWhen.indexOf(pose.name) >= 0) {
+          changePoseTo(char, pose);
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -858,10 +879,15 @@ function toggleMirrorAngles(char) {
 }
 
 function nextPose(char) {
+  var index = char.poses.indexOf(char.pose);
+  var pose = char.poses[(index + 1) % char.poses.length];
+  changePoseTo(char, pose)
+}
+
+function changePoseTo(char, nextPose) {
   var hurtbox = char.getRelativeHurtbox();
 
-  var index = char.poses.indexOf(char.pose);
-  char.pose = char.poses[(index + 1) % char.poses.length];
+  char.pose = nextPose;
 
   var nextHurtbox = char.getRelativeHurtbox();
   var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
@@ -1596,7 +1622,7 @@ $('document').ready(function() {
     }
     characters.push(char)
 
-    $('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles"></ol></li>')
+    $('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles hidden"></ol></li>')
     var prevAngle = null // for combining like angles
     for(var j = 0; j < char.angles.length; j++) {
       var angle = char.angles[j]
@@ -1626,9 +1652,7 @@ $('document').ready(function() {
     if(!isLoaded) {
       loadChar(charName)
     } else {
-      // unload em
-      var i = loadedChars.findIndex(function(e){ return e.name == charName })
-      loadedChars.splice(i, 1)
+      unloadChar(charName);
     }
 
     draw()

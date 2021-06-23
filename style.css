@@ -114,6 +114,10 @@ body {
     background: orangered;
     color: navajowhite;
 }
+.hidden {
+    visibility: hidden;
+    height: 0;
+}
 h1 {
     margin-bottom: 0;
 }
