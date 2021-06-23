@@ -1070,7 +1070,8 @@ function drawAngle(properties, mirrored) {
 
       if(hitSides && hitFloorOrCeiling) {
         // on corners invert direction
-        degrees += 180
+        degrees += 180;
+        i++; // corner should count as two reflections
       } else if(hitSides) {
         // on side reflections flip angle horizontally
         degrees *= -1
