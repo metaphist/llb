@@ -255,22 +255,26 @@ var characterJSON = {
       {
         "name": "up",
         "degrees": -60,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "ground-down",
         "degrees": 30,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "smash",
         "degrees": 42,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "air-down",
         "degrees": 42,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "spike-forward",
@@ -759,6 +763,9 @@ var guides = [], guidesOn = false
 var charImages = [], charImagesOn = true
 var showBallImpactLocations = true
 var ignoreHitboxCollisions = false
+var tooltipOffset = new Point(-10, -17);
+var tooltipLocation = new Point();
+var tooltipText = '';
 
 window.onresize = function() {
   offsetX = canvas.getBoundingClientRect().left;
@@ -790,6 +797,11 @@ function unloadChar(charName) {
     loadedChars.splice(i, 1);
     $('li#' + charName + ' ol').addClass("hidden");
   }
+}
+
+function getAngleLabelText(angle) {
+  var content = Array.isArray(angle.labels) ? angle.labels.join(' / ') : angle.name;
+  return content.toUpperCase();
 }
 
 function addReflectionsToAngle(charName, angleName, amount) {
@@ -901,6 +913,18 @@ function startDragging(char, dontDragCharImage) {
   char.dontDragCharImage = dontDragCharImage;
 }
 
+function updateTooltip(tooltip, text, position) {
+  tooltipText = text;
+  tooltipLocation = position;
+  tooltip.content = text;
+  tooltip.point = position + tooltipOffset;
+}
+
+function hideTooltip(tooltip) {
+  tooltipText = '';
+  tooltip.content = '';
+}
+
 function drawLine(start, degrees) {
   // use canvas width * 2 to ensure line is long enough in any situation
   var end = new Point(start.x + canvas.getBoundingClientRect().width * 2, start.y)
@@ -933,8 +957,7 @@ function drawAngle(properties, mirrored) {
         label.fontSize = fontSize
         label.fontWeight = 'bold'
         label.fontFamily = 'Arial'
-        var content = Array.isArray(angle.labels) ? angle.labels.join(' / ') : angle.name;
-        label.content = content.toUpperCase()
+        label.content = getAngleLabelText(angle);
         label.shadowColor = 'black'
         label.shadowBlur = 5
         //label.strokeWidth = 1
@@ -1138,6 +1161,13 @@ function draw() {
   paper.project.activeLayer.removeChildren()
   labels = []
 
+  var tooltip = new PointText(tooltipLocation + tooltipOffset);
+  tooltip.fillColor = 'white';
+  tooltip.fontSize = 20;
+  tooltip.shadowColor = 'black';
+  tooltip.shadowBlur = 3;
+  tooltip.content = tooltipText;
+
   for(var i = 0; i < loadedChars.length; i++) {
     var char = loadedChars[i]
     if(!char.x) {
@@ -1197,6 +1227,12 @@ function draw() {
       icon.position.x = iconsX;
       icon.position.y = iconsY;
       icon.char = char;
+      icon.onMouseEnter = function(event) {
+        updateTooltip(tooltip, "Flip", this.position);
+      }
+      icon.onMouseLeave = function(event) {
+        hideTooltip(tooltip);
+      }
       icon.onMouseDown = function(event) {
         flipDirectionFacing(this.char);
         draw();
@@ -1205,6 +1241,12 @@ function draw() {
       icon.position.x = iconsX + 22;
       icon.position.y = iconsY;
       icon.char = char;
+      icon.onMouseEnter = function(event) {
+        updateTooltip(tooltip, "Toggle Buttons", this.position);
+      }
+      icon.onMouseLeave = function(event) {
+        hideTooltip(tooltip);
+      }
       icon.onMouseDown = function(event) {
         toggleDirectButtons(this.char);
         draw();
@@ -1213,6 +1255,12 @@ function draw() {
       icon.position.x = iconsX + 44;
       icon.position.y = iconsY;
       icon.char = char;
+      icon.onMouseEnter = function(event) {
+        updateTooltip(tooltip, "Change Pose", this.position);
+      }
+      icon.onMouseLeave = function(event) {
+        hideTooltip(tooltip);
+      }
       icon.onMouseDown = function(event) {
         nextPose(this.char);
         draw();
@@ -1222,6 +1270,12 @@ function draw() {
         icon.position.x = iconsX + 66;
         icon.position.y = iconsY;
         icon.char = char;
+        icon.onMouseEnter = function(event) {
+          updateTooltip(tooltip, "Parry", this.position);
+        }
+        icon.onMouseLeave = function(event) {
+          hideTooltip(tooltip);
+        }
         icon.onMouseDown = function(event) {
           this.char.parry = !this.char.parry;
           draw();
@@ -1232,6 +1286,12 @@ function draw() {
         icon.position.x = iconsX + 88;
         icon.position.y = iconsY;
         icon.char = char;
+        icon.onMouseEnter = function(event) {
+          updateTooltip(tooltip, "Mirror Special Angles", this.position);
+        }
+        icon.onMouseLeave = function(event) {
+          hideTooltip(tooltip);
+        }
         icon.onMouseDown = function(event) {
           toggleMirrorAngles(this.char);
           draw();
@@ -1277,10 +1337,12 @@ function draw() {
         icon.position.y = char.y + vector.y;
         icon.angleName = char.curAngle.name;
         icon.charName = char.name;
-        icon.labels = char.curAngle.labels;
+        icon.labels = getAngleLabelText(char.curAngle);
         icon.onMouseEnter = function(event) {
-          //TODO: show tooltip with angle label
-          //console.log(this.charName + " " + this.labels + "+");
+          updateTooltip(tooltip, this.labels + " (+)", this.position);
+        }
+        icon.onMouseLeave = function(event) {
+          hideTooltip(tooltip);
         }
         icon.onMouseDown = function(event) {
           addReflectionsToAngle(this.charName, this.angleName, 1);
@@ -1297,10 +1359,12 @@ function draw() {
           icon.position.y = char.y + vector.y;
           icon.angleName = char.curAngle.name;
           icon.charName = char.name;
-          icon.labels = char.curAngle.labels;
+          icon.labels = getAngleLabelText(char.curAngle);
           icon.onMouseEnter = function(event) {
-            //TODO: show tooltip with angle label
-            //console.log(this.charName + " " + this.labels + "-");
+            updateTooltip(tooltip, this.labels + " (-)", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
           }
           icon.onMouseDown = function(event) {
             addReflectionsToAngle(this.charName, this.angleName, -1);
@@ -1318,10 +1382,12 @@ function draw() {
           icon.position.y = char.y + vector.y;
           icon.angleName = char.curAngle.name;
           icon.charName = char.name;
-          icon.labels = char.curAngle.labels;
+          icon.labels = getAngleLabelText(char.curAngle);
           icon.onMouseEnter = function(event) {
-            //TODO: show tooltip with angle label
-            //console.log(this.charName + " " + this.labels + "-");
+            updateTooltip(tooltip, this.labels + " (Toggle Candywarp)", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
           }
           icon.onMouseDown = function(event) {
             addCandySpecialToAngle(this.charName, this.angleName);
@@ -1334,6 +1400,7 @@ function draw() {
     labels.forEach(function(e) { e.bringToFront(); })
     guides.forEach(function(e) { e.bringToFront(); })
   }
+  tooltip.bringToFront();
 
   paper.view.update()
   window.canvas = canvas;
