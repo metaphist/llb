@@ -174,6 +174,12 @@ var characterJSON = {
         "hitboxes":[],
       },
       {
+        "name": "halfcrouch",
+        "imgSize": [169, 120],
+        "hurtboxes":[[39, 0, 80, 96]],
+        "hitboxes":[],
+      },
+      {
         "name": "crouch",
         "imgSize": [155, 82],
         "hurtboxes":[[26, 5, 80, 60]],
@@ -434,47 +440,95 @@ var characterJSON = {
     "color": "yellow",
     "strokeColor": "mediumpurple",
     "img_name": "grid",
-    "baseHeight": 136,
+    "baseHeight": 160,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [242, 180],
-        "hurtboxes": [[0, 0, 242, 180]],
-        "hitboxes": [[0, 0, 242, 180]]
-      }
+        "imgSize": [217, 166],
+        "hurtboxes": [[62, 0, 70, 160]],
+        "hitboxes": [[87, 0, 130, 160]],
+      },
+      {
+        "name": "smash",
+        "imgSize": [222, 252],
+        "hurtboxes": [[67, 92, 70, 160]],
+        "hitboxes": [[47, 0, 110, 90],[92, 92, 130, 160]],
+      },
+      {
+        "name": "spike",
+        "imgSize": [122, 260],
+        "hurtboxes": [[26, 0, 70, 160]],
+        "hitboxes": [[1, 90, 120, 170]],
+      },
+      {
+        "name": "bunt",
+        "imgSize": [201, 210],
+        "hurtboxes": [[46, 40, 70, 160]],
+        "hitboxes": [[116, 0, 85, 80],[71, 80, 130, 120]],
+      },
+      {
+        "name": "grab",
+        "imgSize": [232, 169],
+        "hurtboxes": [[66, 2, 70, 160]],
+        "hitboxes": [[91, 2, 130, 160]],
+      },
+      {
+        "name": "stand",
+        "imgSize": [163, 191],
+        "hurtboxes": [[20, 7, 70, 160]],
+        "hitboxes": [],
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [160, 224],
+        "hurtboxes": [[35, 58, 70, 80]],
+        "hitboxes": [],
+      },
+      {
+        "name": "crouch",
+        "imgSize": [176, 186],
+        "hurtboxes": [[52, 48, 70, 80]],
+        "hitboxes": [],
+      },
+      {
+        "name": "lay",
+        "imgSize": [210, 89],
+        "hurtboxes": [[6, 1, 160, 45]],
+        "hitboxes": [],
+      },
     ],
     "angles": [
       {
         "name": "up",
         "degrees": -50,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "ground-down",
         "degrees": 50,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "smash",
         "degrees": 28,
-        "validWhen": ["swing"],
+        "validWhen": ["smash"],
         "customOffset": 110,
       },
       {
         "name": "air-down",
         "degrees": 15,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "spike-forward",
         "degrees": 32,
-        "validWhen": ["swing"],
+        "validWhen": ["spike"],
         "customOffset": 70,
       },
       {
         "name": "spike-backward",
         "degrees": 117,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"],
       }
     ]
   },
