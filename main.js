@@ -702,6 +702,15 @@ var characterJSON = {
         "imgSize": [201, 169],
         "hurtboxes": [[0, 0, 201, 169]],
         "hitboxes": [[0, 0, 201, 169]]
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 400],
+        "hurtboxes": [[170, 180, 60, 148]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
       }
     ],
     "angles": [
@@ -1057,7 +1066,12 @@ function drawAngle(properties, mirrored) {
         var hitboxes = char.getHitboxes();
         for (var k = 0; k < hitboxes.length; k++) {
           var hitbox = hitboxes[k];
-          var hitboxPath = new Path.Rectangle(hitbox);
+          var hitboxPath;
+          if (char.pose.circle) {
+            hitboxPath = new Path.Circle(hitbox.center, hitbox.width / 2);
+          } else {
+            hitboxPath = new Path.Rectangle(hitbox);
+          }
           var intersections = line.getIntersections(hitboxPath);
           for (var l = 0; l < intersections.length; l++) {
             var intersection = intersections[l];
@@ -1587,27 +1601,31 @@ function myMove(e) {
           s.imgOffset.y = sy_half;
         }
       }
-      if (charImagesOn && s.pose.wall) {
-        //just move it far out, it's gonna get snapped to the wall in the next step
-        if (s.facing == 'right') {
-          s.x -= trueStageRect.width;
-        } else {
-          s.x += trueStageRect.width;
-        }
-      }
       var hurtbox = s.getHurtbox()
-      if(charImagesOn && !trueStageRect.contains(hurtbox)) {
-        if(hurtbox.left < trueStageRect.left) {
-          s.x += trueStageRect.left - hurtbox.left
+      if (charImagesOn) {
+        if (s.pose.wall){
+          if (s.facing == 'right') {
+            s.x += trueStageRect.left - hurtbox.left;
+          } else {
+            s.x += trueStageRect.right - hurtbox.right;
+          }
+        } else {
+          if (hurtbox.left < trueStageRect.left) {
+            s.x += trueStageRect.left - hurtbox.left;
+          }
+          if (hurtbox.right > trueStageRect.right) {
+            s.x += trueStageRect.right - hurtbox.right;
+          }
         }
-        if(hurtbox.right > trueStageRect.right) {
-          s.x += trueStageRect.right - hurtbox.right
-        }
-        if(hurtbox.top < trueStageRect.top) {
-          s.y += trueStageRect.top - hurtbox.top
-        }
-        if(hurtbox.bottom > trueStageRect.bottom) {
-          s.y += trueStageRect.bottom - hurtbox.bottom
+        if (s.pose.grounded) {
+          s.y += trueStageRect.bottom - hurtbox.bottom - s.pose.groundOffset;
+        } else {
+          if (hurtbox.top < trueStageRect.top) {
+            s.y += trueStageRect.top - hurtbox.top;
+          }
+          if (hurtbox.bottom > trueStageRect.bottom) {
+            s.y += trueStageRect.bottom - hurtbox.bottom;
+          }
         }
       }
       var hitboxes = s.getHitboxes();
