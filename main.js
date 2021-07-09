@@ -1078,13 +1078,17 @@ function drawAngle(properties, mirrored) {
         var hitboxes = char.getHitboxes();
         for (var k = 0; k < hitboxes.length; k++) {
           var hitbox = hitboxes[k];
+          var hitboxExpanded = hitbox.expand(ballDiameter);
           var hitboxPath;
+          var hitboxPathExpanded;
           if (char.pose.circle) {
             hitboxPath = new Path.Circle(hitbox.center, hitbox.width / 2);
+            hitboxPathExpanded = new Path.Circle(hitboxExpanded.center, hitboxExpanded.width / 2);
           } else {
             hitboxPath = new Path.Rectangle(hitbox);
+            hitboxPathExpanded = new Path.Rectangle(hitboxExpanded);
           }
-          var intersections = line.getIntersections(hitboxPath);
+          var intersections = line.getIntersections(hitboxPathExpanded);
           for (var l = 0; l < intersections.length; l++) {
             var intersection = intersections[l];
             var dist = start.getDistance(intersection.point);
@@ -1097,15 +1101,17 @@ function drawAngle(properties, mirrored) {
           }
         }
         var hurtbox = char.getHurtbox();
-        var hitboxPath = new Path.Rectangle(hurtbox);
-        var intersections = line.getIntersections(hitboxPath);
+        var expandedHurtbox = hurtbox.expand(ballDiameter);
+        var hurtboxPathExpanded = new Path.Rectangle(expandedHurtbox);
+        var intersections = line.getIntersections(hurtboxPathExpanded);
         for (var l = 0; l < intersections.length; l++) {
           var intersection = intersections[l];
           var dist = start.getDistance(intersection.point);
-          if (!hitHurtBoxCollision || dist < closestDistance) {
+          var epsilon = 0.0001;
+          if (!hitHurtBoxCollision || dist < closestDistance - epsilon) {
             hitHurtBoxCollision = true;
             hitHurtBoxPoint = intersection.point;
-            hitHurtBoxPath = hitboxPath;
+            hitHurtBoxPath = new Path.Rectangle(hurtbox);
             closestDistance = dist;
             itHurts = true;
           }
@@ -1123,14 +1129,14 @@ function drawAngle(properties, mirrored) {
       if(!intersectPoint) break
 
       stopPoint = intersectPoint;
+    }
 
-      // draw ball hitbox at impact location
-      if(showBallImpactLocations) {
-        var ballHitbox = new Rectangle(new Point(intersectPoint.x - ballRadius + 2, intersectPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4))
-        var ballHitboxPath = new Path.Rectangle(ballHitbox)
-        ballHitboxPath.strokeColor = 'blue'
-        ballHitboxPath.strokeWidth = 4
-      }
+    // draw ball hitbox at impact location
+    if (showBallImpactLocations) {
+      var ballHitbox = new Rectangle(new Point(stopPoint.x - ballRadius + 2, stopPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4));
+      var ballHitboxPath = new Path.Rectangle(ballHitbox);
+      ballHitboxPath.strokeColor = 'blue';
+      ballHitboxPath.strokeWidth = 4;
     }
 
     // outer line
@@ -1646,6 +1652,7 @@ function myMove(e) {
       if (charImagesOn && hitboxes.length > 0) {
         for (var j = 0; j < hitboxes.length; j++) {
           var hitbox = hitboxes[j];
+          hitbox = hitbox.expand(ballDiameter);
           var distance = new Point(0, 0);
           if (s.x < hitbox.left) {
             distance.x = s.x - hitbox.left;
