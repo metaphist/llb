@@ -134,7 +134,14 @@ var characterJSON = {
         "imgSize": [209, 163],
         "hurtboxes":[[43, 11, 80, 136]],
         "hitboxes":[[78, 11, 124, 136]],
+      },
+      {
+        "name": "spit",
+        "imgSize": [209, 163],
+        "hurtboxes":[[43, 11, 80, 136]],
+        "hitboxes":[],
         "canMirror": true,
+        "fixedRelease": [65, 53],
       },
       {
         "name": "smash",
@@ -166,6 +173,8 @@ var characterJSON = {
         "imgSize": [208, 141],
         "hurtboxes":[[49, 0, 80, 135]],
         "hitboxes":[[84, 0, 124, 136]],
+        "canMirror": true,
+        "fixedRelease": [120, 68],
       },
       {
         "name": "stand",
@@ -202,26 +211,26 @@ var characterJSON = {
       {
         "name": "up",
         "degrees": -38,
-        "validWhen": ["swing", "wallswing"],
+        "validWhen": ["swing", "wallswing", "spit"],
         "mirror": true,
       },
       {
         "name": "ground-down",
         "degrees": 28,
-        "validWhen": ["swing"],
+        "validWhen": ["swing", "spit"],
         "mirror": true,
       },
       {
         "name": "smash",
         "degrees": 38,
-        "validWhen": ["smash", "swing"], //currently this angle gets combined with the next angle
+        "validWhen": ["smash", "swing", "spit"], //currently this angle gets combined with the next angle
         "mirror": true,
         "customOffset": 110,
       },
       {
         "name": "air-down",
         "degrees": 38,
-        "validWhen": ["swing"],
+        "validWhen": ["swing", "spit"],
         "mirror": true,
       },
       {
@@ -243,7 +252,7 @@ var characterJSON = {
       {
         "name": "special-down-forward",
         "degrees": 18,
-        "validWhen": ["swing"],
+        "validWhen": ["swing", "spit"],
         "mirror": true,
         "customOffset": 110,
       }
@@ -477,6 +486,8 @@ var characterJSON = {
         "imgSize": [232, 169],
         "hurtboxes": [[66, 2, 70, 160]],
         "hitboxes": [[91, 2, 130, 160]],
+        "canMirror": true,
+        "fixedRelease": [115, 80],
       },
       {
         "name": "stand",
@@ -1000,6 +1011,21 @@ function hideTooltip(tooltip) {
   tooltip.content = '';
 }
 
+function getFixedReleaseLocations(char) {
+  var fixedReleaseOffset = new Point(char.pose.fixedRelease[0], char.pose.fixedRelease[1]);
+  var hurtbox = char.getHurtbox();
+  var rightPoint = hurtbox.topLeft + fixedReleaseOffset;
+  fixedReleaseOffset.x *= -1;
+  var leftPoint = hurtbox.topRight + fixedReleaseOffset;
+  clampPointToRect(leftPoint, ballStageRect);
+  clampPointToRect(rightPoint, ballStageRect);
+  if (char.facing == "left") {
+    return [leftPoint, rightPoint];
+  } else {
+    return [rightPoint, leftPoint];
+  }
+}
+
 function drawLine(start, degrees) {
   // use canvas width * 2 to ensure line is long enough in any situation
   var end = new Point(start.x + canvas.getBoundingClientRect().width * 2, start.y)
@@ -1010,10 +1036,10 @@ function drawLine(start, degrees) {
   return line
 }
 
-function drawAngle(properties, mirrored) {
+function drawAngle(properties, startingPoint, mirrored) {
   var angle = properties.curAngle;
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
-  var start = new Point(properties.x, properties.y)
+  var start = startingPoint;
 
   var invalid = false // no use-y for now
   for(var i = 0; i <= angle.reflections; ++i) {
@@ -1310,8 +1336,11 @@ function draw() {
       iconsX = Math.max(iconSize.width / 2, iconsX);
       iconsY = Math.max(iconSize.height / 2, iconsY);
       var icon = new Raster("assets/icons/flip.png");
-      icon.position.x = iconsX;
+      var iconPosition = 0;
+      var iconSpacing = 22;
+      icon.position.x = iconsX + iconPosition;
       icon.position.y = iconsY;
+      iconPosition += iconSpacing;
       icon.char = char;
       icon.onMouseEnter = function(event) {
         updateTooltip(tooltip, "Flip", this.position);
@@ -1324,8 +1353,9 @@ function draw() {
         draw();
       }
       var icon = new Raster("assets/icons/toggle.png");
-      icon.position.x = iconsX + 22;
+      icon.position.x = iconsX + iconPosition;
       icon.position.y = iconsY;
+      iconPosition += iconSpacing;
       icon.char = char;
       icon.onMouseEnter = function(event) {
         updateTooltip(tooltip, "Toggle Buttons", this.position);
@@ -1338,8 +1368,9 @@ function draw() {
         draw();
       }
       var icon = new Raster("assets/icons/pose.png");
-      icon.position.x = iconsX + 44;
+      icon.position.x = iconsX + iconPosition;
       icon.position.y = iconsY;
+      iconPosition += iconSpacing;
       icon.char = char;
       icon.onMouseEnter = function(event) {
         updateTooltip(tooltip, "Change Pose", this.position);
@@ -1353,8 +1384,9 @@ function draw() {
       }
       if (char.pose.canParry) {
         var icon = new Raster("assets/icons/parry.png");
-        icon.position.x = iconsX + 66;
+        icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
+        iconPosition += iconSpacing;
         icon.char = char;
         icon.onMouseEnter = function(event) {
           updateTooltip(tooltip, "Parry", this.position);
@@ -1369,8 +1401,9 @@ function draw() {
       }
       if (char.pose.canMirror) {
         var icon = new Raster("assets/icons/mirror.png");
-        icon.position.x = iconsX + 88;
+        icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
+        iconPosition += iconSpacing;
         icon.char = char;
         icon.onMouseEnter = function(event) {
           updateTooltip(tooltip, "Mirror Special Angles", this.position);
@@ -1395,16 +1428,23 @@ function draw() {
 
     for(var j = 0; j < char.angles.length; j++) {
       char.curAngle = char.angles[j]
-      if ((charImagesOn && char.curAngle.validWhen.indexOf(char.pose.name) < 0) || char.curAngle.hidden) {
+      if ((charImagesOn && char.curAngle.validWhen.indexOf(char.pose.name) < 0) || (char.curAngle.hidden && !charImagesOn)) {
         continue;
       }
       if (char.curAngle.visible) {
-        if (char.mirrorAngles && char.pose.canMirror && char.curAngle.mirror) {
-          drawAngle(char, true);
+        var startingPoint = new Point(char.x, char.y);
+        var mirrorStartingPoint = new Point(char.x, char.y);
+        if (char.pose.fixedRelease && charImagesOn) {
+          var fixedReleaseLocations = getFixedReleaseLocations(char);
+          startingPoint = fixedReleaseLocations[0];
+          mirrorStartingPoint = fixedReleaseLocations[1];
         }
-        drawAngle(char, false);
+        if (char.mirrorAngles && char.pose.canMirror && char.curAngle.mirror) {
+          drawAngle(char, mirrorStartingPoint, true);
+        }
+        drawAngle(char, startingPoint, false);
       }
-      if (char.showDirectButtons) {
+      if (char.showDirectButtons && (charImagesOn || !char.curAngle.hidden)) {
         if(char.curAngle.labels === undefined) {
           //angles that are identical to other angles have no labels; skip those
           continue;
@@ -1493,6 +1533,19 @@ function draw() {
   window.sb = ballStageBounds;
 }
 
+function clampPointToRect(point, rect) {
+  if (point.x < rect.left) {
+    point.x = rect.left;
+  } else if (point.x > rect.right) {
+    point.x = rect.right;
+  }
+  if (point.y < rect.top) {
+    point.y = rect.top;
+  } else if (point.y > rect.bottom) {
+    point.y = rect.bottom;
+  }
+}
+
 // handle mousedown events
 function myDown(e) {
 
@@ -1522,7 +1575,7 @@ function myDown(e) {
       var charImageRect = new Rectangle(upperLeftCornerOfImage, new Size(s.pose.imgSize[0], s.pose.imgSize[1]));
       var ballRect = new Rectangle(s.x - 15, s.y - 15, 30, 30);
       var mousePoint = new Point(mx, my);
-      if (ballRect.contains(mousePoint)) {
+      if (ballRect.contains(mousePoint) && !s.pose.fixedRelease) {
         startDragging(s, true);
       } else if (charImageRect.contains(mousePoint)) {
         startDragging(s);
@@ -1649,31 +1702,40 @@ function myMove(e) {
       var hitboxes = s.getHitboxes();
       var closestHitbox = null;
       var closestDistance = null;
-      if (charImagesOn && hitboxes.length > 0) {
-        for (var j = 0; j < hitboxes.length; j++) {
-          var hitbox = hitboxes[j];
-          hitbox = hitbox.expand(ballDiameter);
-          var distance = new Point(0, 0);
-          if (s.x < hitbox.left) {
-            distance.x = s.x - hitbox.left;
-          } else if (s.x > hitbox.right) {
-            distance.x = s.x - hitbox.right;
+      if (charImagesOn) {
+        if (s.pose.fixedRelease) {
+          var fixedPoint = getFixedReleaseLocations(s)[0];
+          var delta = new Point(fixedPoint.x - s.x, fixedPoint.y - s.y);
+          s.x += delta.x;
+          s.y += delta.y;
+          s.imgOffset.x -= delta.x;
+          s.imgOffset.y -= delta.y;
+        } else if(hitboxes.length > 0) {
+          for (var j = 0; j < hitboxes.length; j++) {
+            var hitbox = hitboxes[j];
+            hitbox = hitbox.expand(ballDiameter);
+            var distance = new Point(0, 0);
+            if (s.x < hitbox.left) {
+              distance.x = s.x - hitbox.left;
+            } else if (s.x > hitbox.right) {
+              distance.x = s.x - hitbox.right;
+            }
+            if (s.y < hitbox.top) {
+              distance.y = s.y - hitbox.top;
+            } else if (s.y > hitbox.bottom) {
+              distance.y = s.y - hitbox.bottom;
+            }
+            if (closestDistance == null || closestDistance.length > distance.length) {
+              closestDistance = distance;
+              closestHitbox = hitbox;
+            }
           }
-          if (s.y < hitbox.top) {
-            distance.y = s.y - hitbox.top;
-          } else if (s.y > hitbox.bottom) {
-            distance.y = s.y - hitbox.bottom;
+          if (closestDistance != null) {
+            s.x -= closestDistance.x;
+            s.y -= closestDistance.y;
+            s.imgOffset.x += closestDistance.x;
+            s.imgOffset.y += closestDistance.y;
           }
-          if (closestDistance == null || closestDistance.length > distance.length) {
-            closestDistance = distance;
-            closestHitbox = hitbox;
-          }
-        }
-        if (closestDistance != null) {
-          s.x -= closestDistance.x;
-          s.y -= closestDistance.y;
-          s.imgOffset.x += closestDistance.x;
-          s.imgOffset.y += closestDistance.y;
         }
       }
     }
@@ -1727,11 +1789,13 @@ $('document').ready(function() {
   for(var i in characterJSON) {
     var char = characterJSON[i]
     char.name = i
-    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing"], maxReflections: 2})
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit"], maxReflections: 2});
     if (char.name == "Latch" || char.name == "Raptor") {
       char.angles[char.angles.length - 1].mirror = true;
     }
-    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40})
+    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40});
+    char.angles.push({ name: 'straight-throw', degrees: 0, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
+    char.angles.push({ name: 'down-throw', degrees: 90, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
     char.showDirectButtons = true;
     char.pose = char.poses[0];
     char.facing = 'right'
@@ -1770,6 +1834,9 @@ $('document').ready(function() {
     }
     for (var j = 0; j < char.poses.length; j++) {
       var pose = char.poses[j];
+      if (pose.name == "grab" || pose.name == "spit") {
+        continue;
+      }
       for (var k = 0; k < char.angles.length; k++) {
         var angle = char.angles[k];
         if (angle.validWhen.indexOf(pose.name) >= 0) {
@@ -1782,21 +1849,26 @@ $('document').ready(function() {
 
     $('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles hidden"></ol></li>')
     var prevAngle = null // for combining like angles
-    for(var j = 0; j < char.angles.length; j++) {
+    for (var j = 0; j < char.angles.length; j++) {
       var angle = char.angles[j]
       angle.reflections = 0
-      if(prevAngle && prevAngle.degrees == angle.degrees) {
-        $('li.'+char.name+'.'+prevAngle.name).append('<br>/ '+angle.name)
-        if(!Array.isArray(prevAngle.labels))
+      if (prevAngle && prevAngle.degrees == angle.degrees) {
+        if (!angle.hidden) {
+          $('li.'+char.name+'.'+prevAngle.name).append('<br>/ '+angle.name)
+        }
+        if (!Array.isArray(prevAngle.labels)) {
           prevAngle.labels = []
+        }
         prevAngle.labels.push(angleAlias[angle.name] || angle.name)
       } else {
-        $('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
+        if (!angle.hidden) {
+          $('li#'+char.name+' ol').append('<li class="'+char.name+' '+angle.name+'"><span class="minus">-</span> '+angle.name+' <span class="plus">+</span></li>')
+        }
         angle.labels = [angleAlias[angle.name] || angle.name]
         prevAngle = angle
 
         // special butttons
-        if(char.name == 'Candyman') {
+        if (!angle.hidden && char.name == 'Candyman') {
           $('li.'+char.name+'.'+angle.name).append('<span class="special" title="Add bounces (+) and click again to warp them">S</span>')
         }
       }
