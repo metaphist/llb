@@ -137,8 +137,8 @@ var characterJSON = {
       },
       {
         "name": "spit",
-        "imgSize": [209, 163],
-        "hurtboxes":[[43, 11, 80, 136]],
+        "imgSize": [209, 151],
+        "hurtboxes":[[76, 1, 80, 136]],
         "hitboxes":[],
         "canMirror": true,
         "fixedRelease": [65, 53],
@@ -205,7 +205,16 @@ var characterJSON = {
         "hitboxes":[],
         "grounded": true,
         "groundOffset": 6,
-      }
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 346],
+        "hurtboxes": [[160, 192, 80, 136]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
+      },
     ],
     "angles": [
       {
@@ -456,24 +465,48 @@ var characterJSON = {
     "strokeColor": "mediumpurple",
     "img_name": "grid",
     "baseHeight": 160,
+    "teleportDistance": 330,
+    "maxTeleports": 2,
+    "teleport": [],
     "poses": [
       {
         "name": "swing",
         "imgSize": [217, 166],
         "hurtboxes": [[62, 0, 70, 160]],
         "hitboxes": [[87, 0, 130, 160]],
+        "teleportRelease": [122, 80],
+        "teleportAngle": {
+          "name": "straight",
+          "degrees": 0,
+          "reflections": 0,
+          "maxReflections": 2,
+        },
+        "teleportImage": "swing_teleport",
       },
       {
         "name": "smash",
         "imgSize": [222, 252],
         "hurtboxes": [[67, 92, 70, 160]],
         "hitboxes": [[47, 0, 110, 90],[92, 92, 130, 160]],
+        "teleportRelease": [62, -93],
+        "teleportAngle": {
+          "name": "smash",
+          "degrees": 28,
+          "reflections": 0,
+        },
       },
       {
         "name": "spike",
         "imgSize": [122, 260],
         "hurtboxes": [[26, 0, 70, 160]],
         "hitboxes": [[1, 90, 120, 170]],
+        "teleportRelease": [35, 118],
+        "teleportAngle": {
+          "name": "spike",
+          "degrees": 90,
+          "reflections": 0,
+          "maxReflections": 2,
+        },
       },
       {
         "name": "bunt",
@@ -518,6 +551,15 @@ var characterJSON = {
         "hitboxes": [],
         "grounded": true,
         "groundOffset": 18,
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 353],
+        "hurtboxes": [[165, 168, 70, 160]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
       },
     ],
     "angles": [
@@ -890,12 +932,16 @@ function getAngleLabelText(angle) {
   return content.toUpperCase();
 }
 
-function addReflectionsToAngle(charName, angleName, amount) {
+
+function addReflectionsToAngleByName(charName, angleName, amount) {
   var char = loadChar(charName);
   var angle = char.angles.find(function(e){ return e.name == angleName })
+  addReflectionsToAngle(char, angle, amount, true);
+}
 
+function addReflectionsToAngle(char, angle, amount, updateChar) {
   if (angle.visible) {
-    angle.reflections += amount
+    angle.reflections += amount;
   }
 
   if (angle.reflections > angle.maxReflections - 1) {
@@ -907,11 +953,11 @@ function addReflectionsToAngle(charName, angleName, amount) {
   }
 
   if (angle.reflections < 0) {
-    angle.reflections = 0
-    angle.visible = false
+    angle.reflections = 0;
+    angle.visible = false;
   }
 
-  if (angle.visible && charImagesOn) {
+  if (updateChar && angle.visible && charImagesOn) {
     if (angle.validWhen.indexOf(char.pose.name) < 0) {
       for (var j = 0; j < char.poses.length; j++) {
         var pose = char.poses[j];
@@ -951,14 +997,72 @@ function addCandySpecialToAngle(charName, angleName) {
   }
 }
 
+function getGridTeleportSprite(char, teleportStep) {
+  var pose = poseOfName(char, "swing");
+  if (teleportStep < char.teleport.length) {
+    var teleportData = char.teleport[teleportStep];
+    if (teleportData.spike) {
+      pose = poseOfName(char, "spike");
+    } else if (teleportData.direction.y < 0) {
+      pose = poseOfName(char, "smash");
+    }
+  }
+  var facing = char.facing;
+  if (teleportData.direction.x > 0) {
+    facing = 'right';
+  } else if (teleportData.direction.x < 0) {
+    facing = 'left';
+  } else if (teleportStep > 0) {
+    var previousData = getGridTeleportSprite(char, teleportStep - 1);
+    facing = previousData[1];
+  }
+  return [pose, facing];
+}
+
+function addGridTeleport(char, teleportDirection) {
+  var data = {direction: teleportDirection, spike: false};
+  char.teleport.push(data);
+}
+
+function undoGridTeleport(char) {
+  if (char.teleport.length > 0) {
+    char.teleport.splice(char.teleport.length - 1, 1);
+  }
+}
+
+function toggleGridTeleportSpike(char) {
+  if (char.teleport.length > 0) {
+    var teleportData = char.teleport[char.teleport.length - 1];
+    teleportData.spike = !teleportData.spike;
+  }
+}
+
+function getGridTeleportReleaseLocation(char, pose, facing, hurtbox) {
+  var fixedReleaseOffset = new Point(pose.teleportRelease[0], pose.teleportRelease[1]);
+  var rightPoint = hurtbox.topLeft + fixedReleaseOffset;
+  fixedReleaseOffset.x *= -1;
+  var leftPoint = hurtbox.topRight + fixedReleaseOffset;
+  clampPointToRect(leftPoint, ballStageRect);
+  clampPointToRect(rightPoint, ballStageRect);
+  if (facing == "left") {
+    return leftPoint;
+  } else {
+    return rightPoint;
+  }
+}
+
 function flipDirectionFacing(char) {
   var hurtbox = char.getRelativeHurtbox();
+  hurtbox.x += char.imgOffset.x;
+  hurtbox.y += char.imgOffset.y;
   var relativeBallPosition = hurtbox.bottomCenter;
 
   char.facing = char.facing == 'right' ? 'left' : 'right'
 
   if (charImagesOn) {
     var nextHurtbox = char.getRelativeHurtbox();
+    nextHurtbox.x += char.imgOffset.x;
+    nextHurtbox.y += char.imgOffset.y;
     var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
     char.imgOffset.x += delta.x;
     char.imgOffset.y += delta.y;
@@ -991,6 +1095,16 @@ function changePoseTo(char, nextPose) {
   var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
   char.imgOffset.x += delta.x;
   char.imgOffset.y += delta.y;
+}
+
+function poseOfName(char, poseName) {
+  for (var i = 0; i < char.poses.length; i++) {
+    if (char.poses[i].name == poseName) {
+      return char.poses[i];
+    }
+  }
+  console.log("Could not find pose of name: " + poseName + " for char: " + char.name);
+  return char.pose; //fallback, should never be necessary...
 }
 
 function startDragging(char, dontDragCharImage) {
@@ -1321,8 +1435,123 @@ function draw() {
       var r = new Raster(char.getImage());
       r.position.x = char.x + char.imgOffset.x;
       r.position.y = char.y + char.imgOffset.y;
-      if(char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
+      if (char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
+      }
+      if (char.name == "Grid" && char.pose.canSpecial) {
+        var gridHurtbox = char.getHurtbox();
+
+        var t = 22;
+        if (char.teleport.length < char.maxTeleports) {
+          var icon = new Raster("assets/icons/right.png");
+          icon.position.x = gridHurtbox.center.x + t;
+          icon.position.y = gridHurtbox.center.y;
+          icon.char = char;
+          icon.onMouseEnter = function(event) {
+            updateTooltip(tooltip, "Teleport Right", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
+          }
+          icon.onMouseDown = function(event) {
+            addGridTeleport(this.char, new Point(1, 0));
+            draw();
+          }
+          var icon = new Raster("assets/icons/left.png");
+          icon.position.x = gridHurtbox.center.x - t;
+          icon.position.y = gridHurtbox.center.y;
+          icon.char = char;
+          icon.onMouseEnter = function(event) {
+            updateTooltip(tooltip, "Teleport Left", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
+          }
+          icon.onMouseDown = function(event) {
+            addGridTeleport(this.char, new Point(-1, 0));
+            draw();
+          }
+          var icon = new Raster("assets/icons/up.png");
+          icon.position.x = gridHurtbox.center.x;
+          icon.position.y = gridHurtbox.center.y - t;
+          icon.char = char;
+          icon.onMouseEnter = function(event) {
+            updateTooltip(tooltip, "Teleport Up", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
+          }
+          icon.onMouseDown = function(event) {
+            addGridTeleport(this.char, new Point(0, -1));
+            draw();
+          }
+          var icon = new Raster("assets/icons/down.png");
+          icon.position.x = gridHurtbox.center.x;
+          icon.position.y = gridHurtbox.center.y + t;
+          icon.char = char;
+          icon.onMouseEnter = function(event) {
+            updateTooltip(tooltip, "Teleport Down", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
+          }
+          icon.onMouseDown = function(event) {
+            addGridTeleport(this.char, new Point(0, 1));
+            draw();
+          }
+        }
+        if (char.teleport.length > 0) {
+          var icon = new Raster("assets/icons/special.png");
+          icon.position.x = gridHurtbox.center.x - t;
+          icon.position.y = gridHurtbox.center.y + t;
+          icon.char = char;
+          icon.onMouseEnter = function(event) {
+            updateTooltip(tooltip, "Spike Teleport", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
+          }
+          icon.onMouseDown = function(event) {
+            toggleGridTeleportSpike(this.char);
+            draw();
+          }
+          var icon = new Raster("assets/icons/back.png");
+          icon.position.x = gridHurtbox.center.x + t;
+          icon.position.y = gridHurtbox.center.y + t;
+          icon.char = char;
+          icon.onMouseEnter = function(event) {
+            updateTooltip(tooltip, "Undo Teleport", this.position);
+          }
+          icon.onMouseLeave = function(event) {
+            hideTooltip(tooltip);
+          }
+          icon.onMouseDown = function(event) {
+            undoGridTeleport(this.char);
+            draw();
+          }
+        }
+
+        for (var g = 0; g < char.teleport.length; g++) {
+          var teleportData = char.teleport[g];
+          var spriteData = getGridTeleportSprite(char, g);
+          var r = new Raster(char.getGridTeleportImageForPose(spriteData[0], spriteData[1]));
+          gridHurtbox.x += teleportData.direction.x * char.teleportDistance;
+          gridHurtbox.y += teleportData.direction.y * char.teleportDistance;
+          clampRectInsideRect(gridHurtbox, trueStageRect);
+
+          teleportData.hurtbox = new Rectangle(gridHurtbox);
+          teleportData.pose = spriteData[0];
+          teleportData.facing = spriteData[1];
+
+          var relativeHurtbox = char.getRelativeHurtboxForPose(spriteData[0], spriteData[1]);
+          r.position.x = gridHurtbox.left - relativeHurtbox.left;
+          r.position.y = gridHurtbox.top - relativeHurtbox.top;
+          r.opacity = 0.5;
+          if (spriteData[1] == "left") { //TODO: use proper image for left/right not just flipping the sprite
+            r.scale(-1, 1);
+          }
+          r.sendToBack();
+        }
       }
       if (char.pose.canParry) {
         var ball = new Raster("assets/characters/ball.png");
@@ -1331,8 +1560,8 @@ function draw() {
       }
       var hurtbox = char.getRelativeHurtbox();
       var iconSize = new Size(20, 20);
-      var iconsX = char.x + hurtbox.bottomCenter.x - 50 + iconSize.width / 2;
-      var iconsY = char.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
+      var iconsX = char.x + char.imgOffset.x + hurtbox.bottomCenter.x - 50 + iconSize.width / 2;
+      var iconsY = char.y + char.imgOffset.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
       iconsX = Math.max(iconSize.width / 2, iconsX);
       iconsY = Math.max(iconSize.height / 2, iconsY);
       var icon = new Raster("assets/icons/flip.png");
@@ -1426,6 +1655,22 @@ function draw() {
       })
     }
 
+    if (char.name == "Grid" && charImagesOn && char.pose.canSpecial) {
+      for (var g = 0; g < char.teleport.length; g++) {
+        var teleportData = char.teleport[g];
+        var startingPoint = getGridTeleportReleaseLocation(char, teleportData.pose, teleportData.facing, teleportData.hurtbox);
+        var mirrored = char.facing != teleportData.facing;
+        char.curAngle = teleportData.pose.teleportAngle;
+        var ball = new Raster("assets/characters/ball.png");
+        ball.position.x = startingPoint.x;
+        ball.position.y = startingPoint.y;
+        ball.opacity = 0.5;
+        if (char.curAngle.visible) {
+          drawAngle(char, startingPoint, mirrored);
+        }
+        addAngleButtons(char, char.curAngle, startingPoint, teleportData.facing, false, tooltip);
+      }
+    }
     for(var j = 0; j < char.angles.length; j++) {
       char.curAngle = char.angles[j]
       if ((charImagesOn && char.curAngle.validWhen.indexOf(char.pose.name) < 0) || (char.curAngle.hidden && !charImagesOn)) {
@@ -1449,77 +1694,8 @@ function draw() {
           //angles that are identical to other angles have no labels; skip those
           continue;
         }
-        var offset = 80;
-        if (char.curAngle.customOffset) {
-          offset = char.curAngle.customOffset;
-        }
-        var icon = new Raster("assets/icons/plus.png")
-        var vector = new Point(offset + j * 1, 0);
-        vector = vector.rotate(char.curAngle.degrees);
-        if (char.facing == 'left') {
-          vector.x *= -1;
-        }
-        icon.position.x = char.x + vector.x;
-        icon.position.y = char.y + vector.y;
-        icon.angleName = char.curAngle.name;
-        icon.charName = char.name;
-        icon.labels = getAngleLabelText(char.curAngle);
-        icon.onMouseEnter = function(event) {
-          updateTooltip(tooltip, this.labels + " (+)", this.position);
-        }
-        icon.onMouseLeave = function(event) {
-          hideTooltip(tooltip);
-        }
-        icon.onMouseDown = function(event) {
-          addReflectionsToAngle(this.charName, this.angleName, 1);
-          draw();
-        }
-        if(char.curAngle.visible){
-          var icon = new Raster("assets/icons/minus.png")
-          var vector = new Point(offset - 20 + j * 1, 0);
-          vector = vector.rotate(char.curAngle.degrees);
-          if (char.facing == 'left') {
-            vector.x *= -1;
-          }
-          icon.position.x = char.x + vector.x;
-          icon.position.y = char.y + vector.y;
-          icon.angleName = char.curAngle.name;
-          icon.charName = char.name;
-          icon.labels = getAngleLabelText(char.curAngle);
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, this.labels + " (-)", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
-          icon.onMouseDown = function(event) {
-            addReflectionsToAngle(this.charName, this.angleName, -1);
-            draw();
-          }
-        }
-        if(char.name == "Candyman"){
-          var icon = new Raster("assets/icons/special.png")
-          var vector = new Point(offset + 20 + j * 1, 0);
-          vector = vector.rotate(char.curAngle.degrees);
-          if (char.facing == 'left') {
-            vector.x *= -1;
-          }
-          icon.position.x = char.x + vector.x;
-          icon.position.y = char.y + vector.y;
-          icon.angleName = char.curAngle.name;
-          icon.charName = char.name;
-          icon.labels = getAngleLabelText(char.curAngle);
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, this.labels + " (Toggle Candywarp)", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
-          icon.onMouseDown = function(event) {
-            addCandySpecialToAngle(this.charName, this.angleName);
-            draw();
-          }
-        }
+        var position = new Point(char.x, char.y);
+        addAngleButtons(char, char.curAngle, position, char.facing, true, tooltip);
       }
     }
 
@@ -1533,6 +1709,80 @@ function draw() {
   window.sb = ballStageBounds;
 }
 
+function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
+  var offset = 80;
+  if (angle.customOffset) {
+    offset = angle.customOffset;
+  }
+  var icon = new Raster("assets/icons/plus.png")
+  var vector = new Point(offset, 0);
+  vector = vector.rotate(angle.degrees);
+  if (facing == 'left') {
+    vector.x *= -1;
+  }
+  icon.position.x = position.x + vector.x;
+  icon.position.y = position.y + vector.y;
+  icon.angle = angle;
+  icon.char = char;
+  icon.labels = getAngleLabelText(angle);
+  icon.onMouseEnter = function(event) {
+    updateTooltip(tooltip, this.labels + " (+)", this.position);
+  }
+  icon.onMouseLeave = function(event) {
+    hideTooltip(tooltip);
+  }
+  icon.onMouseDown = function(event) {
+    addReflectionsToAngle(this.char, this.angle, 1, basicAngle);
+    draw();
+  }
+  if (angle.visible) {
+    var icon = new Raster("assets/icons/minus.png")
+    var vector = new Point(offset - 20, 0);
+    vector = vector.rotate(angle.degrees);
+    if (facing == 'left') {
+      vector.x *= -1;
+    }
+    icon.position.x = position.x + vector.x;
+    icon.position.y = position.y + vector.y;
+    icon.angle = angle;
+    icon.char = char;
+    icon.labels = getAngleLabelText(angle);
+    icon.onMouseEnter = function(event) {
+      updateTooltip(tooltip, this.labels + " (-)", this.position);
+    }
+    icon.onMouseLeave = function(event) {
+      hideTooltip(tooltip);
+    }
+    icon.onMouseDown = function(event) {
+      addReflectionsToAngle(this.char, this.angle, -1, basicAngle);
+      draw();
+    }
+  }
+  if (char.name == "Candyman") {
+    var icon = new Raster("assets/icons/special.png")
+    var vector = new Point(offset + 20, 0);
+    vector = vector.rotate(angle.degrees);
+    if (facing == 'left') {
+      vector.x *= -1;
+    }
+    icon.position.x = position.x + vector.x;
+    icon.position.y = position.y + vector.y;
+    icon.angleName = angle.name;
+    icon.charName = char.name;
+    icon.labels = getAngleLabelText(angle);
+    icon.onMouseEnter = function(event) {
+      updateTooltip(tooltip, this.labels + " (Toggle Candywarp)", this.position);
+    }
+    icon.onMouseLeave = function(event) {
+      hideTooltip(tooltip);
+    }
+    icon.onMouseDown = function(event) {
+      addCandySpecialToAngle(this.charName, this.angleName);
+      draw();
+    }
+  }
+}
+
 function clampPointToRect(point, rect) {
   if (point.x < rect.left) {
     point.x = rect.left;
@@ -1543,6 +1793,21 @@ function clampPointToRect(point, rect) {
     point.y = rect.top;
   } else if (point.y > rect.bottom) {
     point.y = rect.bottom;
+  }
+}
+
+function clampRectInsideRect(smallRect, bigRect) {
+  if (smallRect.left < bigRect.left) {
+    smallRect.x += bigRect.left - smallRect.left;
+  }
+  if (smallRect.right > bigRect.right) {
+    smallRect.x += bigRect.right - smallRect.right;
+  }
+  if (smallRect.top < bigRect.top) {
+    smallRect.y += bigRect.top - smallRect.top;
+  }
+  if (smallRect.bottom > bigRect.bottom) {
+    smallRect.y += bigRect.bottom - smallRect.bottom;
   }
 }
 
@@ -1613,7 +1878,7 @@ function myUp(e) {
 function myMove(e) {
   // if we're dragging anything...
   if (dragok) {
-    // it the mouse is released outside the browser window, we can miss the mouseup event
+    // if the mouse is released outside the browser window, we can miss the mouseup event
     if(e.buttons == 0) {
       myUp(e);
       return
@@ -1659,8 +1924,8 @@ function myMove(e) {
           s.imgOffset.y -= ballStageRect.bottom - s.y
           s.y = ballStageRect.bottom;
         }
-        var sx_half = s.pose.imgSize[0] / 2;
-        var sy_half = s.pose.imgSize[1] / 2;
+        var sx_half = s.pose.imgSize[0] / 2 + ballRadius;
+        var sy_half = s.pose.imgSize[1] / 2 + ballRadius;
         if (s.imgOffset.x < -sx_half) {
           s.imgOffset.x = -sx_half;
         } else if (s.imgOffset.x > sx_half) {
@@ -1674,7 +1939,7 @@ function myMove(e) {
       }
       var hurtbox = s.getHurtbox()
       if (charImagesOn) {
-        if (s.pose.wall){
+        if (s.pose.wall) {
           if (s.facing == 'right') {
             s.x += trueStageRect.left - hurtbox.left;
           } else {
@@ -1804,6 +2069,13 @@ $('document').ready(function() {
     char.getImage = function() {
       return "assets/characters/" + this.img_name + "_" + this.pose.name + "_r.png";
     }
+    char.getGridTeleportImageForPose = function(pose, direction) {
+      var poseName = pose.name;
+      if (pose.teleportImage) {
+        poseName = pose.teleportImage;
+      }
+      return "assets/characters/" + this.img_name + "_" + poseName + "_r.png";
+    }
     char.getHurtbox = function() {
       var box = this.pose.hurtboxes[0]
       if (this.facing == 'right') {
@@ -1812,13 +2084,16 @@ $('document').ready(function() {
         return new Rectangle(new Point(this.x + this.imgOffset.x - this.pose.imgSize[0] / 2 + (this.pose.imgSize[0] - box[0] - box[2]), this.y + this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       }
     }
-    char.getRelativeHurtbox = function() {
-      var box = this.pose.hurtboxes[0]
-      if (this.facing == 'right') {
-        return new Rectangle(new Point(this.imgOffset.x - this.pose.imgSize[0] / 2 + box[0], this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
+    char.getRelativeHurtboxForPose = function(pose, facing) {
+      var box = pose.hurtboxes[0]
+      if (facing == 'right') {
+        return new Rectangle(new Point(- pose.imgSize[0] / 2 + box[0], - pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       } else {
-        return new Rectangle(new Point(this.imgOffset.x - this.pose.imgSize[0] / 2 + (this.pose.imgSize[0] - box[0] - box[2]), this.imgOffset.y - this.pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
+        return new Rectangle(new Point(- pose.imgSize[0] / 2 + (pose.imgSize[0] - box[0] - box[2]), - pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
       }
+    }
+    char.getRelativeHurtbox = function() {
+      return this.getRelativeHurtboxForPose(this.pose, this.facing);
     }
     char.getHitboxes = function() {
       var calculatedHitboxes = []
@@ -1841,6 +2116,10 @@ $('document').ready(function() {
         var angle = char.angles[k];
         if (angle.validWhen.indexOf(pose.name) >= 0) {
           pose.canParry = true;
+          if (char.name == "Grid") {
+            // Every pose that can parry can also special
+            pose.canSpecial = true;
+          }
           break;
         }
       }
@@ -1932,9 +2211,9 @@ $('document').ready(function() {
 
     var sign = $(e.target).attr('class')
     if(sign == 'plus') {
-      addReflectionsToAngle(charName, angleName, 1);
+      addReflectionsToAngleByName(charName, angleName, 1);
     } else {
-      addReflectionsToAngle(charName, angleName, -1);
+      addReflectionsToAngleByName(charName, angleName, -1);
     }
 
     draw()
