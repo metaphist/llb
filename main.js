@@ -1443,88 +1443,52 @@ function draw() {
 
         var t = 22;
         if (char.teleport.length < char.maxTeleports) {
-          var icon = new Raster("assets/icons/right.png");
+          var icon = createButtonWithTooltip("right", "Teleport Right", tooltip);
           icon.position.x = gridHurtbox.center.x + t;
           icon.position.y = gridHurtbox.center.y;
           icon.char = char;
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, "Teleport Right", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(1, 0));
             draw();
           }
-          var icon = new Raster("assets/icons/left.png");
+          var icon = createButtonWithTooltip("left", "Teleport Left", tooltip);
           icon.position.x = gridHurtbox.center.x - t;
           icon.position.y = gridHurtbox.center.y;
           icon.char = char;
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, "Teleport Left", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(-1, 0));
             draw();
           }
-          var icon = new Raster("assets/icons/up.png");
+          var icon = createButtonWithTooltip("up", "Teleport Up", tooltip);
           icon.position.x = gridHurtbox.center.x;
           icon.position.y = gridHurtbox.center.y - t;
           icon.char = char;
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, "Teleport Up", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(0, -1));
             draw();
           }
-          var icon = new Raster("assets/icons/down.png");
+          var icon = createButtonWithTooltip("down", "Teleport Down", tooltip);
           icon.position.x = gridHurtbox.center.x;
           icon.position.y = gridHurtbox.center.y + t;
           icon.char = char;
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, "Teleport Down", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(0, 1));
             draw();
           }
         }
         if (char.teleport.length > 0) {
-          var icon = new Raster("assets/icons/special.png");
+          var icon = createButtonWithTooltip("special", "Spike Teleport", tooltip);
           icon.position.x = gridHurtbox.center.x - t;
           icon.position.y = gridHurtbox.center.y + t;
           icon.char = char;
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, "Spike Teleport", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
           icon.onMouseDown = function(event) {
             toggleGridTeleportSpike(this.char);
             draw();
           }
-          var icon = new Raster("assets/icons/back.png");
+          var icon = createButtonWithTooltip("back", "Undo Teleport", tooltip);
           icon.position.x = gridHurtbox.center.x + t;
           icon.position.y = gridHurtbox.center.y + t;
           icon.char = char;
-          icon.onMouseEnter = function(event) {
-            updateTooltip(tooltip, "Undo Teleport", this.position);
-          }
-          icon.onMouseLeave = function(event) {
-            hideTooltip(tooltip);
-          }
           icon.onMouseDown = function(event) {
             undoGridTeleport(this.char);
             draw();
@@ -1564,82 +1528,52 @@ function draw() {
       var iconsY = char.y + char.imgOffset.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
       iconsX = Math.max(iconSize.width / 2, iconsX);
       iconsY = Math.max(iconSize.height / 2, iconsY);
-      var icon = new Raster("assets/icons/flip.png");
+      var icon = createButtonWithTooltip("flip", "Flip", tooltip);
       var iconPosition = 0;
       var iconSpacing = 22;
       icon.position.x = iconsX + iconPosition;
       icon.position.y = iconsY;
       iconPosition += iconSpacing;
       icon.char = char;
-      icon.onMouseEnter = function(event) {
-        updateTooltip(tooltip, "Flip", this.position);
-      }
-      icon.onMouseLeave = function(event) {
-        hideTooltip(tooltip);
-      }
       icon.onMouseDown = function(event) {
         flipDirectionFacing(this.char);
         draw();
       }
-      var icon = new Raster("assets/icons/toggle.png");
+      var icon = createButtonWithTooltip("toggle", "Toggle Buttons", tooltip);
       icon.position.x = iconsX + iconPosition;
       icon.position.y = iconsY;
       iconPosition += iconSpacing;
       icon.char = char;
-      icon.onMouseEnter = function(event) {
-        updateTooltip(tooltip, "Toggle Buttons", this.position);
-      }
-      icon.onMouseLeave = function(event) {
-        hideTooltip(tooltip);
-      }
       icon.onMouseDown = function(event) {
         toggleDirectButtons(this.char);
         draw();
       }
-      var icon = new Raster("assets/icons/pose.png");
+      var icon = createButtonWithTooltip("pose", "Change Pose", tooltip);
       icon.position.x = iconsX + iconPosition;
       icon.position.y = iconsY;
       iconPosition += iconSpacing;
       icon.char = char;
-      icon.onMouseEnter = function(event) {
-        updateTooltip(tooltip, "Change Pose", this.position);
-      }
-      icon.onMouseLeave = function(event) {
-        hideTooltip(tooltip);
-      }
       icon.onMouseDown = function(event) {
         nextPose(this.char);
         draw();
       }
       if (char.pose.canParry) {
-        var icon = new Raster("assets/icons/parry.png");
+        var icon = createButtonWithTooltip("parry", "Parry", tooltip);
         icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
         iconPosition += iconSpacing;
         icon.char = char;
-        icon.onMouseEnter = function(event) {
-          updateTooltip(tooltip, "Parry", this.position);
-        }
-        icon.onMouseLeave = function(event) {
-          hideTooltip(tooltip);
-        }
         icon.onMouseDown = function(event) {
           this.char.parry = !this.char.parry;
           draw();
         }
       }
       if (char.pose.canMirror) {
-        var icon = new Raster("assets/icons/mirror.png");
+        var icon = createButtonWithTooltip("mirror", "Mirror Special Angles", tooltip);
         icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
         iconPosition += iconSpacing;
         icon.char = char;
-        icon.onMouseEnter = function(event) {
-          updateTooltip(tooltip, "Mirror Special Angles", this.position);
-        }
-        icon.onMouseLeave = function(event) {
-          hideTooltip(tooltip);
-        }
         icon.onMouseDown = function(event) {
           toggleMirrorAngles(this.char);
           draw();
@@ -1709,12 +1643,24 @@ function draw() {
   window.sb = ballStageBounds;
 }
 
+function createButtonWithTooltip(iconName, tooltipText, tooltip) {
+  var icon = new Raster("assets/icons/" + iconName + ".png");
+  icon.tooltipText = tooltipText;
+  icon.onMouseEnter = function(event) {
+    updateTooltip(tooltip, this.tooltipText, this.position);
+  }
+  icon.onMouseLeave = function(event) {
+    hideTooltip(tooltip);
+  }
+  return icon;
+}
+
 function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
   var offset = 80;
   if (angle.customOffset) {
     offset = angle.customOffset;
   }
-  var icon = new Raster("assets/icons/plus.png")
+  var icon = createButtonWithTooltip("plus", getAngleLabelText(angle) + " (+)", tooltip);
   var vector = new Point(offset, 0);
   vector = vector.rotate(angle.degrees);
   if (facing == 'left') {
@@ -1724,19 +1670,12 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
   icon.position.y = position.y + vector.y;
   icon.angle = angle;
   icon.char = char;
-  icon.labels = getAngleLabelText(angle);
-  icon.onMouseEnter = function(event) {
-    updateTooltip(tooltip, this.labels + " (+)", this.position);
-  }
-  icon.onMouseLeave = function(event) {
-    hideTooltip(tooltip);
-  }
   icon.onMouseDown = function(event) {
     addReflectionsToAngle(this.char, this.angle, 1, basicAngle);
     draw();
   }
   if (angle.visible) {
-    var icon = new Raster("assets/icons/minus.png")
+    var icon = createButtonWithTooltip("minus", getAngleLabelText(angle) + " (-)", tooltip);
     var vector = new Point(offset - 20, 0);
     vector = vector.rotate(angle.degrees);
     if (facing == 'left') {
@@ -1746,20 +1685,13 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
     icon.position.y = position.y + vector.y;
     icon.angle = angle;
     icon.char = char;
-    icon.labels = getAngleLabelText(angle);
-    icon.onMouseEnter = function(event) {
-      updateTooltip(tooltip, this.labels + " (-)", this.position);
-    }
-    icon.onMouseLeave = function(event) {
-      hideTooltip(tooltip);
-    }
     icon.onMouseDown = function(event) {
       addReflectionsToAngle(this.char, this.angle, -1, basicAngle);
       draw();
     }
   }
   if (char.name == "Candyman") {
-    var icon = new Raster("assets/icons/special.png")
+    var icon = createButtonWithTooltip("special", getAngleLabelText(angle) + " (Toggle Candywarp)", tooltip);
     var vector = new Point(offset + 20, 0);
     vector = vector.rotate(angle.degrees);
     if (facing == 'left') {
@@ -1769,13 +1701,6 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
     icon.position.y = position.y + vector.y;
     icon.angleName = angle.name;
     icon.charName = char.name;
-    icon.labels = getAngleLabelText(angle);
-    icon.onMouseEnter = function(event) {
-      updateTooltip(tooltip, this.labels + " (Toggle Candywarp)", this.position);
-    }
-    icon.onMouseLeave = function(event) {
-      hideTooltip(tooltip);
-    }
     icon.onMouseDown = function(event) {
       addCandySpecialToAngle(this.charName, this.angleName);
       draw();
