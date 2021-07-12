@@ -414,14 +414,78 @@ var characterJSON = {
     "color": "#444",
     "strokeColor": "royalblue",
     "img_name": "db",
-    "baseHeight": 136,
+    "baseHeight": 170,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [351, 198],
-        "hurtboxes": [[0, 0, 351, 198]],
-        "hitboxes": [[0, 0, 351, 198]]
-      }
+        "imgSize": [341, 233],
+        "hurtboxes":[[118, 55, 100, 170]],
+        "hitboxes":[[170, 55, 170, 170]],
+      },
+      {
+        "name": "smash",
+        "imgSize": [322, 295],
+        "hurtboxes":[[98, 122, 100, 170]],
+        "hitboxes":[[98, 2, 120, 120], [150, 122, 170, 170]],
+      },
+      {
+        "name": "spike",
+        "imgSize": [166, 310],
+        "hurtboxes":[[24, 41, 100, 170]],
+        "hitboxes":[[14, 137, 120, 170]],
+      },
+      {
+        "name": "bunt",
+        "imgSize": [308, 236],
+        "hurtboxes":[[83, 58, 100, 170]],
+        "hitboxes":[[185, 18, 120, 82], [135, 100, 170, 128]],
+      },
+      {
+        "name": "grab",
+        "imgSize": [327, 227],
+        "hurtboxes":[[88, 50, 100, 170]],
+        "hitboxes":[[140, 50, 170, 170]],
+        "canMirror": true,
+        "fixedRelease": [130, 85],
+      },
+      {
+        "name": "stand",
+        "imgSize": [231, 241],
+        "hurtboxes":[[51, 51, 100, 170]],
+        "hitboxes":[],
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [197, 179],
+        "hurtboxes":[[45, 74, 100, 84]],
+        "hitboxes":[],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [105, 113],
+        "hurtboxes":[[4, 47, 100, 60]],
+        "hitboxes":[],
+        "grounded": true,
+        "groundOffset": -7,
+      },
+      {
+        "name": "pushbox",
+        "imgSize": [332, 117],
+        "hurtboxes":[[9, 51, 100, 60]],
+        "hitboxes":[[29, 4, 300, 110]],
+        "grounded": true,
+        "groundOffset": -7,
+      },
+      {
+        "name": "lay",
+        "imgSize": [290, 121],
+        "hurtboxes":[[64, 21, 170, 45]],
+        "hitboxes":[],
+        "grounded": true,
+        "groundOffset": 22,
+      },
     ],
     "angles": [
       {
@@ -438,7 +502,7 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 45,
-        "validWhen": ["swing"],
+        "validWhen": ["smash"],
         "customOffset": 110,
       },
       {
@@ -450,13 +514,13 @@ var characterJSON = {
       {
         "name": "spike-forward",
         "degrees": 59,
-        "validWhen": ["swing"],
+        "validWhen": ["spike"],
         "customOffset": 110,
       },
       {
         "name": "spike-backward",
         "degrees": 160,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       }
     ]
   },
@@ -1089,12 +1153,19 @@ function nextPose(char) {
 function changePoseTo(char, nextPose) {
   var hurtbox = char.getRelativeHurtbox();
 
+  var deltaGroundOffset = 0;
+  if (char.pose.groundOffset) {
+    deltaGroundOffset = char.pose.groundOffset;
+  }
   char.pose = nextPose;
+  if (char.pose.groundOffset) {
+    deltaGroundOffset -= char.pose.groundOffset;
+  }
 
   var nextHurtbox = char.getRelativeHurtbox();
   var delta = hurtbox.bottomCenter - nextHurtbox.bottomCenter;
   char.imgOffset.x += delta.x;
-  char.imgOffset.y += delta.y;
+  char.imgOffset.y += delta.y + deltaGroundOffset;
 }
 
 function poseOfName(char, poseName) {
@@ -1522,10 +1593,14 @@ function draw() {
         ball.position.x = char.x;
         ball.position.y = char.y;
       }
+      var groundOffset = 0;
+      if (char.pose.groundOffset) {
+        groundOffset = char.pose.groundOffset;
+      }
       var hurtbox = char.getRelativeHurtbox();
       var iconSize = new Size(20, 20);
       var iconsX = char.x + char.imgOffset.x + hurtbox.bottomCenter.x - 50 + iconSize.width / 2;
-      var iconsY = char.y + char.imgOffset.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2;
+      var iconsY = char.y + char.imgOffset.y + hurtbox.bottomCenter.y - char.baseHeight - iconSize.height / 2 + groundOffset;
       iconsX = Math.max(iconSize.width / 2, iconsX);
       iconsY = Math.max(iconSize.height / 2, iconsY);
       var icon = createButtonWithTooltip("flip", "Flip", tooltip);
