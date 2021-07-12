@@ -2054,7 +2054,7 @@ $('document').ready(function() {
   for(var i in characterJSON) {
     var char = characterJSON[i]
     char.name = i
-    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit"], maxReflections: 2});
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
     if (char.name == "Latch" || char.name == "Raptor") {
       char.angles[char.angles.length - 1].mirror = true;
     }
