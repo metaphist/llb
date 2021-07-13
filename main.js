@@ -406,7 +406,8 @@ var characterJSON = {
       {
         "name": "spike-backward",
         "degrees": 180,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
+        "maxReflections": 2,
       }
     ]
   },
