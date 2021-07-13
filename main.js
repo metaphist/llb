@@ -415,24 +415,28 @@ var characterJSON = {
     "strokeColor": "royalblue",
     "img_name": "db",
     "baseHeight": 170,
+    "specialAngle": 15,
     "poses": [
       {
         "name": "swing",
         "imgSize": [341, 233],
         "hurtboxes":[[118, 55, 100, 170]],
         "hitboxes":[[170, 55, 170, 170]],
+        "canSpecial": true,
       },
       {
         "name": "smash",
         "imgSize": [322, 295],
         "hurtboxes":[[98, 122, 100, 170]],
         "hitboxes":[[98, 2, 120, 120], [150, 122, 170, 170]],
+        "canSpecial": true,
       },
       {
         "name": "spike",
         "imgSize": [166, 310],
         "hurtboxes":[[24, 41, 100, 170]],
         "hitboxes":[[14, 137, 120, 170]],
+        "canSpecial": true,
       },
       {
         "name": "bunt",
@@ -485,6 +489,15 @@ var characterJSON = {
         "hitboxes":[],
         "grounded": true,
         "groundOffset": 22,
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 329],
+        "hurtboxes": [[150, 158, 100, 170]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
       },
     ],
     "angles": [
@@ -542,7 +555,6 @@ var characterJSON = {
         "teleportAngle": {
           "name": "straight",
           "degrees": 0,
-          "reflections": 0,
           "maxReflections": 2,
         },
         "teleportImage": "swing_teleport",
@@ -556,7 +568,6 @@ var characterJSON = {
         "teleportAngle": {
           "name": "smash",
           "degrees": 28,
-          "reflections": 0,
         },
       },
       {
@@ -568,7 +579,6 @@ var characterJSON = {
         "teleportAngle": {
           "name": "spike",
           "degrees": 90,
-          "reflections": 0,
           "maxReflections": 2,
         },
       },
@@ -971,12 +981,14 @@ canvas.onmousemove = myMove;
 document.documentElement.addEventListener('mouseup', myUp);
 
 var stages = [], characters = [], loadedChars = []
+var activeEntities = [];
 
 function loadChar(charName) {
   var char = loadedChars.find(function(e){ return e.name == charName });
   if (!char) {
     char = characters.find(function(e){ return e.name == charName });
     loadedChars.push(char);
+    activeEntities.push(char);
     $('li#' + charName + ' ol').removeClass("hidden");
   }
 
@@ -987,7 +999,74 @@ function unloadChar(charName) {
   var i = loadedChars.findIndex(function(e){ return e.name == charName });
   if (i >= 0) {
     loadedChars.splice(i, 1);
+    var j = activeEntities.findIndex(function(e){ return e.name == charName });
+    activeEntities.splice(j, 1);
     $('li#' + charName + ' ol').addClass("hidden");
+  }
+}
+
+function toggleDoomboxAimReticle(char) {
+  if (char.reticle) {
+    removeDoomboxAimReticle(char);
+  } else {
+    addDoomboxAimReticle(char);
+  }
+}
+
+function addDoomboxAimReticle(char) {
+  var posx = char.x + 150;
+  var posy = char.y - 20;
+  if (char.facing == "left") {
+    posx = char.x - 150;
+  }
+  for (var i = 0; i < loadedChars.length; i++) {
+    var otherChar = loadedChars[i];
+    if (otherChar != char) {
+      var hurtbox = otherChar.getHurtbox();
+      posx = hurtbox.center.x;
+      posy = hurtbox.center.y;
+      break;
+    }
+  }
+  var reticle = {
+    x: posx,
+    y: posy,
+    imageName: "db_icon",
+    imageScale: 0.5,
+    width: 75,
+    height: 75,
+    isDragging: false,
+    imgOffset: {x: 0, y: 0},
+    isCharacter: false,
+  };
+  reticle.angles = [
+    {
+      "name": "snipe",
+      "snipeMultiplier": 0,
+      "customOffset": 125,
+      "visible": true,
+      "reflections": 0,
+    },
+    {
+      "name": "up-snipe",
+      "snipeMultiplier": 1,
+      "customOffset": 125,
+    },
+    {
+      "name": "down-snipe",
+      "snipeMultiplier": -1,
+      "customOffset": 125,
+    },
+  ];
+  char.reticle = reticle;
+  activeEntities.push(reticle);
+}
+
+function removeDoomboxAimReticle(char) {
+  var index = activeEntities.indexOf(char.reticle);
+  if (index > -1) {
+    activeEntities.splice(index, 1);
+    char.reticle = null;
   }
 }
 
@@ -1004,6 +1083,10 @@ function addReflectionsToAngleByName(charName, angleName, amount) {
 }
 
 function addReflectionsToAngle(char, angle, amount, updateChar) {
+  if (angle.reflections == undefined){
+    angle.reflections = 0;
+  }
+
   if (angle.visible) {
     angle.reflections += amount;
   }
@@ -1473,7 +1556,15 @@ function draw() {
     }
 
     // Draw character first so it's below lines and icon buttons
-    if(charImagesOn) { 
+    if (charImagesOn) {
+
+      if (char.reticle && char.pose.canSpecial) {
+        var raster = new Raster("assets/characters/" + char.reticle.imageName + ".png");
+        raster.position.x = char.reticle.x;
+        raster.position.y = char.reticle.y;
+        raster.scaling = char.reticle.imageScale;
+      }
+
       if (char.parry && char.pose.canParry) {
         var parry = new Raster("assets/characters/parry.png");
         parry.position.x = char.x;
@@ -1588,7 +1679,7 @@ function draw() {
           r.sendToBack();
         }
       }
-      if (char.pose.canParry) {
+      if (char.pose.hasAngle) {
         var ball = new Raster("assets/characters/ball.png");
         ball.position.x = char.x;
         ball.position.y = char.y;
@@ -1654,6 +1745,17 @@ function draw() {
           draw();
         }
       }
+      if (char.name == "Doombox" && char.pose.canSpecial) {
+        var icon = createButtonWithTooltip("special", "Toggle Special", tooltip);
+        icon.position.x = iconsX + iconPosition;
+        icon.position.y = iconsY;
+        iconPosition += iconSpacing;
+        icon.char = char;
+        icon.onMouseDown = function(event) {
+          toggleDoomboxAimReticle(this.char);
+          draw();
+        }
+      }
     } else {
       new Path.Circle({
         center: [char.x, char.y],
@@ -1680,7 +1782,29 @@ function draw() {
         addAngleButtons(char, char.curAngle, startingPoint, teleportData.facing, false, tooltip);
       }
     }
-    for(var j = 0; j < char.angles.length; j++) {
+
+    if (char.reticle && charImagesOn && char.pose.canSpecial) {
+      var startingPoint = new Point(char.x, char.y);
+      var targetPoint = new Point(char.reticle.x, char.reticle.y);
+      var delta = targetPoint - startingPoint;
+      for (var k = 0; k < char.reticle.angles.length; k++) {
+        var snipeAngle = char.reticle.angles[k];
+        var directionMultiplier = (delta.angle > -90 && delta.angle < 90) ? -1 : 1;
+
+        snipeAngle.degrees = delta.angle + char.specialAngle * directionMultiplier * snipeAngle.snipeMultiplier;
+        if (snipeAngle.visible) {
+          char.curAngle = snipeAngle;
+          drawAngle(char, startingPoint, char.facing == "left");
+        }
+      }
+      for (var k = 0; k < char.reticle.angles.length; k++) {
+        var snipeAngle = char.reticle.angles[k];
+        var nonFlippedFacing = "right";
+        addAngleButtons(char, snipeAngle, startingPoint, nonFlippedFacing, false, tooltip);
+      }
+    }
+
+    for (var j = 0; j < char.angles.length; j++) {
       char.curAngle = char.angles[j]
       if ((charImagesOn && char.curAngle.validWhen.indexOf(char.pose.name) < 0) || (char.curAngle.hidden && !charImagesOn)) {
         continue;
@@ -1823,12 +1947,12 @@ function myDown(e) {
   var my = parseInt(e.clientY - offsetY);
 
   // test each shape to see if mouse is inside
-  for(var i = 0; i < loadedChars.length; i++){
-    var s = loadedChars[i];
+  for (var i = 0; i < activeEntities.length; i++) {
+    var s = activeEntities[i];
     // decide if the shape is a rect or circle
-    if(s.width){
+    if (s.width) {
       // test if the mouse is inside this rect
-      if(mx > s.x && mx < s.x + s.width && my > s.y && my < s.y + s.height){
+      if (mx > s.x - s.width / 2 && mx < s.x + s.width / 2 && my > s.y - s.height / 2 && my < s.y + s.height / 2) {
         // if yes, set that rects isDragging=true
         startDragging(s);
       }
@@ -1868,9 +1992,9 @@ function myUp(e) {
 
   // clear all the dragging flags
   dragok = false;
-  for(var i = 0; i < loadedChars.length; i++) {
-    loadedChars[i].isDragging = false;
-    loadedChars[i].isDraggingBallLocation = false;
+  for(var i = 0; i < activeEntities.length; i++) {
+    activeEntities[i].isDragging = false;
+    activeEntities[i].isDraggingBallLocation = false;
   }
 }
 
@@ -1900,9 +2024,16 @@ function myMove(e) {
     // move each rect that isDragging
     // by the distance the mouse has moved
     // since the last mousemove
-    for(var i = 0; i < loadedChars.length; i++){
-      var s = loadedChars[i];
-      if(s.isDragging){
+    for (var i = 0; i < activeEntities.length; i++) {
+      var s = activeEntities[i];
+      if (!s.isCharacter) {
+        if (s.isDragging) {
+          s.x += dx;
+          s.y += dy;
+        }
+        continue;
+      }
+      if (s.isDragging) {
         s.x += dx;
         s.y += dy;
         if (s.dontDragCharImage) {
@@ -2066,6 +2197,7 @@ $('document').ready(function() {
     char.facing = 'right'
     char.isDragging = false
     char.imgOffset = {x: -55, y: 0}
+    char.isCharacter = true;
     char.getImage = function() {
       return "assets/characters/" + this.img_name + "_" + this.pose.name + "_r.png";
     }
@@ -2109,13 +2241,15 @@ $('document').ready(function() {
     }
     for (var j = 0; j < char.poses.length; j++) {
       var pose = char.poses[j];
-      if (pose.name == "grab" || pose.name == "spit") {
-        continue;
-      }
       for (var k = 0; k < char.angles.length; k++) {
         var angle = char.angles[k];
         if (angle.validWhen.indexOf(pose.name) >= 0) {
-          pose.canParry = true;
+          pose.hasAngle = true;
+          if (pose.name == "pushbox" || pose.name == "grab" || pose.name == "spit") {
+            pose.canParry = false;
+          } else {
+            pose.canParry = true;
+          }
           if (char.name == "Grid") {
             // Every pose that can parry can also special
             pose.canSpecial = true;
