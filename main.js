@@ -1735,7 +1735,11 @@ function draw() {
         }
       }
       if (char.pose.canMirror) {
-        var icon = createButtonWithTooltip("mirror", "Mirror Special Angles", tooltip);
+        var buttonText = "Mirror Special Angles";
+        if (char.pose.name == "grab") {
+          buttonText = "Mirror Throw Angles";
+        }
+        var icon = createButtonWithTooltip("mirror", buttonText, tooltip);
         icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
         iconPosition += iconSpacing;
