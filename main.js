@@ -990,6 +990,7 @@ function loadChar(charName) {
     loadedChars.push(char);
     activeEntities.push(char);
     $('li#' + charName + ' ol').removeClass("hidden");
+    $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon2.png")');
   }
 
   return char;
@@ -998,10 +999,12 @@ function loadChar(charName) {
 function unloadChar(charName) {
   var i = loadedChars.findIndex(function(e){ return e.name == charName });
   if (i >= 0) {
+    var char = characters.find(function(e){ return e.name == charName });
     loadedChars.splice(i, 1);
     var j = activeEntities.findIndex(function(e){ return e.name == charName });
     activeEntities.splice(j, 1);
     $('li#' + charName + ' ol').addClass("hidden");
+    $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon.png")');
   }
 }
 
@@ -2290,6 +2293,11 @@ $('document').ready(function() {
         }
       }
     }
+
+    $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon.png")');
+    $('#' + char.name).css('background-size', '40px');
+    $('#' + char.name).css('background-repeat', 'no-repeat');
+    $('#' + char.name).css('background-position', 'right');
   }
 
   /** toggle chars */
