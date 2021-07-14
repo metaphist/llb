@@ -1446,6 +1446,13 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       strokeColor: invalid ? 'grey' : properties.color
     }
 
+    var vector = stopPoint - start;
+
+    var arrows = new Group();
+    if (guidesOn) {
+      arrows.addChildren(addArrows(start, vector, 1, true));
+    }
+
     if (hitHurtBoxCollision) {
       if (itHurts) {
         hitHurtBoxPath.fillColor = 'lightskyblue';
@@ -1453,64 +1460,56 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         hitHurtBoxPath.fillColor = '#ffc2c4';
       }
       hitHurtBoxPath.sendToBack();
-      break;
-    }
-
-    var vector = intersectPoint - start
-
-    var arrows = new Group()
-    if(guidesOn) {
-      arrows.addChildren(addArrows(start, vector, 1, true))
-    }
-
-    // new start for next reflection
-    start = intersectPoint.clone()
-
-    /**
-     * Handle Candyman warp
-     */
-    if(properties.name == 'Candyman' && angle.special > i) {
-      var oldStart = start.clone()
-
-      // move start to opposite wall
-      if(start.x >= ballStageRect.x + ballStageRect.width - 1)
-        start.x = ballStageRect.x;
-      else if(start.x <= ballStageRect.x + 1)
-        start.x = ballStageRect.x + ballStageRect.width
-
-      if(start.y >= ballStageRect.y + ballStageRect.height - 1)
-        start.y = ballStageRect.y
-      else if(start.y <= ballStageRect.y + 1)
-        start.y = ballStageRect.y + ballStageRect.height
-
-      if(guidesOn) {
-        // warp indicator
-        new Path({
-          segments: [oldStart, start],
-          strokeWidth: 1,
-          dashArray: [1, 5],
-          strokeColor: 'white'
-        })
-
-        var warpVector = start - oldStart
-        arrows.addChildren(addArrows(oldStart, warpVector, 1, false))
-      }
-
     } else {
-      var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
-      var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
+      // new start for next reflection
+      start = stopPoint.clone()
 
-      if(hitSides && hitFloorOrCeiling) {
-        // on corners invert direction
-        degrees += 180;
-        i++; // corner should count as two reflections
-      } else if(hitSides) {
-        // on side reflections flip angle horizontally
-        degrees *= -1
-        degrees += 180
+      /**
+       * Handle Candyman warp
+       */
+      if(properties.name == 'Candyman' && angle.special > i) {
+        var oldStart = start.clone()
+
+        // move start to opposite wall
+        if(start.x >= ballStageRect.x + ballStageRect.width - 1)
+          start.x = ballStageRect.x;
+        else if(start.x <= ballStageRect.x + 1)
+          start.x = ballStageRect.x + ballStageRect.width
+
+        if(start.y >= ballStageRect.y + ballStageRect.height - 1)
+          start.y = ballStageRect.y
+        else if(start.y <= ballStageRect.y + 1)
+          start.y = ballStageRect.y + ballStageRect.height
+
+        if(guidesOn) {
+          // warp indicator
+          new Path({
+            segments: [oldStart, start],
+            strokeWidth: 1,
+            dashArray: [1, 5],
+            strokeColor: 'white'
+          })
+
+          var warpVector = start - oldStart
+          arrows.addChildren(addArrows(oldStart, warpVector, 1, false))
+        }
+
       } else {
-        // on floor or ceiling reflection flip angle vertically
-        degrees *= -1
+        var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
+        var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
+
+        if(hitSides && hitFloorOrCeiling) {
+          // on corners invert direction
+          degrees += 180;
+          i++; // corner should count as two reflections
+        } else if(hitSides) {
+          // on side reflections flip angle horizontally
+          degrees *= -1
+          degrees += 180
+        } else {
+          // on floor or ceiling reflection flip angle vertically
+          degrees *= -1
+        }
       }
     }
 
