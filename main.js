@@ -1087,7 +1087,7 @@ function addReflectionsToAngleByName(charName, angleName, amount) {
 }
 
 function addReflectionsToAngle(char, angle, amount, updateChar) {
-  if (angle.reflections == undefined){
+  if (angle.reflections === undefined) {
     angle.reflections = 0;
   }
 
@@ -1308,8 +1308,7 @@ function drawLine(start, degrees) {
   return line
 }
 
-function drawAngle(properties, startingPoint, mirrored) {
-  var angle = properties.curAngle;
+function drawAngle(properties, angle, startingPoint, mirrored) {
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
   var start = startingPoint;
 
@@ -1779,15 +1778,15 @@ function draw() {
         var teleportData = char.teleport[g];
         var startingPoint = getGridTeleportReleaseLocation(char, teleportData.pose, teleportData.facing, teleportData.hurtbox);
         var mirrored = char.facing != teleportData.facing;
-        char.curAngle = teleportData.pose.teleportAngle;
+        var teleportAngle = teleportData.pose.teleportAngle;
         var ball = new Raster("assets/characters/ball.png");
         ball.position.x = startingPoint.x;
         ball.position.y = startingPoint.y;
         ball.opacity = 0.5;
-        if (char.curAngle.visible) {
-          drawAngle(char, startingPoint, mirrored);
+        if (teleportAngle.visible) {
+          drawAngle(char, teleportAngle, startingPoint, mirrored);
         }
-        addAngleButtons(char, char.curAngle, startingPoint, teleportData.facing, false, tooltip);
+        addAngleButtons(char, teleportAngle, startingPoint, teleportData.facing, false, tooltip);
       }
     }
 
@@ -1801,8 +1800,7 @@ function draw() {
 
         snipeAngle.degrees = delta.angle + char.specialAngle * directionMultiplier * snipeAngle.snipeMultiplier;
         if (snipeAngle.visible) {
-          char.curAngle = snipeAngle;
-          drawAngle(char, startingPoint, char.facing == "left");
+          drawAngle(char, snipeAngle, startingPoint, char.facing == "left");
         }
       }
       for (var k = 0; k < char.reticle.angles.length; k++) {
@@ -1813,30 +1811,30 @@ function draw() {
     }
 
     for (var j = 0; j < char.angles.length; j++) {
-      char.curAngle = char.angles[j]
-      if ((charImagesOn && char.curAngle.validWhen.indexOf(char.pose.name) < 0) || (char.curAngle.hidden && !charImagesOn)) {
+      var currentAngle = char.angles[j];
+      if ((charImagesOn && currentAngle.validWhen.indexOf(char.pose.name) < 0) || (currentAngle.hidden && !charImagesOn)) {
         continue;
       }
-      if (char.curAngle.visible) {
+      if (currentAngle.visible) {
         var startingPoint = new Point(char.x, char.y);
-        var mirrorStartingPoint = new Point(char.x, char.y);
+        var mirroredStartingPoint = new Point(char.x, char.y);
         if (char.pose.fixedRelease && charImagesOn) {
           var fixedReleaseLocations = getFixedReleaseLocations(char);
           startingPoint = fixedReleaseLocations[0];
-          mirrorStartingPoint = fixedReleaseLocations[1];
+          mirroredStartingPoint = fixedReleaseLocations[1];
         }
-        if (char.mirrorAngles && char.pose.canMirror && char.curAngle.mirror) {
-          drawAngle(char, mirrorStartingPoint, true);
+        if (char.mirrorAngles && char.pose.canMirror && currentAngle.mirror) {
+          drawAngle(char, currentAngle, mirroredStartingPoint, true);
         }
-        drawAngle(char, startingPoint, false);
+        drawAngle(char, currentAngle, startingPoint, false);
       }
-      if (char.showDirectButtons && (charImagesOn || !char.curAngle.hidden)) {
-        if(char.curAngle.labels === undefined) {
+      if (char.showDirectButtons && (charImagesOn || !currentAngle.hidden)) {
+        if (currentAngle.labels === undefined) {
           //angles that are identical to other angles have no labels; skip those
           continue;
         }
         var position = new Point(char.x, char.y);
-        addAngleButtons(char, char.curAngle, position, char.facing, true, tooltip);
+        addAngleButtons(char, currentAngle, position, char.facing, true, tooltip);
       }
     }
 
