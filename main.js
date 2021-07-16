@@ -1009,6 +1009,55 @@ function unloadChar(charName) {
   }
 }
 
+function toggleToxicSpray(char) {
+  if (char.spray) {
+    removeToxicSpray(char);
+  } else {
+    addToxicSpray(char);
+  }
+}
+
+function addToxicSpray(char) {
+  var posx = char.x + 150;
+  var posy = char.y - 20;
+  if (char.facing == "left") {
+    posx = char.x - 150;
+  }
+  var spray = {
+    x: posx,
+    y: posy,
+    imageName: "toxic_spray",
+    imageScale: 1,
+    imgSize: [230, 112],
+    hitbox: [43, 22, 150, 78],
+    hurtbox: [43+35, 22+9, 150-35*2, 78-9*2],
+    width: 200,
+    height: 96,
+    pose: {},
+    isDragging: false,
+    imgOffset: {x: 0, y: 0},
+    isCharacter: false,
+    stickToBoundaries: true,
+    ignoreHurtboxCollisions: true,
+  };
+  spray.getHurtbox = function() {
+    return new Rectangle(new Point(this.x - this.imgSize[0] / 2 + this.hurtbox[0], this.y - this.imgSize[1] / 2 + this.hurtbox[1]), new Size(this.hurtbox[2], this.hurtbox[3]));
+  };
+  spray.getHitboxes = function() {
+    return [new Rectangle(new Point(this.x - this.imgSize[0] / 2 + this.hitbox[0], this.y - this.imgSize[1] / 2 + this.hitbox[1]), new Size(this.hitbox[2], this.hitbox[3]))];
+  }
+  char.spray = spray;
+  activeEntities.push(spray);
+}
+
+function removeToxicSpray(char) {
+  var index = activeEntities.indexOf(char.spray);
+  if (index > -1) {
+    activeEntities.splice(index, 1);
+    char.spray = null;
+  }
+}
+
 function toggleDoomboxAimReticle(char) {
   if (char.reticle) {
     removeDoomboxAimReticle(char);
@@ -1042,6 +1091,8 @@ function addDoomboxAimReticle(char) {
     isDragging: false,
     imgOffset: {x: 0, y: 0},
     isCharacter: false,
+    ignoreHitboxCollisions: true,
+    ignoreHurtboxCollisions: true,
   };
   reticle.angles = [
     {
@@ -1367,50 +1418,54 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     var closestDistance;
     var itHurts = false;
     if (charImagesOn && !ignoreHitboxCollisions) {
-      for (var j = 0; j < loadedChars.length; j++) {
-        var char = loadedChars[j];
-        if (char == properties) {
+      for (var j = 0; j < activeEntities.length; j++) {
+        var entity = activeEntities[j];
+        if (entity == properties) {
           continue;
         }
-        var hitboxes = char.getHitboxes();
-        for (var k = 0; k < hitboxes.length; k++) {
-          var hitbox = hitboxes[k];
-          var hitboxExpanded = hitbox.expand(ballDiameter);
-          var hitboxPath;
-          var hitboxPathExpanded;
-          if (char.pose.circle) {
-            hitboxPath = new Path.Circle(hitbox.center, hitbox.width / 2);
-            hitboxPathExpanded = new Path.Circle(hitboxExpanded.center, hitboxExpanded.width / 2);
-          } else {
-            hitboxPath = new Path.Rectangle(hitbox);
-            hitboxPathExpanded = new Path.Rectangle(hitboxExpanded);
-          }
-          var intersections = line.getIntersections(hitboxPathExpanded);
-          for (var l = 0; l < intersections.length; l++) {
-            var intersection = intersections[l];
-            var dist = start.getDistance(intersection.point);
-            if (!hitHurtBoxCollision || dist < closestDistance) {
-              hitHurtBoxCollision = true;
-              hitHurtBoxPoint = intersection.point;
-              hitHurtBoxPath = hitboxPath;
-              closestDistance = dist;
+        if (!entity.ignoreHitboxCollisions) {
+          var hitboxes = entity.getHitboxes();
+          for (var k = 0; k < hitboxes.length; k++) {
+            var hitbox = hitboxes[k];
+            var hitboxExpanded = hitbox.expand(ballDiameter);
+            var hitboxPath;
+            var hitboxPathExpanded;
+            if (entity.pose.circle) {
+              hitboxPath = new Path.Circle(hitbox.center, hitbox.width / 2);
+              hitboxPathExpanded = new Path.Circle(hitboxExpanded.center, hitboxExpanded.width / 2);
+            } else {
+              hitboxPath = new Path.Rectangle(hitbox);
+              hitboxPathExpanded = new Path.Rectangle(hitboxExpanded);
+            }
+            var intersections = line.getIntersections(hitboxPathExpanded);
+            for (var l = 0; l < intersections.length; l++) {
+              var intersection = intersections[l];
+              var dist = start.getDistance(intersection.point);
+              if (!hitHurtBoxCollision || dist < closestDistance) {
+                hitHurtBoxCollision = true;
+                hitHurtBoxPoint = intersection.point;
+                hitHurtBoxPath = hitboxPath;
+                closestDistance = dist;
+              }
             }
           }
         }
-        var hurtbox = char.getHurtbox();
-        var expandedHurtbox = hurtbox.expand(ballDiameter);
-        var hurtboxPathExpanded = new Path.Rectangle(expandedHurtbox);
-        var intersections = line.getIntersections(hurtboxPathExpanded);
-        for (var l = 0; l < intersections.length; l++) {
-          var intersection = intersections[l];
-          var dist = start.getDistance(intersection.point);
-          var epsilon = 0.0001;
-          if (!hitHurtBoxCollision || dist < closestDistance - epsilon) {
-            hitHurtBoxCollision = true;
-            hitHurtBoxPoint = intersection.point;
-            hitHurtBoxPath = new Path.Rectangle(hurtbox);
-            closestDistance = dist;
-            itHurts = true;
+        if (!entity.ignoreHurtboxCollisions) {
+          var hurtbox = entity.getHurtbox();
+          var expandedHurtbox = hurtbox.expand(ballDiameter);
+          var hurtboxPathExpanded = new Path.Rectangle(expandedHurtbox);
+          var intersections = line.getIntersections(hurtboxPathExpanded);
+          for (var l = 0; l < intersections.length; l++) {
+            var intersection = intersections[l];
+            var dist = start.getDistance(intersection.point);
+            var epsilon = 0.0001;
+            if (!hitHurtBoxCollision || dist < closestDistance - epsilon) {
+              hitHurtBoxCollision = true;
+              hitHurtBoxPoint = intersection.point;
+              hitHurtBoxPath = new Path.Rectangle(hurtbox);
+              closestDistance = dist;
+              itHurts = true;
+            }
           }
         }
       }
@@ -1565,6 +1620,13 @@ function draw() {
         raster.position.x = char.reticle.x;
         raster.position.y = char.reticle.y;
         raster.scaling = char.reticle.imageScale;
+      }
+
+      if (char.spray) {
+        var raster = new Raster("assets/characters/" + char.spray.imageName + ".png");
+        raster.position.x = char.spray.x;
+        raster.position.y = char.spray.y;
+        raster.scaling = char.spray.imageScale;
       }
 
       if (char.parry && char.pose.canParry) {
@@ -1759,6 +1821,17 @@ function draw() {
         icon.char = char;
         icon.onMouseDown = function(event) {
           toggleDoomboxAimReticle(this.char);
+          draw();
+        }
+      }
+      if (char.name == "Toxic") {
+        var icon = createButtonWithTooltip("special", "Spray", tooltip);
+        icon.position.x = iconsX + iconPosition;
+        icon.position.y = iconsY;
+        iconPosition += iconSpacing;
+        icon.char = char;
+        icon.onMouseDown = function(event) {
+          toggleToxicSpray(this.char);
           draw();
         }
       }
@@ -1997,9 +2070,43 @@ function myUp(e) {
 
   // clear all the dragging flags
   dragok = false;
-  for(var i = 0; i < activeEntities.length; i++) {
-    activeEntities[i].isDragging = false;
-    activeEntities[i].isDraggingBallLocation = false;
+  for (var i = 0; i < activeEntities.length; i++) {
+    var entity = activeEntities[i];
+    if (entity.isDragging && entity.stickToBoundaries) {
+      var hurtbox = entity.getHurtbox();
+      var distFromTop = trueStageRect.top - hurtbox.top;
+      var distFromBottom = trueStageRect.bottom - hurtbox.bottom;
+      var distFromLeft = trueStageRect.left - hurtbox.left;
+      var distFromRight = trueStageRect.right - hurtbox.right;
+
+      var smallestDistance = Math.abs(distFromTop);
+      var closestWall = 'up';
+      if (Math.abs(distFromBottom) < smallestDistance) {
+        smallestDistance = Math.abs(distFromBottom);
+        closestWall = 'down';
+      }
+      if (Math.abs(distFromLeft) < smallestDistance) {
+        smallestDistance = Math.abs(distFromLeft);
+        closestWall = 'left';
+      }
+      if (Math.abs(distFromRight) < smallestDistance) {
+        smallestDistance = Math.abs(distFromRight);
+        closestWall = 'right';
+      }
+
+      if (closestWall == 'up') {
+        entity.y += distFromTop;
+      } else if (closestWall == 'down') {
+        entity.y += distFromBottom;
+      } else if (closestWall == 'left') {
+        entity.x += distFromLeft;
+      } else if (closestWall == 'right') {
+        entity.x += distFromRight;
+      }
+      draw();
+    }
+    entity.isDragging = false;
+    entity.isDraggingBallLocation = false;
   }
 }
 
@@ -2036,106 +2143,110 @@ function myMove(e) {
           s.x += dx;
           s.y += dy;
         }
-        continue;
-      }
-      if (s.isDragging) {
-        s.x += dx;
-        s.y += dy;
-        if (s.dontDragCharImage) {
-          s.imgOffset.x -= dx;
-          s.imgOffset.y -= dy;
-        }
+      } else {
+        if (s.isDragging) {
+          s.x += dx;
+          s.y += dy;
+          if (s.dontDragCharImage) {
+            s.imgOffset.x -= dx;
+            s.imgOffset.y -= dy;
+          }
 
-        if(s.x < ballStageRect.left) {
-          s.imgOffset.x -= ballStageRect.left - s.x
-          s.x = ballStageRect.left;
-        } else if(s.x > ballStageRect.right){
-          s.imgOffset.x -= ballStageRect.right - s.x
-          s.x = ballStageRect.right;
-        }
-        if(s.y < ballStageRect.top) {
-          s.imgOffset.y -= ballStageRect.top - s.y
-          s.y = ballStageRect.top;
-        } else if(s.y > ballStageRect.bottom){
-          s.imgOffset.y -= ballStageRect.bottom - s.y
-          s.y = ballStageRect.bottom;
-        }
-        var sx_half = s.pose.imgSize[0] / 2 + ballRadius;
-        var sy_half = s.pose.imgSize[1] / 2 + ballRadius;
-        if (s.imgOffset.x < -sx_half) {
-          s.imgOffset.x = -sx_half;
-        } else if (s.imgOffset.x > sx_half) {
-          s.imgOffset.x = sx_half;
-        }
-        if (s.imgOffset.y < -sy_half) {
-          s.imgOffset.y = -sy_half;
-        } else if (s.imgOffset.y > sy_half) {
-          s.imgOffset.y = sy_half;
+          if(s.x < ballStageRect.left) {
+            s.imgOffset.x -= ballStageRect.left - s.x
+            s.x = ballStageRect.left;
+          } else if(s.x > ballStageRect.right){
+            s.imgOffset.x -= ballStageRect.right - s.x
+            s.x = ballStageRect.right;
+          }
+          if(s.y < ballStageRect.top) {
+            s.imgOffset.y -= ballStageRect.top - s.y
+            s.y = ballStageRect.top;
+          } else if(s.y > ballStageRect.bottom){
+            s.imgOffset.y -= ballStageRect.bottom - s.y
+            s.y = ballStageRect.bottom;
+          }
+          var sx_half = s.pose.imgSize[0] / 2 + ballRadius;
+          var sy_half = s.pose.imgSize[1] / 2 + ballRadius;
+          if (s.imgOffset.x < -sx_half) {
+            s.imgOffset.x = -sx_half;
+          } else if (s.imgOffset.x > sx_half) {
+            s.imgOffset.x = sx_half;
+          }
+          if (s.imgOffset.y < -sy_half) {
+            s.imgOffset.y = -sy_half;
+          } else if (s.imgOffset.y > sy_half) {
+            s.imgOffset.y = sy_half;
+          }
         }
       }
-      var hurtbox = s.getHurtbox()
-      if (charImagesOn) {
-        if (s.pose.wall) {
-          if (s.facing == 'right') {
-            s.x += trueStageRect.left - hurtbox.left;
+      if (typeof s.getHurtbox === 'function') {
+        var hurtbox = s.getHurtbox()
+        if (charImagesOn) {
+          if (s.pose.wall) {
+            if (s.facing == 'right') {
+              s.x += trueStageRect.left - hurtbox.left;
+            } else {
+              s.x += trueStageRect.right - hurtbox.right;
+            }
           } else {
-            s.x += trueStageRect.right - hurtbox.right;
+            if (hurtbox.left < trueStageRect.left) {
+              s.x += trueStageRect.left - hurtbox.left;
+            }
+            if (hurtbox.right > trueStageRect.right) {
+              s.x += trueStageRect.right - hurtbox.right;
+            }
           }
-        } else {
-          if (hurtbox.left < trueStageRect.left) {
-            s.x += trueStageRect.left - hurtbox.left;
-          }
-          if (hurtbox.right > trueStageRect.right) {
-            s.x += trueStageRect.right - hurtbox.right;
-          }
-        }
-        if (s.pose.grounded) {
-          s.y += trueStageRect.bottom - hurtbox.bottom - s.pose.groundOffset;
-        } else {
-          if (hurtbox.top < trueStageRect.top) {
-            s.y += trueStageRect.top - hurtbox.top;
-          }
-          if (hurtbox.bottom > trueStageRect.bottom) {
-            s.y += trueStageRect.bottom - hurtbox.bottom;
+          if (s.pose.grounded) {
+            s.y += trueStageRect.bottom - hurtbox.bottom - s.pose.groundOffset;
+          } else {
+            if (hurtbox.top < trueStageRect.top) {
+              s.y += trueStageRect.top - hurtbox.top;
+            }
+            if (hurtbox.bottom > trueStageRect.bottom) {
+              s.y += trueStageRect.bottom - hurtbox.bottom;
+            }
           }
         }
       }
-      var hitboxes = s.getHitboxes();
-      var closestHitbox = null;
-      var closestDistance = null;
-      if (charImagesOn) {
-        if (s.pose.fixedRelease) {
-          var fixedPoint = getFixedReleaseLocations(s)[0];
-          var delta = new Point(fixedPoint.x - s.x, fixedPoint.y - s.y);
-          s.x += delta.x;
-          s.y += delta.y;
-          s.imgOffset.x -= delta.x;
-          s.imgOffset.y -= delta.y;
-        } else if(hitboxes.length > 0) {
-          for (var j = 0; j < hitboxes.length; j++) {
-            var hitbox = hitboxes[j];
-            hitbox = hitbox.expand(ballDiameter);
-            var distance = new Point(0, 0);
-            if (s.x < hitbox.left) {
-              distance.x = s.x - hitbox.left;
-            } else if (s.x > hitbox.right) {
-              distance.x = s.x - hitbox.right;
+      if (typeof s.getHitboxes === 'function') {
+        var hitboxes = s.getHitboxes();
+        var closestHitbox = null;
+        var closestDistance = null;
+        if (charImagesOn) {
+          if (s.pose.fixedRelease) {
+            var fixedPoint = getFixedReleaseLocations(s)[0];
+            var delta = new Point(fixedPoint.x - s.x, fixedPoint.y - s.y);
+            s.x += delta.x;
+            s.y += delta.y;
+            s.imgOffset.x -= delta.x;
+            s.imgOffset.y -= delta.y;
+          } else if(hitboxes.length > 0) {
+            for (var j = 0; j < hitboxes.length; j++) {
+              var hitbox = hitboxes[j];
+              hitbox = hitbox.expand(ballDiameter);
+              var distance = new Point(0, 0);
+              if (s.x < hitbox.left) {
+                distance.x = s.x - hitbox.left;
+              } else if (s.x > hitbox.right) {
+                distance.x = s.x - hitbox.right;
+              }
+              if (s.y < hitbox.top) {
+                distance.y = s.y - hitbox.top;
+              } else if (s.y > hitbox.bottom) {
+                distance.y = s.y - hitbox.bottom;
+              }
+              if (closestDistance == null || closestDistance.length > distance.length) {
+                closestDistance = distance;
+                closestHitbox = hitbox;
+              }
             }
-            if (s.y < hitbox.top) {
-              distance.y = s.y - hitbox.top;
-            } else if (s.y > hitbox.bottom) {
-              distance.y = s.y - hitbox.bottom;
+            if (closestDistance != null) {
+              s.x -= closestDistance.x;
+              s.y -= closestDistance.y;
+              s.imgOffset.x += closestDistance.x;
+              s.imgOffset.y += closestDistance.y;
             }
-            if (closestDistance == null || closestDistance.length > distance.length) {
-              closestDistance = distance;
-              closestHitbox = hitbox;
-            }
-          }
-          if (closestDistance != null) {
-            s.x -= closestDistance.x;
-            s.y -= closestDistance.y;
-            s.imgOffset.x += closestDistance.x;
-            s.imgOffset.y += closestDistance.y;
           }
         }
       }
