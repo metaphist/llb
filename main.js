@@ -1009,6 +1009,68 @@ function unloadChar(charName) {
   }
 }
 
+function addGeneralAngles(char) {
+  char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
+  if (char.name == "Latch" || char.name == "Raptor") {
+    char.angles[char.angles.length - 1].mirror = true;
+  }
+  char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40});
+  char.angles.push({ name: 'straight-throw', degrees: 0, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
+  char.angles.push({ name: 'down-throw', degrees: 90, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
+  char.angles.push(
+    {
+      "name": "bunt",
+      "degrees": -90,
+      "validWhen": ["bunt"],
+      "bunt": true,
+      "initialSpeed": 16 * 0.6,
+      "gravity": 18,
+      "maxGravity": 15,
+      "buntStep": 100,
+      "maxReflections": 1,
+      "hidden": true,
+    });
+  char.angles.push(
+    {
+      "name": "bunt-down",
+      "degrees": 90,
+      "validWhen": ["bunt"],
+      "bunt": true,
+      "initialSpeed": 16 * 0.6,
+      "gravity": 18,
+      "maxGravity": 15,
+      "buntStep": 50,
+      "maxReflections": 1,
+      "hidden": true,
+    });
+  char.angles.push(
+    {
+      "name": "bunt-forward",
+      "degrees": -65,
+      "validWhen": ["bunt"],
+      "bunt": true,
+      "initialSpeed": 16 * 0.6,
+      "gravity": 18,
+      "maxGravity": 15,
+      "buntStep": 10,
+      "maxReflections": 1,
+      "hidden": true,
+    });
+  char.angles.push(
+    {
+      "name": "bunt-backward",
+      "degrees": -115,
+      "validWhen": ["bunt"],
+      "bunt": true,
+      "initialSpeed": 16 * 0.6,
+      "gravity": 18,
+      "maxGravity": 15,
+      "buntStep": 10,
+      "maxReflections": 1,
+      "hidden": true,
+    });
+}
+
 function toggleToxicSpray(char) {
   if (char.spray) {
     removeToxicSpray(char);
@@ -1359,58 +1421,89 @@ function drawLine(start, degrees) {
   return line
 }
 
+function drawLineSegment(start, end) {
+  var line = new Path();
+  line.add(start, end);
+  return line;
+}
+
 function drawAngle(properties, angle, startingPoint, mirrored) {
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
   var start = startingPoint;
 
+  if (angle.bunt) {
+    var velocity = new Point(angle.initialSpeed, 0);
+    velocity = velocity.rotate(degrees);
+  }
+
+  /** text label */
+  if (labelsOn) {
+    var reposition = 0 // will turn true if label is too close to another
+    var done = false
+    do {
+      var label = new PointText(start)
+      var fontSize = labelFontSize
+      var yOffset = degrees > 90 || degrees < -90 ? fontSize : fontSize * -0.4
+      label.position.x += circleRadius + 5 + reposition
+      label.position.y += yOffset
+      label.rotate(degrees, start)
+      label.fillColor = 'white'
+      label.fontSize = fontSize
+      label.fontWeight = 'bold'
+      label.fontFamily = 'Arial'
+      label.content = getAngleLabelText(angle);
+      label.shadowColor = 'black'
+      label.shadowBlur = 5
+      //label.strokeWidth = 1
+
+      if(label && (degrees > 90 || degrees < -90))
+        label.rotate(180);
+
+      // check proximity
+      if(labels.length == 0) done = true
+      else {
+        var counter = 0
+        for(var j = 0; j < labels.length; j++) {
+          counter++
+          var compare = labels[j]
+          if(label.bounds.intersects(compare.bounds)) {
+            reposition = reposition + label.bounds.intersect(compare.bounds).height + 10;
+            label.remove()
+            break;
+          } else {
+            if(counter == labels.length) done = true
+          }
+        }
+
+      }
+    } while (!done)
+
+    labels.push(label)
+  }
+
   var invalid = false // no use-y for now
   for(var i = 0; i <= angle.reflections; ++i) {
-    /** text label */
-    if(labelsOn && i == 0) {
-      var reposition = 0 // will turn true if label is too close to another
-      var done = false
-      do {
-        var label = new PointText(start)
-        var fontSize = labelFontSize
-        var yOffset = degrees > 90 || degrees < -90 ? fontSize : fontSize * -0.4
-        label.position.x += circleRadius + 5 + reposition
-        label.position.y += yOffset
-        label.rotate(degrees, start)
-        label.fillColor = 'white'
-        label.fontSize = fontSize
-        label.fontWeight = 'bold'
-        label.fontFamily = 'Arial'
-        label.content = getAngleLabelText(angle);
-        label.shadowColor = 'black'
-        label.shadowBlur = 5
-        //label.strokeWidth = 1
 
-        if(label && (degrees > 90 || degrees < -90))
-          label.rotate(180);
-
-        // check proximity
-        if(labels.length == 0) done = true
-        else {
-          var counter = 0
-          for(var j = 0; j < labels.length; j++) {
-            counter++
-            var compare = labels[j]
-            if(label.bounds.intersects(compare.bounds)) {
-              reposition = reposition + label.bounds.intersect(compare.bounds).height + 10;
-              label.remove()
-              break;
-            } else {
-              if(counter == labels.length) done = true
-            }
-          }
-
+    if (angle.bunt) {
+      var buntTargetPos = start;
+      for (var b = 0; b < angle.buntStep; b++) {
+        var wasUpwards = velocity.y < 0;
+        buntTargetPos += velocity;
+        velocity.y += angle.gravity * (1.0 / 60.0);
+        if (velocity.y > angle.maxGravity) {
+          velocity.y = angle.maxGravity;
         }
-      } while (!done)
-
-      labels.push(label)
+        if (wasUpwards && velocity.y >= 0) {
+          break;
+        }
+        if (buntTargetPos.y > ballStageRect.bottom) {
+          break;
+        }
+      }
+      var line = drawLineSegment(start, buntTargetPos);
+    } else {
+      var line = drawLine(start, degrees)
     }
-
-    var line = drawLine(start, degrees)
 
     var hitHurtBoxCollision = false;
     var hitHurtBoxPoint;
@@ -1450,7 +1543,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
             }
           }
         }
-        if (!entity.ignoreHurtboxCollisions) {
+        if (!entity.ignoreHurtboxCollisions && !angle.bunt) {
           var hurtbox = entity.getHurtbox();
           var expandedHurtbox = hurtbox.expand(ballDiameter);
           var hurtboxPathExpanded = new Path.Rectangle(expandedHurtbox);
@@ -1472,13 +1565,26 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     }
 
     var stopPoint = hitHurtBoxPoint;
+    var hitStageBoundary = false;
 
     if (!hitHurtBoxCollision) {
       // get new starting point from reflection point
       var intersections = line.getIntersections(ballStageBounds);
       //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
       var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
-      if(!intersectPoint) break
+      if (!intersectPoint) {
+        if (angle.bunt) {
+          intersectPoint = buntTargetPos;
+        } else {
+          break;
+        }
+      } else {
+        hitStageBoundary = true;
+        if (angle.bunt) {
+          velocity.y = 0;
+          intersectPoint.y += 1;
+        }
+      }
 
       stopPoint = intersectPoint;
     }
@@ -1487,7 +1593,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     if (showBallImpactLocations) {
       var ballHitbox = new Rectangle(new Point(stopPoint.x - ballRadius + 2, stopPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4));
       var ballHitboxPath = new Path.Rectangle(ballHitbox);
-      ballHitboxPath.strokeColor = 'blue';
+      ballHitboxPath.strokeColor = angle.bunt ? 'purple' : 'blue';
       ballHitboxPath.strokeWidth = 4;
     }
 
@@ -1573,6 +1679,13 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     arrows.strokeColor = guideColor
     arrows.strokeCap = 'round'
     guides.push(arrows)
+
+    if ((angle.bunt && hitStageBoundary && start.y > ballStageRect.top + 2) || hitHurtBoxCollision) {
+      break;
+    }
+    if (angle.bunt) {
+      i--;
+    }
   }
 }
 
@@ -2301,13 +2414,7 @@ $('document').ready(function() {
   for(var i in characterJSON) {
     var char = characterJSON[i]
     char.name = i
-    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
-    if (char.name == "Latch" || char.name == "Raptor") {
-      char.angles[char.angles.length - 1].mirror = true;
-    }
-    char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40});
-    char.angles.push({ name: 'straight-throw', degrees: 0, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
-    char.angles.push({ name: 'down-throw', degrees: 90, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
+    addGeneralAngles(char);
     char.showDirectButtons = true;
     char.pose = char.poses[0];
     char.facing = 'right'
