@@ -883,7 +883,55 @@ var characterJSON = {
         "name": "spike-backward",
         "degrees": 110,
         "validWhen": ["swing"]
-      }
+      },
+      {
+        "name": "spin",
+        "degrees": 315 - 360,
+        "validWhen": ["swing", "smash", "spike"],
+        "pong": true,
+        "initialSpeed": 34,
+        "pongStep": 2,
+        "turnRate": 4.2,
+        "maxReflections": 1,
+        "hidden": true,
+        "customOffset": 125,
+      },
+      {
+        "name": "spin-up",
+        "degrees": 275,
+        "validWhen": ["swing", "smash", "spike"],
+        "pong": true,
+        "initialSpeed": 34,
+        "pongStep": 2,
+        "turnRate": 5.25,
+        "maxReflections": 1,
+        "hidden": true,
+        "customOffset": 125,
+      },
+      {
+        "name": "spin-down",
+        "degrees": 0,
+        "validWhen": ["swing", "smash", "spike"],
+        "pong": true,
+        "initialSpeed": 34,
+        "pongStep": 2,
+        "turnRate": 4,
+        "maxReflections": 1,
+        "hidden": true,
+        "customOffset": 125,
+      },
+      {
+        "name": "spin-back",
+        "degrees": 260,
+        "validWhen": ["swing", "smash", "spike"],
+        "pong": true,
+        "initialSpeed": 34,
+        "pongStep": 2,
+        "turnRate": 6,
+        "maxReflections": 1,
+        "hidden": true,
+        "customOffset": 125,
+      },
     ]
   },
   "DustAndAshes": {
@@ -1431,9 +1479,16 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
   var start = startingPoint;
 
-  if (angle.bunt) {
+  if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
     velocity = velocity.rotate(degrees);
+    if (angle.pong) {
+      var turnRate = angle.turnRate * 1.55;
+      var turnDir = 1;
+      if (velocity.x < 0) {
+        turnDir = -1;
+      }
+    }
   }
 
   /** text label */
@@ -1485,22 +1540,35 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   for(var i = 0; i <= angle.reflections; ++i) {
 
     if (angle.bunt) {
-      var buntTargetPos = start;
+      var arcTargetPos = start;
       for (var b = 0; b < angle.buntStep; b++) {
         var wasUpwards = velocity.y < 0;
-        buntTargetPos += velocity;
-        velocity.y += angle.gravity * (1.0 / 60.0);
+        arcTargetPos += velocity;
+        velocity.y += angle.gravity * (1 / 60);
         if (velocity.y > angle.maxGravity) {
           velocity.y = angle.maxGravity;
         }
         if (wasUpwards && velocity.y >= 0) {
           break;
         }
-        if (buntTargetPos.y > ballStageRect.bottom) {
+        if (arcTargetPos.y > ballStageRect.bottom) {
           break;
         }
       }
-      var line = drawLineSegment(start, buntTargetPos);
+      var line = drawLineSegment(start, arcTargetPos);
+    } else if (angle.pong) {
+      var arcTargetPos = start;
+      for (var p = 0; p < angle.pongStep; p++) {
+        arcTargetPos += velocity;
+
+        turnRate -= 6 * (1 / 60);
+        if (turnRate <= 0) {
+          turnRate = 0;
+        }
+        degrees += turnRate * turnDir;
+        velocity = velocity.rotate(turnRate * turnDir);
+      }
+      var line = drawLineSegment(start, arcTargetPos);
     } else {
       var line = drawLine(start, degrees)
     }
@@ -1573,8 +1641,8 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
       var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
       if (!intersectPoint) {
-        if (angle.bunt) {
-          intersectPoint = buntTargetPos;
+        if (angle.bunt || angle.pong) {
+          intersectPoint = arcTargetPos;
         } else {
           break;
         }
@@ -1655,7 +1723,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
           arrows.addChildren(addArrows(oldStart, warpVector, 1, false))
         }
 
-      } else {
+      } else if (!angle.bunt && !angle.pong) {
         var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
         var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
 
@@ -1680,10 +1748,12 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     arrows.strokeCap = 'round'
     guides.push(arrows)
 
-    if ((angle.bunt && hitStageBoundary && start.y > ballStageRect.top + 2) || hitHurtBoxCollision) {
+    if ((angle.pong && hitStageBoundary)
+      || (angle.bunt && hitStageBoundary && start.y > ballStageRect.top + 2)
+      || hitHurtBoxCollision) {
       break;
     }
-    if (angle.bunt) {
+    if (angle.bunt || angle.pong) {
       i--;
     }
   }
