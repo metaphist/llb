@@ -1575,7 +1575,9 @@ function unloadChar(charName) {
 }
 
 function addGeneralAngles(char) {
-  if(char.name == "Candyman" || char.name == "Nitro" || char.name == "Raptor" || char.name == "Sonata"){
+  if(char.name == "Sonata"){
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "smash", "spike"], maxReflections: 2});
+  }else if(char.name == "Candyman" || char.name == "Nitro" || char.name == "Raptor"){
     char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "smash"], maxReflections: 2});
   }else{
     char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
