@@ -327,33 +327,90 @@ var characterJSON = {
     "color": "red",
     "strokeColor": "purple",
     "img_name": "raptor",
-    "baseHeight": 136,
+    "baseHeight": 126,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [180, 156],
-        "hurtboxes": [[0, 0, 180, 156]],
-        "hitboxes": [[0, 0, 180, 156]],
+        "imgSize": [165, 128],
+        "hurtboxes": [[16, 0, 60, 126]],
+        "hitboxes": [[41, 0, 124, 126]],
         "canMirror": true,
-      }
+      },
+      {
+        "name": "smash",
+        "imgSize": [213, 201],
+        "hurtboxes": [[64, 72, 60, 126]],
+        "hitboxes": [[39, 0, 110, 72], [89, 72, 124, 126]],
+        "canMirror": true,
+      },
+      {
+        "name": "spike",
+        "imgSize": [122, 245],
+        "hurtboxes": [[31, 2, 60, 126]],
+        "hitboxes": [[0, 75, 122, 170]],
+        "canMirror": true,
+      },
+      {
+        "name": "bunt",
+        "imgSize": [159, 177],
+        "hurtboxes": [[10, 40, 60, 126]],
+        "hitboxes": [[70, 0, 89, 72]],
+      },
+      {
+        "name": "grab",
+        "imgSize": [191, 130],
+        "hurtboxes": [[42, 0, 60, 126]],
+        "hitboxes": [[67, 0, 124, 126]],
+        "canMirror": true,
+        "fixedRelease": [110, 43],
+      },
+      {
+        "name": "stand",
+        "imgSize": [84, 136],
+        "hurtboxes": [[12, 5, 60, 126]],
+        "hitboxes": [],
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [111, 100],
+        "hurtboxes": [[0, 2, 60, 96]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [131, 89],
+        "hurtboxes": [[0, 18, 80, 64]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [184, 54],
+        "hurtboxes": [[58, 0, 126, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 1,
+      },
     ],
     "angles": [
       {
         "name": "up",
         "degrees": -60,
-        "validWhen": ["swing"],
+        "validWhen": ["swing", "smash"],
         "mirror": true,
       },
       {
         "name": "ground-down",
         "degrees": 30,
         "validWhen": ["swing"],
-        "mirror": true,
       },
       {
         "name": "smash",
         "degrees": 42,
-        "validWhen": ["swing"],
+        "validWhen": ["smash", "swing"], //currently this angle gets combined with the next angle
         "mirror": true,
       },
       {
@@ -365,12 +422,12 @@ var characterJSON = {
       {
         "name": "spike-forward",
         "degrees": 83,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
         "degrees": 97,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       }
     ]
   },
@@ -378,14 +435,70 @@ var characterJSON = {
     "color": "lightskyblue",
     "strokeColor": "royalblue",
     "img_name": "jet",
-    "baseHeight": 136,
+    "baseHeight": 148,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [170, 165],
-        "hurtboxes": [[0, 0, 170, 165]],
-        "hitboxes": [[0, 0, 170, 165]]
-      }
+        "imgSize": [158, 157],
+        "hurtboxes": [[6, 4, 60, 148]],
+        "hitboxes": [[31, 4, 124, 148]]
+      },
+      {
+        "name": "smash",
+        "imgSize": [196, 217],
+        "hurtboxes": [[46, 67, 60, 148]],
+        "hitboxes": [[21, 3, 110, 64], [71, 67, 124, 148]]
+      },
+      {
+        "name": "spike",
+        "imgSize": [128, 257],
+        "hurtboxes": [[33, 1, 60, 148]],
+        "hitboxes": [[2, 85, 121, 170]]
+      },
+      {
+        "name": "bunt",
+        "imgSize": [173, 197],
+        "hurtboxes": [[21, 43, 60, 148]],
+        "hitboxes": [[81, 3, 89, 74], [46, 77, 124, 114]]
+      },
+      {
+        "name": "grab",
+        "imgSize": [171, 154],
+        "hurtboxes": [[18, 2, 60, 148]],
+        "hitboxes": [[43, 2, 124, 148]],
+        "canMirror": true,
+        "fixedRelease": [110, 74],
+      },
+      {
+        "name": "stand",
+        "imgSize": [86, 159],
+        "hurtboxes": [[15, 6, 60, 148]],
+        "hitboxes": []
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [132, 117],
+        "hurtboxes": [[27, 4, 60, 104]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [131, 99],
+        "hurtboxes": [[17, 17, 80, 70]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [174, 76],
+        "hurtboxes": [[10, 6, 148, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 12,
+      },
     ],
     "angles": [
       {
@@ -400,8 +513,8 @@ var characterJSON = {
       },
       {
         "name": "smash",
-        "degrees": 35,
-        "validWhen": ["swing"]
+        "degrees": 35, //currently this angle gets combined with the next angle
+        "validWhen": ["smash", "swing"]
       },
       {
         "name": "air-down",
@@ -411,12 +524,12 @@ var characterJSON = {
       {
         "name": "spike-forward",
         "degrees": 80,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
         "degrees": 100,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       }
     ]
   },
@@ -424,25 +537,81 @@ var characterJSON = {
     "color": "white",
     "strokeColor": "black",
     "img_name": "nitro",
-    "baseHeight": 136,
+    "baseHeight": 148,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [236, 170],
-        "hurtboxes": [[0, 0, 236, 170]],
-        "hitboxes": [[0, 0, 236, 170]]
-      }
+        "imgSize": [225, 163],
+        "hurtboxes": [[66, 8, 65, 148]],
+        "hitboxes": [[94, 8, 125, 150]]
+      },
+      {
+        "name": "smash",
+        "imgSize": [226, 224],
+        "hurtboxes": [[73, 65, 65, 148]],
+        "hitboxes": [[51, 1, 110, 64], [101, 65, 124, 148]]
+      },
+      {
+        "name": "spike",
+        "imgSize": [128, 258],
+        "hurtboxes": [[31, 2, 65, 148]],
+        "hitboxes": [[3, 86, 121, 170]]
+      },
+      {
+        "name": "bunt",
+        "imgSize": [227, 196],
+        "hurtboxes": [[53, 42, 65, 148]],
+        "hitboxes": [[119, 2, 86, 76], [81, 79, 124, 111]]
+      },
+      {
+        "name": "grab",
+        "imgSize": [204, 156],
+        "hurtboxes": [[48, 3, 65, 148]],
+        "hitboxes": [[76, 3, 124, 148]],
+        "canMirror": true,
+        "fixedRelease": [102, 48], //TODO: verify that this is REALLY correct
+      },
+      {
+        "name": "stand",
+        "imgSize": [121, 173],
+        "hurtboxes": [[38, 16, 65, 148]],
+        "hitboxes": []
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [126, 124],
+        "hurtboxes": [[46, 2, 66, 114]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [110, 103],
+        "hurtboxes": [[28, 7, 80, 90]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [204, 73],
+        "hurtboxes": [[46, 1, 148, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 12,
+      },
     ],
     "angles": [
       {
         "name": "up",
         "degrees": -20,
-        "validWhen": ["swing"]
+        "validWhen": ["swing", "smash"]
       },
       {
         "name": "ground-down",
         "degrees": 62,
-        "validWhen": ["swing"]
+        "validWhen": ["swing", "smash"] //currently this angle gets combined with the next angle
       },
       {
         "name": "air-down",
@@ -450,19 +619,24 @@ var characterJSON = {
         "validWhen": ["swing"]
       },
       {
+        "name": "special-down",
+        "degrees": 20, //TODO: find out correct angle
+        "validWhen": ["swing", "smash"]
+      },
+      {
         "name": "smash",
         "degrees": 41,
-        "validWhen": ["swing"]
+        "validWhen": ["smash"]
       },
       {
         "name": "spike-forward",
         "degrees": 83,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
         "degrees": 180,
-        "validWhen": ["swing"],
+        "validWhen": ["spike"],
         "maxReflections": 2,
       }
     ]
@@ -732,14 +906,85 @@ var characterJSON = {
     "color": "slategrey",
     "strokeColor": "navy",
     "img_name": "switch",
-    "baseHeight": 136,
+    "baseHeight": 146,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [238, 164],
-        "hurtboxes": [[0, 0, 238, 164]],
-        "hitboxes": [[0, 0, 238, 164]],
+        "imgSize": [234, 160],
+        "hurtboxes": [[80, 2, 60, 146]],
+        "hitboxes": [[105, 2, 124, 146]],
+      },
+      {
+        "name": "smash",
+        "imgSize": [203, 215],
+        "hurtboxes": [[53, 65, 60, 146]],
+        "hitboxes": [[28, 3, 110, 62], [78, 65, 124, 146]],
         "canMirror": true,
+      },
+      {
+        "name": "spike",
+        "imgSize": [135, 263],
+        "hurtboxes": [[37, 7, 60, 146]],
+        "hitboxes": [[6, 90, 121, 170]],
+        "canMirror": true,
+      },
+      {
+        "name": "switchflip",
+        "imgSize": [190, 216],
+        "hurtboxes": [[57, 28, 60, 146]],
+        "hitboxes": [[12, 83, 150, 130]],
+        "canMirror": true,
+      },
+      {
+        "name": "overheadswitchflip",
+        "imgSize": [178, 245],
+        "hurtboxes": [[52, 97, 60, 146]],
+        "hitboxes": [[7, 5, 150, 130]],
+        "canMirror": true,
+      },
+      {
+        "name": "bunt",
+        "imgSize": [195, 220],
+        "hurtboxes": [[32, 67, 60, 146]],
+        "hitboxes": [[92, 28, 89, 76], [57, 104, 124, 109]],
+      },
+      {
+        "name": "grab",
+        "imgSize": [187, 176],
+        "hurtboxes": [[33, 23, 60, 146]],
+        "hitboxes": [[58, 23, 124, 146]],
+        "canMirror": true,
+        "fixedRelease": [110, 73],
+      },
+      {
+        "name": "stand",
+        "imgSize": [120, 160],
+        "hurtboxes": [[23, 6, 60, 146]],
+        "hitboxes": [],
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [149, 123],
+        "hurtboxes": [[46, 9, 60, 104]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [156, 92],
+        "hurtboxes": [[35, 13, 80, 70]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [182, 78],
+        "hurtboxes": [[25, 8, 146, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 10,
       }
     ],
     "angles": [
@@ -751,18 +996,19 @@ var characterJSON = {
       {
         "name": "ground-down",
         "degrees": 17,
-        "validWhen": ["swing"]
+        "validWhen": ["swing", "switchflip", "overheadswitchflip", "smash"], //currently this angle gets combined with the next angle
+        "mirror": true,
       },
       {
         "name": "special",
         "degrees": 17,
-        "validWhen": ["swing"],
+        "validWhen": ["switchflip", "overheadswitchflip"],
         "mirror": true,
       },
       {
         "name": "smash",
         "degrees": 38,
-        "validWhen": ["swing"]
+        "validWhen": ["smash"]
       },
       {
         "name": "air-down",
@@ -772,12 +1018,12 @@ var characterJSON = {
       {
         "name": "spike-forward",
         "degrees": 71,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
         "degrees": 109,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       }
     ]
   },
@@ -785,20 +1031,76 @@ var characterJSON = {
     "color": "gold",
     "strokeColor": "brown",
     "img_name": "candy",
-    "baseHeight": 136,
+    "baseHeight": 152,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [213, 176],
-        "hurtboxes": [[0, 0, 213, 176]],
-        "hitboxes": [[0, 0, 213, 176]]
-      }
+        "imgSize": [203, 162],
+        "hurtboxes": [[49, 6, 60, 152]],
+        "hitboxes": [[74, 6, 124, 152]]
+      },
+      {
+        "name": "smash",
+        "imgSize": [192, 229],
+        "hurtboxes": [[44, 73, 60, 152]],
+        "hitboxes": [[19, 3, 110, 70], [69, 73, 124, 152]]
+      },
+      {
+        "name": "spike",
+        "imgSize": [150, 264],
+        "hurtboxes": [[51, 5, 60, 152]],
+        "hitboxes": [[20, 91, 121, 170]]
+      },
+      {
+        "name": "bunt",
+        "imgSize": [224, 201],
+        "hurtboxes": [[71, 44, 60, 152]],
+        "hitboxes": [[131, 4, 90, 78], [95, 82, 126, 114]]
+      },
+      {
+        "name": "grab",
+        "imgSize": [178, 164],
+        "hurtboxes": [[27, 3, 60, 152]],
+        "hitboxes": [[52, 3, 124, 152]],
+        "canMirror": true,
+        "fixedRelease": [110, 76],
+      },
+      {
+        "name": "stand",
+        "imgSize": [100, 171],
+        "hurtboxes": [[25, 11, 60, 152]],
+        "hitboxes": [],
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [157, 119],
+        "hurtboxes": [[42, 1, 60, 110]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [162, 92],
+        "hurtboxes": [[35, 4, 80, 74]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [167, 100],
+        "hurtboxes": [[6, 32, 152, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 14,
+      },
     ],
     "angles": [
       {
         "name": "up",
         "degrees": -25,
-        "validWhen": ["swing"]
+        "validWhen": ["swing", "smash"]
       },
       {
         "name": "ground-down",
@@ -808,24 +1110,24 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 70,
-        "validWhen": ["swing"],
+        "validWhen": ["smash"],
         "customOffset": 90,
       },
       {
         "name": "air-down",
         "degrees": 8,
-        "validWhen": ["swing"],
+        "validWhen": ["swing", "smash"],
         "customOffset": 110,
       },
       {
         "name": "spike-forward",
         "degrees": 25,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
         "degrees": -105,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       }
     ]
   },
@@ -833,14 +1135,73 @@ var characterJSON = {
     "color": "#3349cb",
     "strokeColor": "darkviolet",
     "img_name": "sonata",
-    "baseHeight": 136,
+    "baseHeight": 140,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [213, 165],
-        "hurtboxes": [[0, 0, 213, 165]],
-        "hitboxes": [[0, 0, 213, 165]]
-      }
+        "imgSize": [209, 150],
+        "hurtboxes": [[55, 3, 60, 140]],
+        "hitboxes": [[80, 3, 124, 140]],
+        "canMirror": true,
+      },
+      {
+        "name": "smash",
+        "imgSize": [232, 227],
+        "hurtboxes": [[77, 79, 60, 140]],
+        "hitboxes": [[52, 11, 110, 68], [102, 79, 124, 140]],
+        "canMirror": true,
+      },
+      {
+        "name": "spike",
+        "imgSize": [147, 279],
+        "hurtboxes": [[34, 27, 60, 140]],
+        "hitboxes": [[4, 107, 121, 170]],
+        "canMirror": true,
+      },
+      {
+        "name": "bunt",
+        "imgSize": [206, 191],
+        "hurtboxes": [[53, 43, 60, 140]],
+        "hitboxes": [[113, 3, 89, 74], [78, 77, 124, 106]]
+      },
+      {
+        "name": "grab",
+        "imgSize": [226, 189],
+        "hurtboxes": [[69, 41, 60, 140]],
+        "hitboxes": [[94, 41, 124, 140]],
+        "canMirror": true,
+        "fixedRelease": [110, 70],
+      },
+      {
+        "name": "stand",
+        "imgSize": [152, 188],
+        "hurtboxes": [[11, 40, 60, 140]],
+        "hitboxes": []
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [199, 144],
+        "hurtboxes": [[52, 28, 60, 104]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [187, 107],
+        "hurtboxes": [[34, 29, 80, 70]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [221, 74],
+        "hurtboxes": [[52, 3, 140, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 8,
+      },
     ],
     "angles": [
       {
@@ -850,8 +1211,8 @@ var characterJSON = {
       },
       {
         "name": "smash",
-        "degrees": 55,
-        "validWhen": ["swing"]
+        "degrees": 55, //currently this angle gets combined with the next angle
+        "validWhen": ["swing", "smash", "spike"]
       },
       {
         "name": "air-down",
@@ -866,23 +1227,35 @@ var characterJSON = {
       {
         "name": "spike-forward",
         "degrees": 55,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
+      },
+      {
+        "name": "special-up",
+        "degrees": -45, // TODO: verify sonata special angles
+        "validWhen": ["swing", "smash", "spike"],
+        "mirror": true, //TODO: verify sonata can special backwards
+      },
+      {
+        "name": "special-down",
+        "degrees": 45,
+        "validWhen": ["swing", "smash", "spike"],
+        "mirror": true,
       },
       {
         "name": "spike-backward",
         "degrees": -165,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "bring-it",
         "degrees": 90,
-        "validWhen": ["swing"],
+        "validWhen": [],
         "hidden": true,
       },
       {
         "name": "nice",
         "degrees": -90,
-        "validWhen": ["swing"],
+        "validWhen": [],
         "hidden": true,
       }
     ]
@@ -891,13 +1264,69 @@ var characterJSON = {
     "color": "saddlebrown",
     "strokeColor": "#c8de0a",
     "img_name": "dice",
-    "baseHeight": 136,
+    "baseHeight": 148,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [201, 169],
-        "hurtboxes": [[0, 0, 201, 169]],
-        "hitboxes": [[0, 0, 201, 169]]
+        "imgSize": [190, 166],
+        "hurtboxes": [[36, 9, 60, 148]],
+        "hitboxes": [[61, 9, 124, 148]]
+      },
+      {
+        "name": "smash",
+        "imgSize": [200, 215],
+        "hurtboxes": [[50, 66, 60, 148]],
+        "hitboxes": [[25, 2, 110, 64], [75, 66, 124, 148]]
+      },
+      {
+        "name": "spike",
+        "imgSize": [187, 264],
+        "hurtboxes": [[58, 4, 60, 148]],
+        "hitboxes": [[28, 88, 120, 170]]
+      },
+      {
+        "name": "bunt",
+        "imgSize": [187, 199],
+        "hurtboxes": [[34, 45, 60, 148]],
+        "hitboxes": [[94, 5, 89, 77], [59, 82, 124, 111]]
+      },
+      {
+        "name": "grab",
+        "imgSize": [194, 160],
+        "hurtboxes": [[43, 7, 60, 148]],
+        "hitboxes": [[68, 7, 124, 148]],
+        "canMirror": true,
+        "fixedRelease": [110, 74],
+      },
+      {
+        "name": "stand",
+        "imgSize": [77, 162],
+        "hurtboxes": [[5, 8, 60, 148]],
+        "hitboxes": []
+      },
+      {
+        "name": "halfcrouch",
+        "imgSize": [82, 124],
+        "hurtboxes": [[4, 3, 60, 110]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [105, 104],
+        "hurtboxes": [[9, 23, 80, 74]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [171, 72],
+        "hurtboxes": [[8, 2, 148, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 12,
       },
       {
         "name": "blaze",
@@ -928,17 +1357,17 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 30,
-        "validWhen": ["swing"]
+        "validWhen": ["smash"]
       },
       {
         "name": "spike-forward",
         "degrees": 80,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spike-backward",
         "degrees": 110,
-        "validWhen": ["swing"]
+        "validWhen": ["spike"]
       },
       {
         "name": "spin",
@@ -994,14 +1423,46 @@ var characterJSON = {
     "color": "#5d68b3",
     "strokeColor": "#23da7d",
     "img_name": "dust",
-    "baseHeight": 136,
+    "baseHeight": 142,
     "poses": [
       {
         "name": "swing",
-        "imgSize": [249, 158],
-        "hurtboxes": [[0, 0, 249, 158]],
-        "hitboxes": [[0, 0, 249, 158]]
-      }
+        "imgSize": [243, 150],
+        "hurtboxes": [[85, 2, 60, 142]],
+        "hitboxes": [[115, 2, 124, 142]]
+      },
+      {
+        "name": "smash",
+        "imgSize": [256, 250],
+        "hurtboxes": [[100, 92, 60, 142]],
+        "hitboxes": [[75, 7, 110, 85], [130, 92, 124, 142]]
+      },
+      {
+        "name": "spike",
+        "imgSize": [145, 256],
+        "hurtboxes": [[42, 2, 60, 142]],
+        "hitboxes": [[12, 83, 120, 170]]
+      },
+      {
+        "name": "bunt",
+        "imgSize": [175, 198],
+        "hurtboxes": [[29, 47, 60, 142]],
+        "hitboxes": [[89, 7, 80, 75], [59, 82, 110, 107]]
+      },
+      {
+        "name": "grab",
+        "imgSize": [192, 162],
+        "hurtboxes": [[42, 11, 60, 142]],
+        "hitboxes": [[72, 11, 110, 142]],
+        "canMirror": true,
+        "fixedRelease": [110, 51],
+      },
+      {
+        "name": "stand",
+        "imgSize": [92, 158],
+        "hurtboxes": [[9, 4, 60, 142]],
+        "hitboxes": []
+      },
     ],
     "angles": [
       {
@@ -1025,19 +1486,19 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 33,
-        "validWhen": ["swing"],
+        "validWhen": ["smash"],
         "customOffset": 100,
       },
       {
         "name": "spike-forward",
         "degrees": 44,
-        "validWhen": ["swing"],
+        "validWhen": ["spike"],
         "customOffset": 100,
       },
       {
         "name": "spike-backward",
         "degrees": 163,
-        "validWhen": ["swing"],
+        "validWhen": ["spike"],
         "customOffset": 100,
       }
     ]
@@ -1114,18 +1575,26 @@ function unloadChar(charName) {
 }
 
 function addGeneralAngles(char) {
-  char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
-  if (char.name == "Latch" || char.name == "Raptor") {
+  if(char.name == "Candyman" || char.name == "Nitro" || char.name == "Raptor" || char.name == "Sonata"){
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "smash"], maxReflections: 2});
+  }else{
+    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
+  }
+  if (char.name == "Latch" || char.name == "Raptor" || char.name == "Sonata") {
     char.angles[char.angles.length - 1].mirror = true;
   }
   char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40});
   char.angles.push({ name: 'straight-throw', degrees: 0, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
   char.angles.push({ name: 'down-throw', degrees: 90, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
+  var validBuntPoses = ["bunt"];
+  if (char.name == "Raptor"){
+    validBuntPoses = ["bunt", "swing", "smash"]
+  }
   char.angles.push(
     {
       "name": "bunt",
       "degrees": -90,
-      "validWhen": ["bunt"],
+      "validWhen": validBuntPoses,
       "bunt": true,
       "initialSpeed": 16 * 0.6,
       "gravity": 18,
@@ -1133,12 +1602,13 @@ function addGeneralAngles(char) {
       "buntStep": 100,
       "maxReflections": 1,
       "hidden": true,
+      "customOffset": 120,
     });
   char.angles.push(
     {
       "name": "bunt-down",
       "degrees": 90,
-      "validWhen": ["bunt"],
+      "validWhen": validBuntPoses,
       "bunt": true,
       "initialSpeed": 16 * 0.6,
       "gravity": 18,
@@ -1146,12 +1616,13 @@ function addGeneralAngles(char) {
       "buntStep": 50,
       "maxReflections": 1,
       "hidden": true,
+      "customOffset": 120,
     });
   char.angles.push(
     {
       "name": "bunt-forward",
       "degrees": -65,
-      "validWhen": ["bunt"],
+      "validWhen": validBuntPoses,
       "bunt": true,
       "initialSpeed": 16 * 0.6,
       "gravity": 18,
@@ -1159,12 +1630,13 @@ function addGeneralAngles(char) {
       "buntStep": 10,
       "maxReflections": 1,
       "hidden": true,
+      "customOffset": 120,
     });
   char.angles.push(
     {
       "name": "bunt-backward",
       "degrees": -115,
-      "validWhen": ["bunt"],
+      "validWhen": validBuntPoses,
       "bunt": true,
       "initialSpeed": 16 * 0.6,
       "gravity": 18,
@@ -1172,6 +1644,7 @@ function addGeneralAngles(char) {
       "buntStep": 10,
       "maxReflections": 1,
       "hidden": true,
+      "customOffset": 120,
     });
 }
 
@@ -2206,7 +2679,7 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
       draw();
     }
   }
-  if (char.name == "Candyman") {
+  if (char.name == "Candyman" && char.pose.canSpecial) {
     var icon = createButtonWithTooltip("special", getAngleLabelText(angle) + " (Toggle Candywarp)", tooltip);
     var vector = new Point(offset + 20, 0);
     vector = vector.rotate(angle.degrees);
@@ -2594,12 +3067,12 @@ $('document').ready(function() {
         var angle = char.angles[k];
         if (angle.validWhen.indexOf(pose.name) >= 0) {
           pose.hasAngle = true;
-          if (pose.name == "pushbox" || pose.name == "grab" || pose.name == "bunt" || pose.name == "spit") {
+          if (pose.name == "pushbox" || pose.name == "grab" || pose.name == "bunt" || pose.name == "spit" || pose.name == "switchflip" || pose.name == "overheadswitchflip") {
             pose.canParry = false;
           } else {
             pose.canParry = true;
           }
-          if (char.name == "Grid") {
+          if (char.name == "Grid" || char.name == "Candyman") {
             // Every pose that can parry can also special
             pose.canSpecial = pose.canParry;
           }
