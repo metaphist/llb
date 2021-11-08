@@ -141,6 +141,15 @@ var characterJSON = {
         "grounded": true,
         "groundOffset": 7,
       },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 190, 60, 138]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
+      },
     ],
     "angles": [
       {
@@ -394,6 +403,15 @@ var characterJSON = {
         "grounded": true,
         "groundOffset": 1,
       },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 202, 60, 126]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
+      },
     ],
     "angles": [
       {
@@ -499,6 +517,15 @@ var characterJSON = {
         "grounded": true,
         "groundOffset": 12,
       },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 180, 60, 148]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
+      },
     ],
     "angles": [
       {
@@ -600,6 +627,15 @@ var characterJSON = {
         "hitboxes": [],
         "grounded": true,
         "groundOffset": 12,
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[167.5, 180, 65, 148]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
       },
     ],
     "angles": [
@@ -985,7 +1021,16 @@ var characterJSON = {
         "hitboxes": [],
         "grounded": true,
         "groundOffset": 10,
-      }
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 182, 60, 146]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
+      },
     ],
     "angles": [
       {
@@ -1095,6 +1140,15 @@ var characterJSON = {
         "grounded": true,
         "groundOffset": 14,
       },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 176, 60, 152]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
+      },
     ],
     "angles": [
       {
@@ -1201,6 +1255,15 @@ var characterJSON = {
         "hitboxes": [],
         "grounded": true,
         "groundOffset": 8,
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 188, 60, 140]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
       },
     ],
     "angles": [
@@ -1486,6 +1549,15 @@ var characterJSON = {
         "hitboxes": [],
         "grounded": true,
         "groundOffset": 8,
+      },
+      {
+        "name": "blaze",
+        "imgSize": [400, 352],
+        "hurtboxes": [[170, 186, 60, 142]],
+        "hitboxes": [[0, 0, 400, 400]],
+        "circle": true,
+        "grounded": true,
+        "groundOffset": 0,
       },
     ],
     "angles": [
