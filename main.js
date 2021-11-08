@@ -1463,6 +1463,30 @@ var characterJSON = {
         "hurtboxes": [[9, 4, 60, 142]],
         "hitboxes": []
       },
+      {
+        "name": "halfcrouch",
+        "imgSize": [145, 124],
+        "hurtboxes": [[33, 4, 60, 96]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "crouch",
+        "imgSize": [158, 88],
+        "hurtboxes": [[28, 2, 80, 64]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 0,
+      },
+      {
+        "name": "lay",
+        "imgSize": [167, 72],
+        "hurtboxes": [[8, 2, 142, 45]],
+        "hitboxes": [],
+        "grounded": true,
+        "groundOffset": 8,
+      },
     ],
     "angles": [
       {
