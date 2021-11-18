@@ -837,6 +837,7 @@ var characterJSON = {
         "teleportAngle": {
           "name": "smash",
           "degrees": 28,
+          "customOffset": 130,
         },
       },
       {
@@ -849,6 +850,7 @@ var characterJSON = {
           "name": "spike",
           "degrees": 90,
           "maxReflections": 2,
+          "customOffset": 40,
         },
       },
       {
@@ -1688,7 +1690,13 @@ function addGeneralAngles(char) {
   if (char.name == "Raptor"){
     validBuntPoses = ["bunt", "swing", "smash"]
   }
-  char.angles.push(
+
+  var buntAngles = getBuntAngles(validBuntPoses);
+  buntAngles.forEach(function(e) { char.angles.push(e); });
+}
+
+function getBuntAngles(validBuntPoses){
+  return [
     {
       "name": "bunt",
       "degrees": -90,
@@ -1701,9 +1709,7 @@ function addGeneralAngles(char) {
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    });
-  char.angles.push(
-    {
+    },{
       "name": "bunt-down",
       "degrees": 90,
       "validWhen": validBuntPoses,
@@ -1715,9 +1721,7 @@ function addGeneralAngles(char) {
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    });
-  char.angles.push(
-    {
+    },{
       "name": "bunt-forward",
       "degrees": -65,
       "validWhen": validBuntPoses,
@@ -1729,9 +1733,7 @@ function addGeneralAngles(char) {
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    });
-  char.angles.push(
-    {
+    },{
       "name": "bunt-backward",
       "degrees": -115,
       "validWhen": validBuntPoses,
@@ -1743,7 +1745,7 @@ function addGeneralAngles(char) {
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    });
+    }];
 }
 
 function toggleToxicSpray(char) {
@@ -1978,8 +1980,17 @@ function getGridTeleportSprite(char, teleportStep) {
 }
 
 function addGridTeleport(char, teleportDirection) {
-  var data = {direction: teleportDirection, spike: false};
-  char.teleport.push(data);
+  var buntAngles = getBuntAngles([]);
+  buntAngles.forEach(function(e){ e.customOffset = 70; })
+  var teleportData = {
+    direction: teleportDirection,
+    spike: false,
+    buntPose: {
+      teleportRelease: [122, 80],
+    },
+    buntAngles: buntAngles
+  };
+  char.teleport.push(teleportData);
 }
 
 function undoGridTeleport(char) {
@@ -2707,6 +2718,16 @@ function draw() {
           drawAngle(char, teleportAngle, startingPoint, mirrored);
         }
         addAngleButtons(char, teleportAngle, startingPoint, teleportData.facing, false, tooltip);
+
+        var buntStartingPoint = getGridTeleportReleaseLocation(char, teleportData.buntPose, teleportData.facing, teleportData.hurtbox);
+        var buntOptions = teleportData.buntAngles;
+        buntOptions.forEach(function(angle) {
+          if(angle.visible) {
+            drawAngle(char, angle, buntStartingPoint, mirrored);
+          }
+          addAngleButtons(char, angle, buntStartingPoint, char.facing, false, tooltip);
+        });
+
       }
     }
 
@@ -2780,7 +2801,7 @@ function createButtonWithTooltip(iconName, tooltipText, tooltip) {
   return icon;
 }
 
-function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
+function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUse, tooltip) {
   var offset = 80;
   if (angle.customOffset) {
     offset = angle.customOffset;
@@ -2796,7 +2817,7 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
   icon.angle = angle;
   icon.char = char;
   icon.onMouseDown = function(event) {
-    addReflectionsToAngle(this.char, this.angle, 1, basicAngle);
+    addReflectionsToAngle(this.char, this.angle, 1, updateCharPoseOnButtonUse);
     draw();
   }
   if (angle.visible) {
@@ -2811,7 +2832,7 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
     icon.angle = angle;
     icon.char = char;
     icon.onMouseDown = function(event) {
-      addReflectionsToAngle(this.char, this.angle, -1, basicAngle);
+      addReflectionsToAngle(this.char, this.angle, -1, updateCharPoseOnButtonUse);
       draw();
     }
   }
