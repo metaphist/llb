@@ -1662,6 +1662,9 @@ function unloadChar(charName) {
     activeEntities.splice(j, 1);
     $('li#' + charName + ' ol').addClass("hidden");
     $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon.png")');
+    if(char.spray) {
+      removeToxicSpray(char);
+    }
   }
 }
 
