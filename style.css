@@ -104,7 +104,7 @@ body {
     font-size: 2em;
     font-weight: bold;
 }
-.plus, .minus, .turn, .special {
+.plus, .minus, .turn, .special, .bubble {
     padding: 3px 7px;
     background: goldenrod;
     border-radius: 5px;
@@ -112,6 +112,11 @@ body {
 .special {
     margin-left: 3px;
     background: orangered;
+    color: navajowhite;
+}
+.bubble {
+    margin-left: 3px;
+    background: deepskyblue;
     color: navajowhite;
 }
 .hidden {

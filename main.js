@@ -424,6 +424,7 @@ var characterJSON = {
         "name": "ground-down",
         "degrees": 30,
         "validWhen": ["swing"],
+        "mirror": true,
       },
       {
         "name": "smash",
@@ -454,6 +455,7 @@ var characterJSON = {
     "strokeColor": "royalblue",
     "img_name": "jet",
     "baseHeight": 148,
+    "maxBubbleDistance": 230,
     "poses": [
       {
         "name": "swing",
@@ -531,32 +533,32 @@ var characterJSON = {
       {
         "name": "up",
         "degrees": -60,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "ground-down",
         "degrees": 17,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "smash",
         "degrees": 35, //currently this angle gets combined with the next angle
-        "validWhen": ["smash", "swing"]
+        "validWhen": ["smash", "swing"],
       },
       {
         "name": "air-down",
         "degrees": 35,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "spike-forward",
         "degrees": 80,
-        "validWhen": ["spike"]
+        "validWhen": ["spike"],
       },
       {
         "name": "spike-backward",
         "degrees": 100,
-        "validWhen": ["spike"]
+        "validWhen": ["spike"],
       }
     ]
   },
@@ -1934,6 +1936,25 @@ function addCandySpecialToAngle(charName, angleName) {
   }
 }
 
+
+function toggleJetBubbleForAngle(charName, angleName) {
+  var char = loadChar(charName);
+  var angle = char.angles.find(function(e){ return e.name == angleName });
+
+  angle.visible = true;
+  if (angle.reflections == 'undefined' || isNaN(angle.reflections)) {
+    angle.reflections = 0;
+  }
+
+  if(angle.bubble) {
+    angle.bubble = false;
+    angle.maxDistance = undefined;
+  } else {
+    angle.bubble = true;
+    angle.maxDistance = char.maxBubbleDistance;
+  }
+}
+
 function getGridTeleportSprite(char, teleportStep) {
   var pose = poseOfName(char, "swing");
   if (teleportStep < char.teleport.length) {
@@ -2103,6 +2124,8 @@ function drawLineSegment(start, end) {
 function drawAngle(properties, angle, startingPoint, mirrored) {
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
   var start = startingPoint;
+
+  var distanceTravelled = 0;
 
   if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
@@ -2282,6 +2305,24 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       stopPoint = intersectPoint;
     }
 
+    var vector = stopPoint - start;
+
+    var maxDistanceReached = false;
+    if(angle.maxDistance !== undefined && distanceTravelled + vector.length > angle.maxDistance) {
+      var distanceDelta = angle.maxDistance - distanceTravelled;
+      stopPoint = start + vector.normalize(distanceDelta);
+      vector = stopPoint - start;
+      if(angle.bubble){
+        var bubble = new Raster("assets/characters/bubble_burst.png");
+        bubble.position.x = stopPoint.x;
+        bubble.position.y = stopPoint.y;
+        bubble.sendToBack();
+      }
+      hitHurtBoxCollision = false;
+      maxDistanceReached = true;
+    }
+    distanceTravelled += vector.length;
+
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
       var ballHitbox = new Rectangle(new Point(stopPoint.x - ballRadius + 2, stopPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4));
@@ -2299,8 +2340,6 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       strokeWidth: strokeWidthInner,
       strokeColor: invalid ? 'grey' : properties.color
     }
-
-    var vector = stopPoint - start;
 
     var arrows = new Group();
     if (guidesOn) {
@@ -2375,7 +2414,8 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
 
     if ((angle.pong && hitStageBoundary)
       || (angle.bunt && hitStageBoundary && start.y > ballStageRect.top + 2)
-      || hitHurtBoxCollision) {
+      || hitHurtBoxCollision
+      || maxDistanceReached) {
       break;
     }
     if (angle.bunt || angle.pong) {
@@ -2791,6 +2831,22 @@ function addAngleButtons(char, angle, position, facing, basicAngle, tooltip) {
       draw();
     }
   }
+  if (char.name == "Jet" && char.pose.canSpecial) {
+    var icon = createButtonWithTooltip("bubble", getAngleLabelText(angle) + " (Toggle Bubble)", tooltip);
+    var vector = new Point(offset + 20, 0);
+    vector = vector.rotate(angle.degrees);
+    if (facing == 'left') {
+      vector.x *= -1;
+    }
+    icon.position.x = position.x + vector.x;
+    icon.position.y = position.y + vector.y;
+    icon.angleName = angle.name;
+    icon.charName = char.name;
+    icon.onMouseDown = function(event) {
+      toggleJetBubbleForAngle(this.charName, this.angleName);
+      draw();
+    }
+  }
 }
 
 function clampPointToRect(point, rect) {
@@ -3168,7 +3224,7 @@ $('document').ready(function() {
           } else {
             pose.canParry = true;
           }
-          if (char.name == "Grid" || char.name == "Candyman") {
+          if (char.name == "Grid" || char.name == "Candyman" || char.name == "Jet") {
             // Every pose that can parry can also special
             pose.canSpecial = pose.canParry;
           }
@@ -3201,6 +3257,9 @@ $('document').ready(function() {
         // special butttons
         if (!angle.hidden && char.name == 'Candyman') {
           $('li.'+char.name+'.'+angle.name).append('<span class="special" title="Add bounces (+) and click again to warp them">S</span>')
+        }
+        if (!angle.hidden && char.name == 'Jet') {
+          $('li.'+char.name+'.'+angle.name).append('<span class="bubble" title="Toggle Bubble">B</span>')
         }
       }
     }
@@ -3288,6 +3347,18 @@ $('document').ready(function() {
     var charName = classes[0]
     var angleName = classes[1]
     addCandySpecialToAngle(charName, angleName);
+
+    draw()
+  })
+
+  $('.bubble').on('click', function(e) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    var classes = $(e.target).parent().attr('class').split(/\s+/)
+    var charName = classes[0]
+    var angleName = classes[1]
+    toggleJetBubbleForAngle(charName, angleName);
 
     draw()
   })
