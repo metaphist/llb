@@ -1196,21 +1196,18 @@ var characterJSON = {
         "imgSize": [209, 150],
         "hurtboxes": [[55, 3, 60, 140]],
         "hitboxes": [[80, 3, 124, 140]],
-        "canMirror": true,
       },
       {
         "name": "smash",
         "imgSize": [232, 227],
         "hurtboxes": [[77, 79, 60, 140]],
         "hitboxes": [[52, 11, 110, 68], [102, 79, 124, 140]],
-        "canMirror": true,
       },
       {
         "name": "spike",
         "imgSize": [147, 279],
         "hurtboxes": [[34, 27, 60, 140]],
         "hitboxes": [[4, 107, 121, 170]],
-        "canMirror": true,
       },
       {
         "name": "bunt",
@@ -1295,14 +1292,12 @@ var characterJSON = {
       {
         "name": "special-up",
         "degrees": -45, // TODO: verify sonata special angles
-        "validWhen": ["swing", "smash", "spike"],
-        "mirror": true, //TODO: verify sonata can special backwards
+        "validWhen": ["swing", "smash", "spike"]
       },
       {
         "name": "special-down",
         "degrees": 45,
-        "validWhen": ["swing", "smash", "spike"],
-        "mirror": true,
+        "validWhen": ["swing", "smash", "spike"]
       },
       {
         "name": "spike-backward",
