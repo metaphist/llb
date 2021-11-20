@@ -456,6 +456,12 @@ var characterJSON = {
     "img_name": "jet",
     "baseHeight": 148,
     "maxBubbleDistance": 230,
+    "minBubbleOutDistance": 1472,
+    "maxBubbleOutDistance": 3220,
+    "bubbleMinHeight": 70,
+    "bubbleStrokeColor": "cyan",
+    "bubbleOutMinStrokeColor": "aquamarine",
+    "bubbleOutMaxStrokeColor": "lightskyblue",
     "poses": [
       {
         "name": "swing",
@@ -2136,7 +2142,14 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
   var start = startingPoint;
 
+  if (angle.bubble) {
+    if (start.y > trueStageRect.bottom - properties.bubbleMinHeight) {
+      start.y = trueStageRect.bottom - properties.bubbleMinHeight;
+    }
+  }
+
   var distanceTravelled = 0;
+  var bubbleState = 0;
 
   if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
@@ -2319,18 +2332,30 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     var vector = stopPoint - start;
 
     var maxDistanceReached = false;
-    if(angle.maxDistance !== undefined && distanceTravelled + vector.length > angle.maxDistance) {
-      var distanceDelta = angle.maxDistance - distanceTravelled;
-      stopPoint = start + vector.normalize(distanceDelta);
-      vector = stopPoint - start;
-      if(angle.bubble){
-        var bubble = new Raster("assets/characters/bubble_burst.png");
-        bubble.position.x = stopPoint.x;
-        bubble.position.y = stopPoint.y;
-        bubble.sendToBack();
+    if (angle.maxDistance !== undefined && bubbleState < 3) {
+      var nextDistanceMilestone = angle.maxDistance;
+      if (angle.bubble && bubbleState == 1) {
+        nextDistanceMilestone = angle.maxDistance + properties.minBubbleOutDistance;
+      } else if (angle.bubble && bubbleState == 2) {
+        nextDistanceMilestone = angle.maxDistance + properties.maxBubbleOutDistance;
       }
-      hitHurtBoxCollision = false;
-      maxDistanceReached = true;
+      if (distanceTravelled + vector.length > nextDistanceMilestone){
+        var distanceDelta = nextDistanceMilestone - distanceTravelled;
+        stopPoint = start + vector.normalize(distanceDelta);
+        vector = stopPoint - start;
+        if (angle.bubble) {
+          var bubbleBurstImage = "assets/characters/bubble_burst.png";
+          if (bubbleState > 0) {
+            bubbleBurstImage = "assets/characters/bubble_trail.png";
+          }
+          var bubble = new Raster(bubbleBurstImage);
+          bubble.position.x = stopPoint.x;
+          bubble.position.y = stopPoint.y;
+          bubble.sendToBack();
+        }
+        hitHurtBoxCollision = false;
+        maxDistanceReached = true;
+      }
     }
     distanceTravelled += vector.length;
 
@@ -2342,14 +2367,29 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       ballHitboxPath.strokeWidth = 4;
     }
 
-    // outer line
-    new Path({
+    var outerLine = new Path({
       segments: [start, stopPoint],
       strokeWidth: strokeWidthOuter,
       strokeColor: invalid ? 'grey' : properties.strokeColor
-    }).clone().style = { // inner line
+    });
+    var innerLine = outerLine.clone();
+    innerLine.style = {
       strokeWidth: strokeWidthInner,
       strokeColor: invalid ? 'grey' : properties.color
+    };
+    if (angle.bubble && bubbleState < 3) {
+      var bubbleColor = properties.bubbleStrokeColor;
+      if (bubbleState == 1) {
+        bubbleColor = properties.bubbleOutMinStrokeColor;
+      } else if (bubbleState == 2) {
+        bubbleColor = properties.bubbleOutMaxStrokeColor;
+      }
+      var bubbleLine = outerLine.clone();
+      bubbleLine.style = {
+        strokeWidth: strokeWidthOuter * 2,
+        strokeColor: bubbleColor
+      };
+      bubbleLine.sendToBack();
     }
 
     var arrows = new Group();
@@ -2364,6 +2404,13 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         hitHurtBoxPath.fillColor = '#ffc2c4';
       }
       hitHurtBoxPath.sendToBack();
+
+      if (angle.bubble && bubbleState == 0) {
+        var bubble = new Raster("assets/characters/bubble.png");
+        bubble.position.x = stopPoint.x;
+        bubble.position.y = stopPoint.y;
+        bubble.sendToBack();
+      }
     } else {
       // new start for next reflection
       start = stopPoint.clone()
@@ -2398,7 +2445,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
           arrows.addChildren(addArrows(oldStart, warpVector, 1, false))
         }
 
-      } else if (!angle.bunt && !angle.pong) {
+      } else if (!angle.bunt && !angle.pong && !maxDistanceReached) {
         var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
         var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
 
@@ -2423,13 +2470,17 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     arrows.strokeCap = 'round'
     guides.push(arrows)
 
+    if (angle.bubble && maxDistanceReached) {
+      bubbleState++;
+    }
+
     if ((angle.pong && hitStageBoundary)
       || (angle.bunt && hitStageBoundary && start.y > ballStageRect.top + 2)
       || hitHurtBoxCollision
-      || maxDistanceReached) {
+      || (maxDistanceReached && !angle.bubble)) {
       break;
     }
-    if (angle.bunt || angle.pong) {
+    if (angle.bunt || angle.pong || (angle.bubble && maxDistanceReached)) {
       i--;
     }
   }
