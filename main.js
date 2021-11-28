@@ -1,16 +1,3 @@
-/** TODO
- * Nosy little one aren't you...
- *
- * Add Sonata Special Angles
-   * Learn to draw segments
-   * Add 45 segments to each 
-   * limit to 3 and make last a normal reflection
-   * Add "nice" & "bring it" angles as third reflection
- * Add character portraits instead of drawing a circle
-   * Ball should be placed in the caracter's hitbox (must be shown)
-   * Add button to enable/disable character views
- **/
-
 /** some globals **/
 var circleRadius = 15
 var strokeWidthOuter = 6
@@ -1273,6 +1260,69 @@ var characterJSON = {
         "groundOffset": 0,
       },
     ],
+    "sonataSpecialSteps":[],
+    "specialAngles": [
+      {
+        "name": "special-up",
+        "degrees": -45,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "validForStep": [1, 2, 3]
+      },
+      {
+        "name": "special-down",
+        "degrees": 45,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "validForStep": [1, 2, 3]
+      },
+      {
+        "name": "special-forward",
+        "degrees": 0,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "maxReflections": 2,
+        "validForStep": [1, 2, 3]
+      },
+      {
+        "name": "special-backward",
+        "degrees": -180,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "maxReflections": 2,
+        "validForStep": [2, 3]
+      },
+      {
+        "name": "special-up-backward",
+        "degrees": -135,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "validForStep": [2, 3]
+      },
+      {
+        "name": "special-down-backward",
+        "degrees": 135,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "validForStep": [2, 3]
+      },
+      {
+        "name": "bring-it",
+        "degrees": 90,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "maxReflections": 2,
+        "validForStep": [3]
+      },
+      {
+        "name": "nice",
+        "degrees": -90,
+        "validWhen": ["swing", "smash", "spike"],
+        "maxDistance": 320,
+        "maxReflections": 2,
+        "validForStep": [3]
+      },
+    ],
     "angles": [
       {
         "name": "up",
@@ -1300,31 +1350,9 @@ var characterJSON = {
         "validWhen": ["spike"]
       },
       {
-        "name": "special-up",
-        "degrees": -45, // TODO: verify sonata special angles
-        "validWhen": ["swing", "smash", "spike"]
-      },
-      {
-        "name": "special-down",
-        "degrees": 45,
-        "validWhen": ["swing", "smash", "spike"]
-      },
-      {
         "name": "spike-backward",
         "degrees": -165,
         "validWhen": ["spike"]
-      },
-      {
-        "name": "bring-it",
-        "degrees": 90,
-        "validWhen": [],
-        "hidden": true,
-      },
-      {
-        "name": "nice",
-        "degrees": -90,
-        "validWhen": [],
-        "hidden": true,
       }
     ]
   },
@@ -1627,6 +1655,7 @@ var trueStageRect
 var offsetX = canvas.getBoundingClientRect().left;
 var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
+var listOfCreatedButtons = [];
 var labels = [], labelsOn = false
 var guides = [], guidesOn = false
 var charImages = [], charImagesOn = true
@@ -1679,29 +1708,27 @@ function unloadChar(charName) {
 }
 
 function addGeneralAngles(char) {
-  if(char.name == "Sonata"){
-    char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "smash", "spike"], maxReflections: 2});
-  }else if(char.name == "Candyman" || char.name == "Nitro" || char.name == "Raptor"){
+  if (char.name == "Candyman" || char.name == "Nitro" || char.name == "Raptor") {
     char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "smash"], maxReflections: 2});
-  }else{
+  } else {
     char.angles.push({ name: 'straight', degrees: 0, validWhen: ["swing", "wallswing", "spit", "pushbox"], maxReflections: 2});
   }
-  if (char.name == "Latch" || char.name == "Raptor" || char.name == "Sonata") {
+  if (char.name == "Latch" || char.name == "Raptor") {
     char.angles[char.angles.length - 1].mirror = true;
   }
   char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40});
   char.angles.push({ name: 'straight-throw', degrees: 0, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
   char.angles.push({ name: 'down-throw', degrees: 90, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
   var validBuntPoses = ["bunt"];
-  if (char.name == "Raptor"){
-    validBuntPoses = ["bunt", "swing", "smash"]
+  if (char.name == "Raptor") {
+    validBuntPoses = ["bunt", "swing", "smash"];
   }
 
   var buntAngles = getBuntAngles(validBuntPoses);
   buntAngles.forEach(function(e) { char.angles.push(e); });
 }
 
-function getBuntAngles(validBuntPoses){
+function getBuntAngles(validBuntPoses) {
   return [
     {
       "name": "bunt",
@@ -1715,7 +1742,8 @@ function getBuntAngles(validBuntPoses){
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    },{
+    },
+    {
       "name": "bunt-down",
       "degrees": 90,
       "validWhen": validBuntPoses,
@@ -1727,7 +1755,8 @@ function getBuntAngles(validBuntPoses){
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    },{
+    },
+    {
       "name": "bunt-forward",
       "degrees": -65,
       "validWhen": validBuntPoses,
@@ -1739,7 +1768,8 @@ function getBuntAngles(validBuntPoses){
       "maxReflections": 1,
       "hidden": true,
       "customOffset": 120,
-    },{
+    },
+    {
       "name": "bunt-backward",
       "degrees": -115,
       "validWhen": validBuntPoses,
@@ -1899,9 +1929,15 @@ function addReflectionsToAngle(char, angle, amount, updateChar) {
     angle.visible = true;
   }
 
+  if (angle.alwaysVisible === undefined){
+    angle.alwaysVisible = false;
+  }
+
   if (angle.reflections < 0) {
     angle.reflections = 0;
-    angle.visible = false;
+    if (!angle.alwaysVisible) {
+      angle.visible = false;
+    }
   }
 
   if (updateChar && angle.visible && charImagesOn) {
@@ -1960,6 +1996,24 @@ function toggleJetBubbleForAngle(charName, angleName) {
   } else {
     angle.bubble = true;
     angle.maxDistance = char.maxBubbleDistance;
+  }
+}
+
+function addSonataSpecialStep(char, angle) {
+  var copyOfAngle = Object.assign({}, angle);
+  char.sonataSpecialSteps.push(copyOfAngle);
+  copyOfAngle.reflections = 0;
+  copyOfAngle.visible = true;
+  if (char.sonataSpecialSteps.length == 3) {
+    copyOfAngle.maxDistance = undefined;
+    copyOfAngle.customOffset = 100;
+    copyOfAngle.alwaysVisible = true;
+  }
+}
+
+function undoSonataSpecialStep(char) {
+  if (char.sonataSpecialSteps.length > 0) {
+    char.sonataSpecialSteps.splice(char.sonataSpecialSteps.length - 1, 1);
   }
 }
 
@@ -2359,6 +2413,9 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     }
     distanceTravelled += vector.length;
 
+    //ball impact location is finalized for this bounce
+    properties.lastBallLocation = stopPoint.clone();
+
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
       var ballHitbox = new Rectangle(new Point(stopPoint.x - ballRadius + 2, stopPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4));
@@ -2507,6 +2564,7 @@ function addArrows(start, vector, count, cap) {
 function draw() {
   paper.project.activeLayer.removeChildren()
   labels = []
+  listOfCreatedButtons = [];
 
   var tooltip = new PointText(tooltipLocation + tooltipOffset);
   tooltip.fillColor = 'white';
@@ -2573,6 +2631,58 @@ function draw() {
       r.position.y = char.y + char.imgOffset.y;
       if (char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
+      }
+      if (char.name == "Sonata" && char.pose.canSpecial) {
+        var specialPoint = new Point(char.x, char.y);
+        for (var step = 1; step <= 3; step++) {
+          if (char.sonataSpecialSteps.length >= step) {
+            if (step == char.sonataSpecialSteps.length) {
+              var icon = createButtonWithTooltip("special", "Undo Special Step", tooltip);
+              icon.position.x = specialPoint.x;
+              icon.position.y = specialPoint.y;
+              icon.char = char;
+              icon.onMouseDown = function(event) {
+                undoSonataSpecialStep(this.char);
+                hideTooltip(tooltip);
+                draw();
+              }
+            }
+            var mirrored = false;
+            var specialAngle = char.sonataSpecialSteps[step - 1];
+            if (specialAngle.visible) {
+              drawAngle(char, specialAngle, specialPoint, mirrored);
+            }
+            if (step == 3) {
+              addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
+            }
+            specialPoint = char.lastBallLocation;
+          } else {
+            for (var s = 0; s < char.specialAngles.length; s++) {
+              var specialAngle = char.specialAngles[s];
+
+              if (specialAngle.validForStep.indexOf(step) < 0) {
+                continue;
+              }
+              var icon = createButtonWithTooltip("special", "Add Special Step", tooltip);
+              var offset = 100;
+              var vector = new Point(offset, 0);
+              vector = vector.rotate(specialAngle.degrees);
+              if (char.facing == 'left') {
+                vector.x *= -1;
+              }
+              icon.position.x = specialPoint.x + vector.x;
+              icon.position.y = specialPoint.y + vector.y;
+              icon.char = char;
+              icon.angle = specialAngle;
+              icon.onMouseDown = function(event) {
+                addSonataSpecialStep(this.char, this.angle);
+                hideTooltip(tooltip);
+                draw();
+              }
+            }
+            break;
+          }
+        }
       }
       if (char.name == "Grid" && char.pose.canSpecial) {
         var gridHurtbox = char.getHurtbox();
@@ -2835,6 +2945,8 @@ function draw() {
   }
   tooltip.bringToFront();
 
+  listOfCreatedButtons.forEach(function(e) { e.bringToFront(); });
+
   paper.view.update()
   window.canvas = canvas;
   window.sb = ballStageBounds;
@@ -2849,6 +2961,7 @@ function createButtonWithTooltip(iconName, tooltipText, tooltip) {
   icon.onMouseLeave = function(event) {
     hideTooltip(tooltip);
   }
+  listOfCreatedButtons.push(icon);
   return icon;
 }
 
@@ -2871,7 +2984,7 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     addReflectionsToAngle(this.char, this.angle, 1, updateCharPoseOnButtonUse);
     draw();
   }
-  if (angle.visible) {
+  if (angle.visible && (!angle.alwaysVisible || angle.reflections > 0)) {
     var icon = createButtonWithTooltip("minus", getAngleLabelText(angle) + " (-)", tooltip);
     var vector = new Point(offset - 20, 0);
     vector = vector.rotate(angle.degrees);
@@ -3296,7 +3409,7 @@ $('document').ready(function() {
           } else {
             pose.canParry = true;
           }
-          if (char.name == "Grid" || char.name == "Candyman" || char.name == "Jet") {
+          if (char.name == "Grid" || char.name == "Candyman" || char.name == "Jet" || char.name == "Sonata") {
             // Every pose that can parry can also special
             pose.canSpecial = pose.canParry;
           }
