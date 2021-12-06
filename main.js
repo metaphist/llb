@@ -684,21 +684,18 @@ var characterJSON = {
         "imgSize": [341, 233],
         "hurtboxes":[[118, 55, 100, 170]],
         "hitboxes":[[170, 55, 170, 170]],
-        "canSpecial": true,
       },
       {
         "name": "smash",
         "imgSize": [322, 295],
         "hurtboxes":[[98, 122, 100, 170]],
         "hitboxes":[[98, 2, 120, 120], [150, 122, 170, 170]],
-        "canSpecial": true,
       },
       {
         "name": "spike",
         "imgSize": [166, 310],
         "hurtboxes":[[24, 41, 100, 170]],
         "hitboxes":[[14, 137, 120, 170]],
-        "canSpecial": true,
       },
       {
         "name": "bunt",
@@ -1520,6 +1517,16 @@ var characterJSON = {
     "strokeColor": "#23da7d",
     "img_name": "dust",
     "baseHeight": 142,
+    "ashesSpecial": [
+      {
+        "enabled": false,
+        "direction": -1,
+      },
+      {
+        "enabled": false,
+        "direction": 1,
+      }
+    ],
     "poses": [
       {
         "name": "swing",
@@ -1629,6 +1636,47 @@ var characterJSON = {
         "degrees": 163,
         "validWhen": ["spike"],
         "customOffset": 100,
+      }
+    ],
+    "ashesPoses": [
+      {
+        "name": "swing",
+        "imgSize": [190, 104],
+        "hurtboxes": [[102, 83, 20, 20]],
+        "hitboxes": [[167, 3, 20, 20]],
+        "canMirror": true,
+        "ashesRelease": [65, -80],
+      },
+    ],
+    "specialAngles": [
+      {
+        "name": "up",
+        "degrees": -45,
+        "validWhen": ["swing"],
+        "customOffset": 100,
+        "mirror": true,
+      },
+      {
+        "name": "air-down",
+        "degrees": 21,
+        "validWhen": ["swing"],
+        "customOffset": 100,
+        "mirror": true,
+      },
+      {
+        "name": "ground-down",
+        "degrees": 45,
+        "validWhen": ["swing"],
+        "customOffset": 100,
+        "mirror": true,
+      },
+      {
+        "name": "straight",
+        "degrees": 0,
+        "validWhen": ["swing"],
+        "customOffset": 100,
+        "maxReflections": 2,
+        "mirror": true,
       }
     ]
   }
@@ -2080,6 +2128,27 @@ function getGridTeleportReleaseLocation(char, pose, facing, hurtbox) {
   }
 }
 
+function toggleDustSpecial(char, direction) {
+  var dirIndex = direction < 0 ? 0 : 1;
+  if (char.ashesSpecial[dirIndex].enabled) {
+    char.ashesSpecial[dirIndex].enabled = false;
+  } else {
+    char.ashesSpecial[dirIndex].enabled = true;
+    char.ashesSpecial[dirIndex].facing = dirIndex == 0 ? 'left' : 'right';
+    char.ashesSpecial[dirIndex].mirrorAngles = false;
+    char.ashesSpecial[dirIndex].poses = char.ashesPoses;
+    char.ashesSpecial[dirIndex].pose = char.ashesPoses[0];
+    char.ashesSpecial[dirIndex].angles = [];
+    char.specialAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(Object.assign({}, e)); });
+    var buntAngles = getBuntAngles([]);
+    buntAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(e); });
+  }
+}
+
+function flipAshesDirectionFacing(char, dirIndex) {
+  char.ashesSpecial[dirIndex].facing = char.ashesSpecial[dirIndex].facing == 'right' ? 'left' : 'right'
+}
+
 function flipDirectionFacing(char) {
   var hurtbox = char.getRelativeHurtbox();
   hurtbox.x += char.imgOffset.x;
@@ -2170,6 +2239,20 @@ function getFixedReleaseLocations(char) {
   clampPointToRect(leftPoint, ballStageRect);
   clampPointToRect(rightPoint, ballStageRect);
   if (char.facing == "left") {
+    return [leftPoint, rightPoint];
+  } else {
+    return [rightPoint, leftPoint];
+  }
+}
+
+function getFixedReleaseLocationsForAshes(ashesData, ashesFloorPoint) {
+  var fixedReleaseOffset = new Point(ashesData.pose.ashesRelease[0], ashesData.pose.ashesRelease[1]);
+  var rightPoint = ashesFloorPoint + fixedReleaseOffset;
+  fixedReleaseOffset.x *= -1;
+  var leftPoint = ashesFloorPoint + fixedReleaseOffset;
+  clampPointToRect(leftPoint, ballStageRect);
+  clampPointToRect(rightPoint, ballStageRect);
+  if (ashesData.facing == "left") {
     return [leftPoint, rightPoint];
   } else {
     return [rightPoint, leftPoint];
@@ -2681,6 +2764,91 @@ function draw() {
               }
             }
             break;
+          }
+        }
+      }
+      if (char.name == "DustAndAshes" && char.pose.canSpecial) {
+        var dustHurtbox = char.getHurtbox();
+
+        var t = 22;
+        var icon = createButtonWithTooltip("right", "Special Right", tooltip);
+        icon.position.x = dustHurtbox.center.x + t;
+        icon.position.y = dustHurtbox.center.y;
+        icon.char = char;
+        icon.onMouseDown = function(event) {
+          toggleDustSpecial(this.char, 1);
+          draw();
+        }
+        var icon = createButtonWithTooltip("left", "Special Left", tooltip);
+        icon.position.x = dustHurtbox.center.x - t;
+        icon.position.y = dustHurtbox.center.y;
+        icon.char = char;
+        icon.onMouseDown = function(event) {
+          toggleDustSpecial(this.char, -1);
+          draw();
+        }
+
+        for (var ashesIndex = 0; ashesIndex < 2; ashesIndex++) {
+          var ashesData = char.ashesSpecial[ashesIndex];
+          if (ashesData.enabled) {
+            var dir = ashesData.direction;
+            var dustHeight = trueStageRect.bottom - dustHurtbox.bottom;
+            var ashesTravelDistance = 260 + dustHeight; //TODO: figure out how exactly ashes travel distance is determined
+            var ashesStartLocationX = dustHurtbox.center.x;
+            var ashesFloorPosition = new Point(ashesStartLocationX + dir * ashesTravelDistance, trueStageRect.bottom);
+            if (ashesFloorPosition.x < ballStageRect.left + 20) {
+              ashesFloorPosition.x = ballStageRect.left + 20;
+            } else if (ashesFloorPosition.x > ballStageRect.right - 20) {
+              ashesFloorPosition.x = ballStageRect.right - 20;
+            }
+
+            var startingPoints = getFixedReleaseLocationsForAshes(ashesData, ashesFloorPosition);
+            var startingPoint = startingPoints[0];
+            var mirroredStartingPoint = startingPoints[1];
+
+            var mirrored = char.facing != ashesData.facing;
+            ashesData.angles.forEach( function(angle) {
+              if (angle.visible) {
+                if (ashesData.mirrorAngles && ashesData.pose.canMirror && angle.mirror) {
+                  drawAngle(char, angle, mirroredStartingPoint, !mirrored);
+                }
+                drawAngle(char, angle, startingPoint, mirrored);
+              }
+              addAngleButtons(char, angle, startingPoint, ashesData.facing, false, tooltip);
+            });
+
+            var relativeHurtbox = char.getRelativeHurtboxForPose(ashesData.pose, ashesData.facing);
+            var ashesImg = new Raster("assets/characters/dust_ashes.png");
+            if (ashesData.facing == "left") {
+              ashesImg.scale(-1, 1);
+            }
+            ashesImg.position.x = ashesFloorPosition.x - 10 - relativeHurtbox.x;
+            ashesImg.position.y = ashesFloorPosition.y - 10 - relativeHurtbox.y;
+            ashesImg.opacity = 0.75;
+
+            var icon = createButtonWithTooltip("flip", "Flip Ashes", tooltip);
+            var iconPosition = 0;
+            var iconSpacing = 22;
+            var iconsX = ashesFloorPosition.x - 10;
+            var iconsY = ashesFloorPosition.y - 50;
+            icon.position.x = iconsX + iconPosition;
+            icon.position.y = iconsY;
+            iconPosition += iconSpacing;
+            icon.char = char;
+            icon.dirIndex = ashesIndex;
+            icon.onMouseDown = function(event) {
+              flipAshesDirectionFacing(this.char, this.dirIndex)
+              draw();
+            }
+            var icon = createButtonWithTooltip("mirror", "Mirror Special Angles", tooltip);
+            icon.position.x = iconsX + iconPosition;
+            icon.position.y = iconsY;
+            iconPosition += iconSpacing;
+            icon.char = ashesData;
+            icon.onMouseDown = function(event) {
+              toggleMirrorAngles(this.char);
+              draw();
+            }
           }
         }
       }
@@ -3409,10 +3577,8 @@ $('document').ready(function() {
           } else {
             pose.canParry = true;
           }
-          if (char.name == "Grid" || char.name == "Candyman" || char.name == "Jet" || char.name == "Sonata") {
-            // Every pose that can parry can also special
-            pose.canSpecial = pose.canParry;
-          }
+          // Every pose that can parry can also special
+          pose.canSpecial = pose.canParry;
           break;
         }
       }
