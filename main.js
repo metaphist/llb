@@ -1840,15 +1840,10 @@ function toggleToxicSpray(char) {
   }
 }
 
-function addToxicSpray(char) {
-  var posx = char.x + 150;
-  var posy = char.y - 20;
-  if (char.facing == "left") {
-    posx = char.x - 150;
-  }
+function createToxicSpray(position) {
   var spray = {
-    x: posx,
-    y: posy,
+    x: position.x,
+    y: position.y,
     imageName: "toxic_spray",
     imageScale: 1,
     imgSize: [230, 112],
@@ -1869,6 +1864,15 @@ function addToxicSpray(char) {
   spray.getHitboxes = function() {
     return [new Rectangle(new Point(this.x - this.imgSize[0] / 2 + this.hitbox[0], this.y - this.imgSize[1] / 2 + this.hitbox[1]), new Size(this.hitbox[2], this.hitbox[3]))];
   }
+  return spray;
+}
+
+function addToxicSpray(char) {
+  var position = new Point(char.x + 150, char.y - 20);
+  if (char.facing == "left") {
+    position.x = char.x - 150;
+  }
+  var spray = createToxicSpray(position);
   char.spray = spray;
   activeEntities.push(spray);
 }
@@ -2038,13 +2042,25 @@ function toggleJetBubbleForAngle(charName, angleName) {
     angle.reflections = 0;
   }
 
-  if(angle.bubble) {
+  if (angle.bubble) {
     angle.bubble = false;
     angle.maxDistance = undefined;
   } else {
     angle.bubble = true;
     angle.maxDistance = char.maxBubbleDistance;
   }
+}
+
+function toggleToxicSprayPreview(charName, angleName) {
+  var char = loadChar(charName);
+  var angle = char.angles.find(function(e){ return e.name == angleName });
+
+  angle.visible = true;
+  if (angle.reflections == 'undefined' || isNaN(angle.reflections)) {
+    angle.reflections = 0;
+  }
+
+  angle.sprayPreview = !angle.sprayPreview;
 }
 
 function addSonataSpecialStep(char, angle) {
@@ -3033,6 +3049,43 @@ function draw() {
       })
     }
 
+    if (char.name == "Toxic") {
+      var originalIgnoreHitboxCollisions = ignoreHitboxCollisions;
+      ignoreHitboxCollisions = true;
+
+      var sprayForPreview = createToxicSpray(new Point());
+
+      for (var j = 0; j < char.angles.length; j++) {
+        var currentAngle = char.angles[j];
+        if ((charImagesOn && currentAngle.validWhen.indexOf(char.pose.name) < 0) || (currentAngle.hidden && !charImagesOn)) {
+          continue;
+        }
+        if (currentAngle.visible && currentAngle.sprayPreview) {
+          var originalReflections = currentAngle.reflections;
+          currentAngle.reflections = 0;
+
+          var startingPoint = new Point(char.x, char.y);
+          drawAngle(char, currentAngle, startingPoint, false);
+
+          sprayForPreview.x = char.lastBallLocation.x;
+          sprayForPreview.y = char.lastBallLocation.y;
+          var displacement = figureOutSprayWallPlacement(sprayForPreview.getHurtbox());
+          //TODO: look into code to see where the spray will land exactly when shot into a corner
+          sprayForPreview.x += displacement.x;
+          sprayForPreview.y += displacement.y;
+
+          var sprayImage = new Raster("assets/characters/toxic_spray.png");
+          sprayImage.position.x = sprayForPreview.x + sprayForPreview.imgOffset.x;
+          sprayImage.position.y = sprayForPreview.y + sprayForPreview.imgOffset.y;
+          sprayImage.opacity = 0.5;
+
+          currentAngle.reflections = originalReflections;
+        }
+      }
+
+      ignoreHitboxCollisions = originalIgnoreHitboxCollisions;
+    }
+
     if (char.name == "Grid" && charImagesOn && char.pose.canSpecial) {
       for (var g = 0; g < char.teleport.length; g++) {
         var teleportData = char.teleport[g];
@@ -3097,6 +3150,9 @@ function draw() {
           drawAngle(char, currentAngle, mirroredStartingPoint, true);
         }
         drawAngle(char, currentAngle, startingPoint, false);
+        if (char.name == "Toxic" && currentAngle.sprayPreview) {
+          char.last
+        }
       }
       if (char.showDirectButtons && (charImagesOn || !currentAngle.hidden)) {
         if (currentAngle.labels === undefined) {
@@ -3200,6 +3256,22 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
       draw();
     }
   }
+  if (char.name == "Toxic" && char.pose.canSpecial) {
+    var icon = createButtonWithTooltip("special", getAngleLabelText(angle) + " (Preview Spray)", tooltip);
+    var vector = new Point(offset + 20, 0);
+    vector = vector.rotate(angle.degrees);
+    if (facing == 'left') {
+      vector.x *= -1;
+    }
+    icon.position.x = position.x + vector.x;
+    icon.position.y = position.y + vector.y;
+    icon.angleName = angle.name;
+    icon.charName = char.name;
+    icon.onMouseDown = function(event) {
+      toggleToxicSprayPreview(this.charName, this.angleName);
+      draw();
+    }
+  }
 }
 
 function clampPointToRect(point, rect) {
@@ -3279,6 +3351,40 @@ function myDown(e) {
   startY = my;
 }
 
+function figureOutSprayWallPlacement(sprayHurtbox) {
+  var distFromTop = trueStageRect.top - sprayHurtbox.top;
+  var distFromBottom = trueStageRect.bottom - sprayHurtbox.bottom;
+  var distFromLeft = trueStageRect.left - sprayHurtbox.left;
+  var distFromRight = trueStageRect.right - sprayHurtbox.right;
+
+  var smallestDistance = Math.abs(distFromTop);
+  var closestWall = 'up';
+  if (Math.abs(distFromBottom) < smallestDistance) {
+    smallestDistance = Math.abs(distFromBottom);
+    closestWall = 'down';
+  }
+  if (Math.abs(distFromLeft) < smallestDistance) {
+    smallestDistance = Math.abs(distFromLeft);
+    closestWall = 'left';
+  }
+  if (Math.abs(distFromRight) < smallestDistance) {
+    smallestDistance = Math.abs(distFromRight);
+    closestWall = 'right';
+  }
+
+  var displacement = new Point();
+  if (closestWall == 'up') {
+    displacement.y += distFromTop;
+  } else if (closestWall == 'down') {
+    displacement.y += distFromBottom;
+  } else if (closestWall == 'left') {
+    displacement.x += distFromLeft;
+  } else if (closestWall == 'right') {
+    displacement.x += distFromRight;
+  }
+  return displacement;
+}
+
 // handle mouseup events
 function myUp(e) {
   // tell the browser we're handling this mouse event
@@ -3291,35 +3397,9 @@ function myUp(e) {
     var entity = activeEntities[i];
     if (entity.isDragging && entity.stickToBoundaries) {
       var hurtbox = entity.getHurtbox();
-      var distFromTop = trueStageRect.top - hurtbox.top;
-      var distFromBottom = trueStageRect.bottom - hurtbox.bottom;
-      var distFromLeft = trueStageRect.left - hurtbox.left;
-      var distFromRight = trueStageRect.right - hurtbox.right;
-
-      var smallestDistance = Math.abs(distFromTop);
-      var closestWall = 'up';
-      if (Math.abs(distFromBottom) < smallestDistance) {
-        smallestDistance = Math.abs(distFromBottom);
-        closestWall = 'down';
-      }
-      if (Math.abs(distFromLeft) < smallestDistance) {
-        smallestDistance = Math.abs(distFromLeft);
-        closestWall = 'left';
-      }
-      if (Math.abs(distFromRight) < smallestDistance) {
-        smallestDistance = Math.abs(distFromRight);
-        closestWall = 'right';
-      }
-
-      if (closestWall == 'up') {
-        entity.y += distFromTop;
-      } else if (closestWall == 'down') {
-        entity.y += distFromBottom;
-      } else if (closestWall == 'left') {
-        entity.x += distFromLeft;
-      } else if (closestWall == 'right') {
-        entity.x += distFromRight;
-      }
+      var displacement = figureOutSprayWallPlacement(hurtbox);
+      entity.x += displacement.x;
+      entity.y += displacement.y;
       draw();
     }
     entity.isDragging = false;
