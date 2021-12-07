@@ -642,7 +642,7 @@ var characterJSON = {
       {
         "name": "ground-down",
         "degrees": 62,
-        "validWhen": ["swing", "smash"] //currently this angle gets combined with the next angle
+        "validWhen": ["swing"] //currently this angle gets combined with the next angle
       },
       {
         "name": "air-down",
@@ -651,7 +651,7 @@ var characterJSON = {
       },
       {
         "name": "special-down",
-        "degrees": 20, //TODO: find out correct angle
+        "degrees": 20,
         "validWhen": ["swing", "smash"]
       },
       {
@@ -1047,7 +1047,7 @@ var characterJSON = {
       {
         "name": "smash",
         "degrees": 38,
-        "validWhen": ["smash"]
+        "validWhen": ["smash", "swing"] //currently this angle gets combined with the next angle
       },
       {
         "name": "air-down",
