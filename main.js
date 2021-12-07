@@ -57,7 +57,7 @@ var stageJSON = {
 
 /**
  * like-angles should be adjacent to be grouped visually
- * wall and ground property will "invalidate" the angle if character is out of position
+ * TODO: wall and ground property will "invalidate" the angle if character is out of position
  */
 var characterJSON = {
   "Toxic": {
@@ -1749,7 +1749,7 @@ function unloadChar(charName) {
     activeEntities.splice(j, 1);
     $('li#' + charName + ' ol').addClass("hidden");
     $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon.png")');
-    if(char.spray) {
+    if (char.spray) {
       removeToxicSpray(char);
     }
   }
@@ -1770,6 +1770,8 @@ function addGeneralAngles(char) {
   var validBuntPoses = ["bunt"];
   if (char.name == "Raptor") {
     validBuntPoses = ["bunt", "swing", "smash"];
+  } else if (char.name == "Latch") {
+    validBuntPoses = ["bunt", "spit"];
   }
 
   var buntAngles = getBuntAngles(validBuntPoses);
@@ -2363,7 +2365,6 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     labels.push(label)
   }
 
-  var invalid = false // no use-y for now
   for(var i = 0; i <= angle.reflections; ++i) {
 
     if (angle.bunt) {
@@ -2519,21 +2520,25 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
 
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
-      var ballHitbox = new Rectangle(new Point(stopPoint.x - ballRadius + 2, stopPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4));
-      var ballHitboxPath = new Path.Rectangle(ballHitbox);
-      ballHitboxPath.strokeColor = angle.bunt ? 'purple' : 'blue';
-      ballHitboxPath.strokeWidth = 4;
+      if ((!angle.bunt && !angle.pong) || hitHurtBoxCollision || hitStageBoundary) {
+        var ballHitbox = new Rectangle(new Point(stopPoint.x - ballRadius + 2, stopPoint.y - ballRadius + 2), new Size(ballDiameter - 4, ballDiameter - 4));
+        var ballHitboxPath = new Path.Rectangle(ballHitbox);
+        ballHitboxPath.strokeColor = angle.bunt ? 'purple' : 'blue';
+        ballHitboxPath.strokeWidth = 4;
+      }
     }
 
+    var buntColor = '#bb11ff';
+    var buntOutlineColor = '#9911cc';
     var outerLine = new Path({
       segments: [start, stopPoint],
       strokeWidth: strokeWidthOuter,
-      strokeColor: invalid ? 'grey' : properties.strokeColor
+      strokeColor: angle.bunt ? buntOutlineColor : properties.strokeColor
     });
     var innerLine = outerLine.clone();
     innerLine.style = {
       strokeWidth: strokeWidthInner,
-      strokeColor: invalid ? 'grey' : properties.color
+      strokeColor: properties.color
     };
     if (angle.bubble && bubbleState < 3) {
       var bubbleColor = properties.bubbleStrokeColor;
@@ -2737,8 +2742,8 @@ function draw() {
         var specialPoint = new Point(char.x, char.y);
         for (var step = 1; step <= 3; step++) {
           if (char.sonataSpecialSteps.length >= step) {
-            if (step == char.sonataSpecialSteps.length) {
-              var icon = createButtonWithTooltip("special", "Undo Special Step", tooltip);
+            if (step == char.sonataSpecialSteps.length && char.showDirectButtons) {
+              var icon = createButtonWithTooltip("back", "Undo Special Step", tooltip);
               icon.position.x = specialPoint.x;
               icon.position.y = specialPoint.y;
               icon.char = char;
@@ -2753,11 +2758,11 @@ function draw() {
             if (specialAngle.visible) {
               drawAngle(char, specialAngle, specialPoint, mirrored);
             }
-            if (step == 3) {
+            if (step == 3 && char.showDirectButtons) {
               addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
             }
             specialPoint = char.lastBallLocation;
-          } else {
+          } else if (char.showDirectButtons) {
             for (var s = 0; s < char.specialAngles.length; s++) {
               var specialAngle = char.specialAngles[s];
 
@@ -2839,7 +2844,10 @@ function draw() {
                 }
                 drawAngle(char, angle, startingPoint, mirrored);
               }
-              addAngleButtons(char, angle, startingPoint, ashesData.facing, false, tooltip);
+
+              if (char.showDirectButtons) {
+                addAngleButtons(char, angle, startingPoint, ashesData.facing, false, tooltip);
+              }
             });
 
             var relativeHurtbox = char.getRelativeHurtboxForPose(ashesData.pose, ashesData.facing);
@@ -3108,7 +3116,9 @@ function draw() {
         if (teleportAngle.visible) {
           drawAngle(char, teleportAngle, startingPoint, mirrored);
         }
-        addAngleButtons(char, teleportAngle, startingPoint, teleportData.facing, false, tooltip);
+        if (char.showDirectButtons) {
+          addAngleButtons(char, teleportAngle, startingPoint, teleportData.facing, false, tooltip);
+        }
 
         var buntStartingPoint = getGridTeleportReleaseLocation(char, teleportData.buntPose, teleportData.facing, teleportData.hurtbox);
         var buntOptions = teleportData.buntAngles;
@@ -3116,7 +3126,9 @@ function draw() {
           if(angle.visible) {
             drawAngle(char, angle, buntStartingPoint, mirrored);
           }
-          addAngleButtons(char, angle, buntStartingPoint, char.facing, false, tooltip);
+          if (char.showDirectButtons) {
+            addAngleButtons(char, angle, buntStartingPoint, teleportData.facing, false, tooltip);
+          }
         });
 
       }
@@ -3135,10 +3147,12 @@ function draw() {
           drawAngle(char, snipeAngle, startingPoint, char.facing == "left");
         }
       }
-      for (var k = 0; k < char.reticle.angles.length; k++) {
-        var snipeAngle = char.reticle.angles[k];
-        var nonFlippedFacing = "right";
-        addAngleButtons(char, snipeAngle, startingPoint, nonFlippedFacing, false, tooltip);
+      if (char.showDirectButtons) {
+        for (var k = 0; k < char.reticle.angles.length; k++) {
+          var snipeAngle = char.reticle.angles[k];
+          var nonFlippedFacing = "right";
+          addAngleButtons(char, snipeAngle, startingPoint, nonFlippedFacing, false, tooltip);
+        }
       }
     }
 
@@ -3176,9 +3190,9 @@ function draw() {
     labels.forEach(function(e) { e.bringToFront(); })
     guides.forEach(function(e) { e.bringToFront(); })
   }
-  tooltip.bringToFront();
 
   listOfCreatedButtons.forEach(function(e) { e.bringToFront(); });
+  tooltip.bringToFront();
 
   paper.view.update()
   window.canvas = canvas;
@@ -3203,7 +3217,33 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
   if (angle.customOffset) {
     offset = angle.customOffset;
   }
-  var icon = createButtonWithTooltip("plus", getAngleLabelText(angle) + " (+)", tooltip);
+  if (angle.pong) {
+    var isVisible = angle.visible;
+    var icon = createButtonWithTooltip("pong_special", getAngleLabelText(angle), tooltip);
+    var vector = new Point(offset, 0);
+    vector = vector.rotate(angle.degrees);
+    if (facing == 'left') {
+      vector.x *= -1;
+    }
+    icon.position.x = position.x + vector.x;
+    icon.position.y = position.y + vector.y;
+    icon.angle = angle;
+    icon.char = char;
+    icon.onMouseDown = function(event) {
+      if (isVisible) {
+        addReflectionsToAngle(this.char, this.angle, -1, updateCharPoseOnButtonUse);
+      } else {
+        addReflectionsToAngle(this.char, this.angle, 1, updateCharPoseOnButtonUse);
+      }
+      draw();
+    }
+    return;
+  }
+  var iconImg = "plus";
+  if (angle.bunt) {
+    iconImg = "bunt_plus";
+  }
+  var icon = createButtonWithTooltip(iconImg, getAngleLabelText(angle) + " (+)", tooltip);
   var vector = new Point(offset, 0);
   vector = vector.rotate(angle.degrees);
   if (facing == 'left') {
@@ -3218,7 +3258,11 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     draw();
   }
   if (angle.visible && (!angle.alwaysVisible || angle.reflections > 0)) {
-    var icon = createButtonWithTooltip("minus", getAngleLabelText(angle) + " (-)", tooltip);
+    iconImg = "minus";
+    if (angle.bunt) {
+      iconImg = "bunt_minus";
+    }
+    var icon = createButtonWithTooltip(iconImg, getAngleLabelText(angle) + " (-)", tooltip);
     var vector = new Point(offset - 20, 0);
     vector = vector.rotate(angle.degrees);
     if (facing == 'left') {
@@ -3230,6 +3274,10 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     icon.char = char;
     icon.onMouseDown = function(event) {
       addReflectionsToAngle(this.char, this.angle, -1, updateCharPoseOnButtonUse);
+      if (!(angle.visible && (!angle.alwaysVisible || angle.reflections > 0))) {
+        // hide tooltip if we know the button will disappear
+        hideTooltip(tooltip);
+      }
       draw();
     }
   }
