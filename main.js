@@ -1471,7 +1471,6 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 4.2,
         "maxReflections": 1,
-        "hidden": true,
         "customOffset": 125,
       },
       {
@@ -1483,7 +1482,6 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 5.25,
         "maxReflections": 1,
-        "hidden": true,
         "customOffset": 125,
       },
       {
@@ -1495,7 +1493,6 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 4,
         "maxReflections": 1,
-        "hidden": true,
         "customOffset": 125,
       },
       {
@@ -1507,7 +1504,6 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 6,
         "maxReflections": 1,
-        "hidden": true,
         "customOffset": 125,
       },
     ],
@@ -2800,77 +2796,6 @@ function draw() {
         r.scale(-1, 1);
       }
 
-      if (char.name == "Dice") {
-        var topLeft = ballStageRect.topLeft + new Point(1, 1);
-        var topRight = ballStageRect.topRight + new Point(-1, 1);
-        var bottomLeft = ballStageRect.bottomLeft + new Point(1, -1);
-        var bottomRight = ballStageRect.bottomRight + new Point(-1, -1);
-        var startingLocations = [bottomRight, bottomLeft, topRight, topLeft, topRight, topLeft];
-
-        for (var j = 0; j < char.specialPongAngles.length; j++){
-          var angle = char.specialPongAngles[j];
-          var startLocation = startingLocations[j];
-          if (angle.visible) {
-            drawAngle(char, angle, startLocation, false);
-          }
-          if (char.showDirectButtons) {
-            addAngleButtons(char, angle, startLocation, 'right', false, tooltip);
-          }
-        }
-      }
-
-      if (char.name == "Sonata" && char.pose.canSpecial) {
-        var specialPoint = new Point(char.x, char.y);
-        for (var step = 1; step <= 3; step++) {
-          if (char.sonataSpecialSteps.length >= step) {
-            if (step == char.sonataSpecialSteps.length && char.showDirectButtons) {
-              var icon = createButtonWithTooltip("back", "Undo Special Step", tooltip);
-              icon.position.x = specialPoint.x;
-              icon.position.y = specialPoint.y;
-              icon.char = char;
-              icon.onMouseDown = function(event) {
-                undoSonataSpecialStep(this.char);
-                hideTooltip(tooltip);
-                draw();
-              }
-            }
-            var mirrored = false;
-            var specialAngle = char.sonataSpecialSteps[step - 1];
-            if (specialAngle.visible) {
-              drawAngle(char, specialAngle, specialPoint, mirrored);
-            }
-            if (step == 3 && char.showDirectButtons) {
-              addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
-            }
-            specialPoint = char.lastBallLocation;
-          } else if (char.showDirectButtons) {
-            for (var s = 0; s < char.specialAngles.length; s++) {
-              var specialAngle = char.specialAngles[s];
-
-              if (specialAngle.validForStep.indexOf(step) < 0) {
-                continue;
-              }
-              var icon = createButtonWithTooltip("special", "Add Special Step", tooltip);
-              var offset = 100;
-              var vector = new Point(offset, 0);
-              vector = vector.rotate(specialAngle.degrees);
-              if (char.facing == 'left') {
-                vector.x *= -1;
-              }
-              icon.position.x = specialPoint.x + vector.x;
-              icon.position.y = specialPoint.y + vector.y;
-              icon.char = char;
-              icon.angle = specialAngle;
-              icon.onMouseDown = function(event) {
-                addSonataSpecialStep(this.char, this.angle);
-                hideTooltip(tooltip);
-                draw();
-              }
-            }
-            break;
-          }
-        }
-      }
       if (char.name == "DustAndAshes" && char.pose.canSpecial) {
         var dustHurtbox = char.getHurtbox();
 
@@ -3145,6 +3070,78 @@ function draw() {
         strokeColor: char.strokeColor,
         strokeWidth: 3
       })
+    }
+
+    if (char.name == "Dice") {
+      var topLeft = ballStageRect.topLeft + new Point(1, 1);
+      var topRight = ballStageRect.topRight + new Point(-1, 1);
+      var bottomLeft = ballStageRect.bottomLeft + new Point(1, -1);
+      var bottomRight = ballStageRect.bottomRight + new Point(-1, -1);
+      var startingLocations = [bottomRight, bottomLeft, topRight, topLeft, topRight, topLeft];
+
+      for (var j = 0; j < char.specialPongAngles.length; j++){
+        var angle = char.specialPongAngles[j];
+        var startLocation = startingLocations[j];
+        if (angle.visible) {
+          drawAngle(char, angle, startLocation, false);
+        }
+        if (char.showDirectButtons) {
+          addAngleButtons(char, angle, startLocation, 'right', false, tooltip);
+        }
+      }
+    }
+
+    if (char.name == "Sonata" && char.pose.canSpecial) {
+      var specialPoint = new Point(char.x, char.y);
+      for (var step = 1; step <= 3; step++) {
+        if (char.sonataSpecialSteps.length >= step) {
+          if (step == char.sonataSpecialSteps.length && char.showDirectButtons) {
+            var icon = createButtonWithTooltip("back", "Undo Special Step", tooltip);
+            icon.position.x = specialPoint.x;
+            icon.position.y = specialPoint.y;
+            icon.char = char;
+            icon.onMouseDown = function(event) {
+              undoSonataSpecialStep(this.char);
+              hideTooltip(tooltip);
+              draw();
+            }
+          }
+          var mirrored = false;
+          var specialAngle = char.sonataSpecialSteps[step - 1];
+          if (specialAngle.visible) {
+            drawAngle(char, specialAngle, specialPoint, mirrored);
+          }
+          if (step == 3 && char.showDirectButtons) {
+            addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
+          }
+          specialPoint = char.lastBallLocation;
+        } else if (char.showDirectButtons) {
+          for (var s = 0; s < char.specialAngles.length; s++) {
+            var specialAngle = char.specialAngles[s];
+
+            if (specialAngle.validForStep.indexOf(step) < 0) {
+              continue;
+            }
+            var icon = createButtonWithTooltip("special", "Add Special Step", tooltip);
+            var offset = 100;
+            var vector = new Point(offset, 0);
+            vector = vector.rotate(specialAngle.degrees);
+            if (char.facing == 'left') {
+              vector.x *= -1;
+            }
+            icon.position.x = specialPoint.x + vector.x;
+            icon.position.y = specialPoint.y + vector.y;
+            icon.char = char;
+            icon.angle = specialAngle;
+            icon.onMouseDown = function(event) {
+              addSonataSpecialStep(this.char, this.angle);
+              hideTooltip(tooltip);
+              draw();
+            }
+          }
+          break;
+        }
+      }
     }
 
     if (char.name == "Toxic") {
