@@ -1510,6 +1510,58 @@ var characterJSON = {
         "hidden": true,
         "customOffset": 125,
       },
+    ],
+    "specialPongFloorAngles": [
+      {
+        "name": "floor-pong-backward",
+        "degrees": -(180-8),
+        "validWhen": [],
+        "customOffset": 125,
+      },
+      {
+        "name": "floor-pong-forward",
+        "degrees": -8,
+        "validWhen": [],
+        "customOffset": 125,
+      },
+    ],
+    "specialPongAngles": [
+      {
+        "name": "floor-pong",
+        "degrees": -(180-8),
+        "validWhen": [],
+        "customOffset": 125,
+      },
+      {
+        "name": "floor-pong",
+        "degrees": -8,
+        "validWhen": [],
+        "customOffset": 125,
+      },
+      {
+        "name": "ceiling-pong",
+        "degrees": 180-45,
+        "validWhen": [],
+        "customOffset": 125,
+      },
+      {
+        "name": "ceiling-pong",
+        "degrees": 45,
+        "validWhen": [],
+        "customOffset": 125,
+      },
+      {
+        "name": "ceiling-glitch",
+        "degrees": 180-8,
+        "validWhen": [],
+        "customOffset": 125,
+      },
+      {
+        "name": "ceiling-glitch",
+        "degrees": 8,
+        "validWhen": [],
+        "customOffset": 125,
+      },
     ]
   },
   "DustAndAshes": {
@@ -2305,6 +2357,13 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     }
   }
 
+  if (angle.bunt) {
+    if (start.y > ballStageRect.bottom - 1) {
+      // so bunted balls can start from the floor
+      start.y = ballStageRect.bottom - 1;
+    }
+  }
+
   var distanceTravelled = 0;
   var bubbleState = 0;
 
@@ -2477,6 +2536,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       } else {
         hitStageBoundary = true;
         if (angle.bunt) {
+          // in case bunted ball hit the ceiling
           velocity.y = 0;
           intersectPoint.y += 1;
         }
@@ -2517,6 +2577,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
 
     //ball impact location is finalized for this bounce
     properties.lastBallLocation = stopPoint.clone();
+    angle.lastBallLocation = stopPoint.clone();
 
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
@@ -2738,6 +2799,26 @@ function draw() {
       if (char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
       }
+
+      if (char.name == "Dice") {
+        var topLeft = ballStageRect.topLeft + new Point(1, 1);
+        var topRight = ballStageRect.topRight + new Point(-1, 1);
+        var bottomLeft = ballStageRect.bottomLeft + new Point(1, -1);
+        var bottomRight = ballStageRect.bottomRight + new Point(-1, -1);
+        var startingLocations = [bottomRight, bottomLeft, topRight, topLeft, topRight, topLeft];
+
+        for (var j = 0; j < char.specialPongAngles.length; j++){
+          var angle = char.specialPongAngles[j];
+          var startLocation = startingLocations[j];
+          if (angle.visible) {
+            drawAngle(char, angle, startLocation, false);
+          }
+          if (char.showDirectButtons) {
+            addAngleButtons(char, angle, startLocation, 'right', false, tooltip);
+          }
+        }
+      }
+
       if (char.name == "Sonata" && char.pose.canSpecial) {
         var specialPoint = new Point(char.x, char.y);
         for (var step = 1; step <= 3; step++) {
@@ -3184,6 +3265,35 @@ function draw() {
         }
         var position = new Point(char.x, char.y);
         addAngleButtons(char, currentAngle, position, char.facing, true, tooltip);
+      }
+    }
+
+    if (char.name == "Dice" && char.pose.canSpecial) {
+      for (var j = 0; j < char.angles.length; j++){
+        var angle = char.angles[j];
+        if (angle.pong && angle.visible) {
+          if (!angle.floorAngles) {
+            angle.floorAngles = [];
+            char.specialPongFloorAngles.forEach(function(e) { angle.floorAngles.push(Object.assign({}, e)); });
+            var buntAngles = getBuntAngles([]);
+            buntAngles.forEach(function(e) {
+              if (e.name != "bunt-down") {
+                angle.floorAngles.push(e);
+              }
+            });
+          }
+          if (angle.lastBallLocation.y >= ballStageRect.bottom - 1) {
+            for (var f = 0; f < angle.floorAngles.length; f++) {
+              var floorAngle = angle.floorAngles[f];
+              if (floorAngle.visible) {
+                drawAngle(char, floorAngle, angle.lastBallLocation, false);
+              }
+              if (char.showDirectButtons) {
+                addAngleButtons(char, floorAngle, angle.lastBallLocation, char.facing, false, tooltip);
+              }
+            }
+          }
+        }
       }
     }
 
