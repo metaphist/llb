@@ -1653,28 +1653,28 @@ var characterJSON = {
         "name": "up",
         "degrees": -45,
         "validWhen": ["swing"],
-        "customOffset": 100,
+        "customOffset": 80,
         "mirror": true,
       },
       {
         "name": "air-down",
         "degrees": 21,
         "validWhen": ["swing"],
-        "customOffset": 100,
+        "customOffset": 80,
         "mirror": true,
       },
       {
         "name": "ground-down",
-        "degrees": 45,
+        "degrees": 57,
         "validWhen": ["swing"],
-        "customOffset": 100,
+        "customOffset": 80,
         "mirror": true,
       },
       {
         "name": "straight",
         "degrees": 0,
         "validWhen": ["swing"],
-        "customOffset": 100,
+        "customOffset": 80,
         "maxReflections": 2,
         "mirror": true,
       }
@@ -2150,14 +2150,16 @@ function toggleDustSpecial(char, direction) {
     char.ashesSpecial[dirIndex].enabled = false;
   } else {
     char.ashesSpecial[dirIndex].enabled = true;
-    char.ashesSpecial[dirIndex].facing = dirIndex == 0 ? 'left' : 'right';
-    char.ashesSpecial[dirIndex].mirrorAngles = false;
-    char.ashesSpecial[dirIndex].poses = char.ashesPoses;
-    char.ashesSpecial[dirIndex].pose = char.ashesPoses[0];
-    char.ashesSpecial[dirIndex].angles = [];
-    char.specialAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(Object.assign({}, e)); });
-    var buntAngles = getBuntAngles([]);
-    buntAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(e); });
+    if (char.ashesSpecial[dirIndex].angles == undefined) {
+      char.ashesSpecial[dirIndex].facing = dirIndex == 0 ? 'left' : 'right';
+      char.ashesSpecial[dirIndex].mirrorAngles = false;
+      char.ashesSpecial[dirIndex].poses = char.ashesPoses;
+      char.ashesSpecial[dirIndex].pose = char.ashesPoses[0];
+      char.ashesSpecial[dirIndex].angles = [];
+      char.specialAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(Object.assign({}, e)); });
+      var buntAngles = getBuntAngles([]);
+      buntAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(e); });
+    }
   }
 }
 
@@ -2808,10 +2810,17 @@ function draw() {
           var ashesData = char.ashesSpecial[ashesIndex];
           if (ashesData.enabled) {
             var dir = ashesData.direction;
-            var dustHeight = trueStageRect.bottom - dustHurtbox.bottom;
-            var ashesTravelDistance = 260 + dustHeight; //TODO: figure out how exactly ashes travel distance is determined
-            var ashesStartLocationX = dustHurtbox.center.x;
-            var ashesFloorPosition = new Point(ashesStartLocationX + dir * ashesTravelDistance, trueStageRect.bottom);
+            var dustHeight = trueStageRect.bottom - dustHurtbox.center.y;
+            var ashesTravelDistance = Math.max(250, dustHeight);
+            var ashesLocationX = char.x;
+            var stepSize = 40;
+            for (var step = 0; step < 100; step++) {
+              ashesLocationX += stepSize * dir;
+              if (Math.abs(ashesLocationX - dustHurtbox.center.x) > ashesTravelDistance) {
+                break;
+              }
+            }
+            var ashesFloorPosition = new Point(ashesLocationX, trueStageRect.bottom);
             if (ashesFloorPosition.x < ballStageRect.left + 20) {
               ashesFloorPosition.x = ballStageRect.left + 20;
             } else if (ashesFloorPosition.x > ballStageRect.right - 20) {
