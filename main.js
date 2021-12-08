@@ -558,8 +558,14 @@ var characterJSON = {
   "Nitro": {
     "color": "white",
     "strokeColor": "black",
+    "cuffStrokeColor": "#aaaaaa",
     "img_name": "nitro",
     "baseHeight": 148,
+    "cuffReleaseOffset": [70, -26],
+    "cuffSpikeReleaseOffset": [0, 35],
+    "afterCuffReleaseOffset": [80, 0],
+    "nitroPullSpeed": 40,
+    "ballPullSpeed": 40,
     "poses": [
       {
         "name": "swing",
@@ -591,7 +597,7 @@ var characterJSON = {
         "hurtboxes": [[48, 3, 65, 148]],
         "hitboxes": [[76, 3, 124, 148]],
         "canMirror": true,
-        "fixedRelease": [102, 48], //TODO: verify that this is REALLY correct
+        "fixedRelease": [102, 48],
       },
       {
         "name": "stand",
@@ -637,32 +643,34 @@ var characterJSON = {
       {
         "name": "up",
         "degrees": -20,
-        "validWhen": ["swing", "smash"]
+        "validWhen": ["swing", "smash"],
       },
       {
         "name": "ground-down",
         "degrees": 62,
-        "validWhen": ["swing"] //currently this angle gets combined with the next angle
+        "validWhen": ["swing"], //currently this angle gets combined with the next angle
       },
       {
         "name": "air-down",
         "degrees": 62,
-        "validWhen": ["swing"]
+        "validWhen": ["swing"],
       },
       {
         "name": "special-down",
         "degrees": 20,
-        "validWhen": ["swing", "smash"]
+        "validWhen": ["swing", "smash"],
+        "maxReflections": 1,
+        "onlyCuff": true,
       },
       {
         "name": "smash",
         "degrees": 41,
-        "validWhen": ["smash"]
+        "validWhen": ["smash"],
       },
       {
         "name": "spike-forward",
         "degrees": 83,
-        "validWhen": ["spike"]
+        "validWhen": ["spike"],
       },
       {
         "name": "spike-backward",
@@ -670,7 +678,25 @@ var characterJSON = {
         "validWhen": ["spike"],
         "maxReflections": 2,
       }
-    ]
+    ],
+    "angleOptionsOutOfCuff": [
+      {
+        "name": "up-out-of-cuff",
+        "degrees": -20,
+        "validWhen": ["swing"],
+      },
+      {
+        "name": "straight-out-of-cuff",
+        "degrees": 0,
+        "validWhen": ["swing"],
+        "maxReflections": 2,
+      },
+      {
+        "name": "down-out-of-cuff",
+        "degrees": 62,
+        "validWhen": ["swing"],
+      }
+    ],
   },
   "Doombox": {
     "color": "#444",
@@ -1812,16 +1838,20 @@ function addGeneralAngles(char) {
   if (char.name == "Latch" || char.name == "Raptor") {
     char.angles[char.angles.length - 1].mirror = true;
   }
+
   char.angles.push({ name: 'spike', degrees: 90, validWhen: ["spike"], maxReflections: 2, customOffset: 40});
+  if (char.name == "Nitro") {
+    char.angles.forEach(function(e){ e.isCuffable = true; });
+  }
   char.angles.push({ name: 'straight-throw', degrees: 0, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
   char.angles.push({ name: 'down-throw', degrees: 90, validWhen: ["grab"], maxReflections: 2, mirror: true, customOffset: 45, hidden: true});
+
   var validBuntPoses = ["bunt"];
   if (char.name == "Raptor") {
     validBuntPoses = ["bunt", "swing", "smash"];
   } else if (char.name == "Latch") {
     validBuntPoses = ["bunt", "spit"];
   }
-
   var buntAngles = getBuntAngles(validBuntPoses);
   buntAngles.forEach(function(e) { char.angles.push(e); });
 }
@@ -2113,6 +2143,29 @@ function toggleToxicSprayPreview(charName, angleName) {
   angle.sprayPreview = !angle.sprayPreview;
 }
 
+function toggleCuffBall(charName, angleName) {
+  var char = loadChar(charName);
+  var angle = char.angles.find(function(e){ return e.name == angleName });
+
+  angle.cuff = !angle.cuff;
+  if (!char.cuffAngleOptions) {
+    char.cuffAngleOptions = [];
+    char.angleOptionsOutOfCuff.forEach(function(e){ char.cuffAngleOptions.push(Object.assign({}, e)); });
+    var buntOptions = getBuntAngles([]);
+    buntOptions.forEach(function(e){ char.cuffAngleOptions.push(e); });
+  }
+  if (!angle.halfCuffAngleOptions) {
+    angle.halfCuffAngleOptions = [];
+    char.angleOptionsOutOfCuff.forEach(function(e){ angle.halfCuffAngleOptions.push(Object.assign({}, e)); });
+    var buntOptions = getBuntAngles([]);
+    buntOptions.forEach(function(e){ angle.halfCuffAngleOptions.push(e); });
+    angle.pullCuffAngleOptions = [];
+    char.angleOptionsOutOfCuff.forEach(function(e){ angle.pullCuffAngleOptions.push(Object.assign({}, e)); });
+    var buntOptions = getBuntAngles([]);
+    buntOptions.forEach(function(e){ angle.pullCuffAngleOptions.push(e); });
+  }
+}
+
 function addSonataSpecialStep(char, angle) {
   var copyOfAngle = Object.assign({}, angle);
   char.sonataSpecialSteps.push(copyOfAngle);
@@ -2354,14 +2407,22 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   }
 
   if (angle.bunt) {
+    // so bunted balls can start from the floor
     if (start.y > ballStageRect.bottom - 1) {
-      // so bunted balls can start from the floor
       start.y = ballStageRect.bottom - 1;
+    }
+    // so bunted balls can start from the walls
+    if (start.x > ballStageRect.right - 1) {
+      start.x = ballStageRect.right - 1;
+    }
+    if (start.x < ballStageRect.left + 1) {
+      start.x = ballStageRect.left + 1;
     }
   }
 
   var distanceTravelled = 0;
   var bubbleState = 0;
+  angle.hitBoundaryLastBounce = false;
 
   if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
@@ -2574,6 +2635,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     //ball impact location is finalized for this bounce
     properties.lastBallLocation = stopPoint.clone();
     angle.lastBallLocation = stopPoint.clone();
+    angle.hitBoundaryLastBounce = hitStageBoundary;
 
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
@@ -2610,6 +2672,14 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         strokeColor: bubbleColor
       };
       bubbleLine.sendToBack();
+    }
+    if (angle.drawCuff) {
+      var cuffLine = outerLine.clone();
+      cuffLine.style = {
+        strokeWidth: strokeWidthOuter * 2,
+        strokeColor: properties.cuffStrokeColor,
+      };
+      cuffLine.sendToBack();
     }
 
     var arrows = new Group();
@@ -2796,6 +2866,199 @@ function draw() {
         r.scale(-1, 1);
       }
 
+      if (char.name == "Nitro" && char.pose.canSpecial) {
+        var nitroHurtbox = char.getHurtbox();
+
+        var anyCuffActive = false;
+        for (var a = 0; a < char.angles.length; a++) {
+          var angle = char.angles[a];
+
+          if (angle.validWhen.indexOf(char.pose.name) < 0) {
+            continue;
+          }
+
+          var mirrored = char.facing == 'left';
+          var dir = mirrored ? -1 : 1;
+          var releaseOffset = new Point(char.cuffReleaseOffset[0], char.cuffReleaseOffset[1]);
+          if (char.pose.name == "spike") {
+            releaseOffset = new Point(char.cuffSpikeReleaseOffset[0], char.cuffSpikeReleaseOffset[1]);
+          }
+          releaseOffset.x *= dir;
+          var cuffStartingPoint = nitroHurtbox.center + releaseOffset;
+          if (cuffStartingPoint.x < ballStageRect.left) {
+            cuffStartingPoint.x = ballStageRect.left;
+          } else if(cuffStartingPoint.x > ballStageRect.right) {
+            cuffStartingPoint.x = ballStageRect.right;
+          }
+
+          if (angle.isCuffable && char.showDirectButtons) {
+            var offset = 80;
+            if (angle.customOffset) {
+              offset = angle.customOffset;
+            }
+            var icon = createButtonWithTooltip("special", getAngleLabelText(angle) + " (Cuff Ball)", tooltip);
+            var vector = new Point(offset + 60, 0);
+            vector = vector.rotate(angle.degrees);
+            if (mirrored) {
+              vector.x *= -1;
+            }
+            icon.position.x = cuffStartingPoint.x + vector.x;
+            icon.position.y = cuffStartingPoint.y + vector.y;
+            icon.angleName = angle.name;
+            icon.charName = char.name;
+            icon.onMouseDown = function(event) {
+              toggleCuffBall(this.charName, this.angleName);
+              draw();
+            }
+          }
+          if (angle.cuff) {
+            anyCuffActive = true;
+            var originalReflections = angle.reflections;
+            angle.reflections = 0;
+            angle.drawCuff = true;
+            drawAngle(char, angle, cuffStartingPoint, false);
+            angle.drawCuff = false;
+            angle.reflections = originalReflections;
+            if (!angle.hitBoundaryLastBounce) {
+              continue;
+            }
+
+            var nitroPullCenter = nitroHurtbox.center;
+            var pullTarget = new Point(angle.lastBallLocation);
+
+            var pullLeft = nitroPullCenter.x > pullTarget.x;
+            var pullFacing = pullLeft ? 'left' : 'right';
+            var pullDir = pullLeft ? -1 : 1;
+            var afterCuffReleaseOffset = new Point(char.afterCuffReleaseOffset[0] * pullDir, char.afterCuffReleaseOffset[1]);
+            var swingPose = char.poses[0];
+
+            var halfPullLocation = false;
+            var fullPullLocation = false;
+            var nitroHalfPullLocation = false;
+            var nitroFullPullLocation = false;
+
+            for (var why = 0; why < 50; why++) {
+              var nitroDelta = pullTarget - nitroPullCenter;
+              nitroPullCenter += nitroDelta.normalize(char.nitroPullSpeed);
+
+              var nitroBoxes = char.getHurtboxAndHitboxCenteredForPose(nitroPullCenter, swingPose, pullFacing);
+              if (nitroBoxes.hurtbox.right > trueStageRect.right) {
+                nitroPullCenter.x += trueStageRect.right - nitroBoxes.hurtbox.right;
+              }
+              if (nitroBoxes.hurtbox.left < trueStageRect.left) {
+                nitroPullCenter.x += trueStageRect.left - nitroBoxes.hurtbox.left;
+              }
+              if (nitroBoxes.hurtbox.bottom > trueStageRect.bottom) {
+                nitroPullCenter.y += trueStageRect.bottom - nitroBoxes.hurtbox.bottom;
+              }
+              if (nitroBoxes.hurtbox.top < trueStageRect.top) {
+                nitroPullCenter.y += trueStageRect.top - nitroBoxes.hurtbox.top;
+              }
+
+              nitroBoxes = char.getHurtboxAndHitboxCenteredForPose(nitroPullCenter, swingPose, pullFacing);
+              if (nitroBoxes.hitbox.expand(ballDiameter).contains(pullTarget)) {
+                nitroFullPullLocation = nitroPullCenter;
+                fullPullLocation = nitroPullCenter + afterCuffReleaseOffset;
+                if (fullPullLocation.x < ballStageRect.left) {
+                  fullPullLocation.x = ballStageRect.left;
+                } else if(fullPullLocation.x > ballStageRect.right) {
+                  fullPullLocation.x = ballStageRect.right;
+                }
+                break;
+              }
+            }
+            nitroPullCenter = nitroHurtbox.center;
+            for (var why = 0; why < 50; why++) {
+              var nitroDelta = pullTarget - nitroPullCenter;
+              nitroPullCenter += nitroDelta.normalize(char.nitroPullSpeed);
+              var ballDelta = nitroPullCenter + afterCuffReleaseOffset - pullTarget;
+              pullTarget += ballDelta.normalize(char.ballPullSpeed);
+
+              var nitroBoxes = char.getHurtboxAndHitboxCenteredForPose(nitroPullCenter, swingPose, pullFacing);
+              if (nitroBoxes.hurtbox.right > trueStageRect.right) {
+                nitroPullCenter.x += trueStageRect.right - nitroBoxes.hurtbox.right;
+              }
+              if (nitroBoxes.hurtbox.left < trueStageRect.left) {
+                nitroPullCenter.x += trueStageRect.left - nitroBoxes.hurtbox.left;
+              }
+              if (nitroBoxes.hurtbox.bottom > trueStageRect.bottom) {
+                nitroPullCenter.y += trueStageRect.bottom - nitroBoxes.hurtbox.bottom;
+              }
+              if (nitroBoxes.hurtbox.top < trueStageRect.top) {
+                nitroPullCenter.y += trueStageRect.top - nitroBoxes.hurtbox.top;
+              }
+
+              nitroBoxes = char.getHurtboxAndHitboxCenteredForPose(nitroPullCenter, swingPose, pullFacing);
+              if (nitroBoxes.hitbox.expand(ballDiameter).contains(pullTarget)) {
+                nitroHalfPullLocation = nitroPullCenter;
+                halfPullLocation = nitroPullCenter + afterCuffReleaseOffset;
+                if (halfPullLocation.x < ballStageRect.left) {
+                  halfPullLocation.x = ballStageRect.left;
+                } else if(halfPullLocation.x > ballStageRect.right) {
+                  halfPullLocation.x = ballStageRect.right;
+                }
+                break;
+              }
+            }
+
+            if (!fullPullLocation || !halfPullLocation) {
+              // something went wrong, just skip visualizing this cuff angle
+              continue;
+            }
+
+            var relativeOffset = char.getRelativeHurtboxForPose(swingPose, pullFacing);
+            var nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
+            if (pullLeft) {
+              nitroCuffImg.scale(-1, 1);
+            }
+            nitroCuffImg.position.x = nitroFullPullLocation.x - relativeOffset.center.x;
+            nitroCuffImg.position.y = nitroFullPullLocation.y - relativeOffset.center.y;
+            nitroCuffImg.opacity = 0.5;
+            nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
+            if (pullLeft) {
+              nitroCuffImg.scale(-1, 1);
+            }
+            nitroCuffImg.position.x = nitroHalfPullLocation.x - relativeOffset.center.x;
+            nitroCuffImg.position.y = nitroHalfPullLocation.y - relativeOffset.center.y;
+            nitroCuffImg.opacity = 0.5;
+
+            var angleButtonsOffset = new Point(-40 * pullDir, 0); // This offset is currently needed, because otherwise some buttons are outside the canvas
+
+            for (var c = 0; c < angle.halfCuffAngleOptions.length; c++) {
+              var cuffAngle = angle.halfCuffAngleOptions[c];
+              if (cuffAngle.visible) {
+                drawAngle(char, cuffAngle, halfPullLocation, false);
+              }
+              if (char.showDirectButtons) {
+                addAngleButtons(char, cuffAngle, halfPullLocation, char.facing, false, tooltip);
+              }
+            }
+            for (var c = 0; c < angle.pullCuffAngleOptions.length; c++) {
+              var cuffAngle = angle.pullCuffAngleOptions[c];
+              if (cuffAngle.visible) {
+                drawAngle(char, cuffAngle, fullPullLocation, false);
+              }
+              if (char.showDirectButtons) {
+                addAngleButtons(char, cuffAngle, fullPullLocation + angleButtonsOffset, char.facing, false, tooltip);
+              }
+            }
+          }
+        }
+
+        if (anyCuffActive) {
+          var endingOffset = new Point(char.afterCuffReleaseOffset[0], char.afterCuffReleaseOffset[1]);
+          var cuffEndingPoint = nitroHurtbox.center + endingOffset;
+          for (var c = 0; c < char.cuffAngleOptions.length; c++) {
+            var cuffAngle = char.cuffAngleOptions[c];
+            if (cuffAngle.visible) {
+              drawAngle(char, cuffAngle, cuffEndingPoint, false);
+            }
+            if (char.showDirectButtons) {
+              addAngleButtons(char, cuffAngle, cuffEndingPoint, char.facing, false, tooltip);
+            }
+          }
+        }
+      }
       if (char.name == "DustAndAshes" && char.pose.canSpecial) {
         var dustHurtbox = char.getHurtbox();
 
@@ -3324,6 +3587,9 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
   if (angle.customOffset) {
     offset = angle.customOffset;
   }
+  if (angle.onlyCuff && charImagesOn) {
+    return;
+  }
   if (angle.pong) {
     var isVisible = angle.visible;
     var icon = createButtonWithTooltip("pong_special", getAngleLabelText(angle), tooltip);
@@ -3809,6 +4075,23 @@ $('document').ready(function() {
         }
       }
       return calculatedHitboxes;
+    }
+    char.getRelativeFirstHitboxForPose = function(pose, facing) {
+      var box = pose.hitboxes[0];
+      if (facing == 'right') {
+        return new Rectangle(new Point(- pose.imgSize[0] / 2 + box[0], - pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
+      } else {
+        return new Rectangle(new Point(- pose.imgSize[0] / 2 + (pose.imgSize[0] - box[0] - box[2]), - pose.imgSize[1] / 2 + box[1]), new Size(box[2], box[3]));
+      }
+    }
+    char.getHurtboxAndHitboxCenteredForPose = function(position, pose, facing) {
+      var hurtbox = this.getRelativeHurtboxForPose(pose, facing);
+      var hitbox = this.getRelativeFirstHitboxForPose(pose, facing);
+      var diff = hitbox.center - hurtbox.center;
+      result = {};
+      result.hurtbox = new Rectangle(position - new Point(hurtbox.size.width / 2, hurtbox.size.height / 2), new Size(hurtbox.size));
+      result.hitbox = new Rectangle(position - new Point(hitbox.size.width / 2, hitbox.size.height / 2) + diff, new Size(hitbox.size));
+      return result;
     }
     for (var j = 0; j < char.poses.length; j++) {
       var pose = char.poses[j];

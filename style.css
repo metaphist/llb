@@ -64,6 +64,7 @@ body {
     text-transform: uppercase;
     font-size: 12px;
     height: 599px;
+    padding-bottom: 5px;
 }
 #menu ol, #menu ul {
     margin: 0;
