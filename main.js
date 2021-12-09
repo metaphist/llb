@@ -2380,6 +2380,75 @@ function getFixedReleaseLocationsForAshes(ashesData, ashesFloorPoint) {
   }
 }
 
+function resetCharacter(char) {
+  char.angles.forEach(function(angle) {
+    angle.visible = false;
+    angle.reflections = 0;
+    if (angle.bubble) {
+      toggleJetBubbleForAngle(char.name, angle.name);
+    }
+    if (angle.isCuffable) {
+      angle.cuff = false;
+      angle.halfCuffAngleOptions = undefined;
+    }
+    if (angle.pong) {
+      angle.floorAngles = undefined;
+    }
+    if (angle.sprayPreview) {
+      angle.sprayPreview = false;
+    }
+    if (angle.special) {
+      angle.special = 0;
+    }
+  });
+  char.poses.forEach(function(pose) {
+    if (pose.teleportAngle) {
+      pose.teleportAngle.visible = false;
+      pose.teleportAngle.reflections = 0;
+    }
+  });
+  if (char.cuffAngleOptions) {
+    char.cuffAngleOptions = undefined;
+  }
+  if (char.sonataSpecialSteps) {
+    char.sonataSpecialSteps = [];
+  }
+  if (char.ashesSpecial) {
+    char.ashesSpecial[0].enabled = false;
+    char.ashesSpecial[0].angles = undefined;
+    char.ashesSpecial[1].enabled = false;
+    char.ashesSpecial[1].angles = undefined;
+  }
+  if (char.reticle) {
+    removeDoomboxAimReticle(char);
+  }
+  if (char.specialPongAngles) {
+    char.specialPongAngles.forEach(function(e) {
+      e.visible = false;
+      e.reflections = 0;
+    });
+  }
+  if (char.spray) {
+    removeToxicSpray(char);
+  }
+  if (char.teleport) {
+    char.teleport = [];
+  }
+  char.parry = false;
+  char.mirrorAngles = false;
+  changePoseTo(char, char.poses[0]);
+}
+
+function clearEverything() {
+  characters.forEach(function(e) {
+    resetCharacter(e);
+  });
+  for (var i = loadedChars.length - 1; i >= 0; i--) {
+    unloadChar(loadedChars[i].name);
+  }
+}
+
+
 function drawLine(start, degrees) {
   // use canvas width * 2 to ensure line is long enough in any situation
   var end = new Point(start.x + canvas.getBoundingClientRect().width * 2, start.y)
@@ -4283,9 +4352,6 @@ $('#collision').on('click', function(e) {
 })
 
 $('#clear').on('click', function(e) {
-  paper.project.activeLayer.removeChildren()
-  loadedChars = []
-  characters.forEach(function(e) {
-    e.angles.forEach(function(e) { e.visible = false; e.reflections = 0; })
-  })
+  clearEverything();
+  draw();
 })
