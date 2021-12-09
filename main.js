@@ -4094,15 +4094,17 @@ $('document').ready(function() {
   $('select[name="stage"]').change()
 
   /** add chars and angles */
-  for(var i in characterJSON) {
-    var char = characterJSON[i]
-    char.name = i
+  var characterOrder = ["Toxic", "Grid", "Dice", "Latch", "Sonata", "Switch", "Raptor", "Candyman", "Jet", "Doombox", "Nitro", "DustAndAshes"];
+  for (var i = 0; i < characterOrder.length; i++) {
+    var charName = characterOrder[i];
+    var char = characterJSON[charName];
+    char.name = charName;
     addGeneralAngles(char);
     char.showDirectButtons = true;
     char.pose = char.poses[0];
-    char.facing = 'right'
-    char.isDragging = false
-    char.imgOffset = {x: -55, y: 0}
+    char.facing = 'right';
+    char.isDragging = false;
+    char.imgOffset = {x: -55, y: 0};
     char.isCharacter = true;
     char.getImage = function() {
       return "assets/characters/" + this.img_name + "_" + this.pose.name + "_r.png";
