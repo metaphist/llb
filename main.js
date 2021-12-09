@@ -2094,22 +2094,16 @@ function addCandySpecialToAngle(charName, angleName) {
     angle.reflections = 0;
   }
 
-  if (char.name == 'Candyman' && (!angle.special || angle.special < 2)) {
-    if (!angle.special) {
-      angle.special = 1;
-    } else {
-      angle.special++;
-    }
-    // give at least one reflection to properly visualize special
+  if (!angle.candySpecial) {
+    // give at least one reflection to properly visualize candy special
     if (angle.reflections <= 0) {
       angle.reflections = 1;
     }
     if (!guidesOn) {
       guidesOn = true;
     }
-  } else {
-    angle.special = !angle.special;
   }
+  angle.candySpecial = !angle.candySpecial;
 }
 
 
@@ -2397,8 +2391,8 @@ function resetCharacter(char) {
     if (angle.sprayPreview) {
       angle.sprayPreview = false;
     }
-    if (angle.special) {
-      angle.special = 0;
+    if (angle.candySpecial) {
+      angle.candySpecial = 0;
     }
   });
   char.poses.forEach(function(pose) {
@@ -2491,6 +2485,8 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
 
   var distanceTravelled = 0;
   var bubbleState = 0;
+  var candyBallWarpedHorizontal = false;
+  var candyBallWarpedVertical = false;
   angle.hitBoundaryLastBounce = false;
 
   if (angle.bunt || angle.pong) {
@@ -2777,34 +2773,48 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       /**
        * Handle Candyman warp
        */
-      if(properties.name == 'Candyman' && angle.special > i) {
+      var candyBallWarped = false;
+      if (angle.candySpecial && i < 2) {
         var oldStart = start.clone()
 
         // move start to opposite wall
-        if(start.x >= ballStageRect.x + ballStageRect.width - 1)
-          start.x = ballStageRect.x;
-        else if(start.x <= ballStageRect.x + 1)
-          start.x = ballStageRect.x + ballStageRect.width
+        if (!candyBallWarpedHorizontal) {
+          if (start.x >= ballStageRect.x + ballStageRect.width - 1) {
+            start.x = ballStageRect.x;
+            candyBallWarpedHorizontal = true;
+            candyBallWarped = true;
+          } else if (start.x <= ballStageRect.x + 1) {
+            start.x = ballStageRect.x + ballStageRect.width;
+            candyBallWarpedHorizontal = true;
+            candyBallWarped = true;
+          }
+        }
+        if (!candyBallWarpedVertical) {
+          if (start.y >= ballStageRect.y + ballStageRect.height - 1) {
+            start.y = ballStageRect.y;
+            candyBallWarpedVertical = true;
+            candyBallWarped = true;
+          } else if (start.y <= ballStageRect.y + 1) {
+            start.y = ballStageRect.y + ballStageRect.height;
+            candyBallWarpedVertical = true;
+            candyBallWarped = true;
+          }
+        }
 
-        if(start.y >= ballStageRect.y + ballStageRect.height - 1)
-          start.y = ballStageRect.y
-        else if(start.y <= ballStageRect.y + 1)
-          start.y = ballStageRect.y + ballStageRect.height
-
-        if(guidesOn) {
+        if (guidesOn && candyBallWarped) {
           // warp indicator
           new Path({
             segments: [oldStart, start],
             strokeWidth: 1,
             dashArray: [1, 5],
             strokeColor: 'white'
-          })
+          });
 
-          var warpVector = start - oldStart
-          arrows.addChildren(addArrows(oldStart, warpVector, 1, false))
+          var warpVector = start - oldStart;
+          arrows.addChildren(addArrows(oldStart, warpVector, 1, false));
         }
-
-      } else if (!angle.bunt && !angle.pong && !maxDistanceReached) {
+      }
+      if (!candyBallWarped && !angle.bunt && !angle.pong && !maxDistanceReached) {
         var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
         var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
 
