@@ -2165,7 +2165,17 @@ function toggleCuffBall(charName, angleName) {
     char.angleOptionsOutOfCuff.forEach(function(e){ angle.pullCuffAngleOptions.push(Object.assign({}, e)); });
     var buntOptions = getBuntAngles([]);
     buntOptions.forEach(function(e){ angle.pullCuffAngleOptions.push(e); });
+    angle.halfCuffPullEnabled = false;
+    angle.fullCuffPullEnabled = true;
   }
+}
+
+function toggleHalfCuffPull(char, angle) {
+  angle.halfCuffPullEnabled = !angle.halfCuffPullEnabled;
+}
+
+function toggleFullCuffPull(char, angle) {
+  angle.fullCuffPullEnabled = !angle.fullCuffPullEnabled;
 }
 
 function addSonataSpecialStep(char, angle) {
@@ -3082,7 +3092,7 @@ function draw() {
                 fullPullLocation = nitroPullCenter + afterCuffReleaseOffset;
                 if (fullPullLocation.x < ballStageRect.left) {
                   fullPullLocation.x = ballStageRect.left;
-                } else if(fullPullLocation.x > ballStageRect.right) {
+                } else if (fullPullLocation.x > ballStageRect.right) {
                   fullPullLocation.x = ballStageRect.right;
                 }
                 break;
@@ -3115,7 +3125,7 @@ function draw() {
                 halfPullLocation = nitroPullCenter + afterCuffReleaseOffset;
                 if (halfPullLocation.x < ballStageRect.left) {
                   halfPullLocation.x = ballStageRect.left;
-                } else if(halfPullLocation.x > ballStageRect.right) {
+                } else if (halfPullLocation.x > ballStageRect.right) {
                   halfPullLocation.x = ballStageRect.right;
                 }
                 break;
@@ -3128,46 +3138,78 @@ function draw() {
             }
 
             var relativeOffset = char.getRelativeHurtboxForPose(swingPose, pullFacing);
-            var nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
-            if (pullLeft) {
-              nitroCuffImg.scale(-1, 1);
-            }
-            nitroCuffImg.position.x = nitroFullPullLocation.x - relativeOffset.center.x;
-            nitroCuffImg.position.y = nitroFullPullLocation.y - relativeOffset.center.y;
-            nitroCuffImg.opacity = 0.5;
-            nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
-            if (pullLeft) {
-              nitroCuffImg.scale(-1, 1);
-            }
-            nitroCuffImg.position.x = nitroHalfPullLocation.x - relativeOffset.center.x;
-            nitroCuffImg.position.y = nitroHalfPullLocation.y - relativeOffset.center.y;
-            nitroCuffImg.opacity = 0.5;
+            var fullPullIconName = "special";
+            if (angle.fullCuffPullEnabled) {
+              var nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
+              if (pullLeft) {
+                nitroCuffImg.scale(-1, 1);
+              }
+              nitroCuffImg.position.x = nitroFullPullLocation.x - relativeOffset.center.x;
+              nitroCuffImg.position.y = nitroFullPullLocation.y - relativeOffset.center.y;
+              nitroCuffImg.opacity = 0.5;
 
-            var angleButtonsOffset = new Point(-40 * pullDir, 0); // This offset is currently needed, because otherwise some buttons are outside the canvas
-
-            for (var c = 0; c < angle.halfCuffAngleOptions.length; c++) {
-              var cuffAngle = angle.halfCuffAngleOptions[c];
-              if (cuffAngle.visible) {
-                drawAngle(char, cuffAngle, halfPullLocation, false);
+              var angleButtonsOffset = new Point(-40 * pullDir, 0); // This offset is currently needed, because otherwise some buttons are outside the canvas
+              for (var c = 0; c < angle.pullCuffAngleOptions.length; c++) {
+                var cuffAngle = angle.pullCuffAngleOptions[c];
+                if (cuffAngle.visible) {
+                  drawAngle(char, cuffAngle, fullPullLocation, false);
+                }
+                if (char.showDirectButtons) {
+                  addAngleButtons(char, cuffAngle, fullPullLocation + angleButtonsOffset, char.facing, false, tooltip);
+                }
               }
-              if (char.showDirectButtons) {
-                addAngleButtons(char, cuffAngle, halfPullLocation, char.facing, false, tooltip);
+              fullPullIconName = "back";
+            }
+            if (char.showDirectButtons) {
+              var icon = createButtonWithTooltip(fullPullIconName, getAngleLabelText(angle) + " (Toggle Pull)", tooltip);
+              icon.position.x = fullPullLocation.x;
+              icon.position.y = fullPullLocation.y;
+              icon.angle = angle;
+              icon.char = char;
+              icon.onMouseDown = function(event) {
+                toggleFullCuffPull(this.char, this.angle);
+                draw();
               }
             }
-            for (var c = 0; c < angle.pullCuffAngleOptions.length; c++) {
-              var cuffAngle = angle.pullCuffAngleOptions[c];
-              if (cuffAngle.visible) {
-                drawAngle(char, cuffAngle, fullPullLocation, false);
+
+            var halfPullIconName = "special";
+            if (angle.halfCuffPullEnabled) {
+              var nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
+              if (pullLeft) {
+                nitroCuffImg.scale(-1, 1);
               }
-              if (char.showDirectButtons) {
-                addAngleButtons(char, cuffAngle, fullPullLocation + angleButtonsOffset, char.facing, false, tooltip);
+              nitroCuffImg.position.x = nitroHalfPullLocation.x - relativeOffset.center.x;
+              nitroCuffImg.position.y = nitroHalfPullLocation.y - relativeOffset.center.y;
+              nitroCuffImg.opacity = 0.5;
+
+              for (var c = 0; c < angle.halfCuffAngleOptions.length; c++) {
+                var cuffAngle = angle.halfCuffAngleOptions[c];
+                if (cuffAngle.visible) {
+                  drawAngle(char, cuffAngle, halfPullLocation, false);
+                }
+                if (char.showDirectButtons) {
+                  addAngleButtons(char, cuffAngle, halfPullLocation, char.facing, false, tooltip);
+                }
+              }
+              halfPullIconName = "back";
+            }
+
+            if (char.showDirectButtons) {
+              var icon = createButtonWithTooltip(halfPullIconName, getAngleLabelText(angle) + " (Toggle Half Pull)", tooltip);
+              icon.position.x = halfPullLocation.x;
+              icon.position.y = halfPullLocation.y;
+              icon.angle = angle;
+              icon.char = char;
+              icon.onMouseDown = function(event) {
+                toggleHalfCuffPull(this.char, this.angle);
+                draw();
               }
             }
           }
         }
 
         if (anyCuffActive) {
-          var endingOffset = new Point(char.afterCuffReleaseOffset[0], char.afterCuffReleaseOffset[1]);
+          var endingOffset = new Point(char.afterCuffReleaseOffset[0] * dir, char.afterCuffReleaseOffset[1]);
           var cuffEndingPoint = nitroHurtbox.center + endingOffset;
           for (var c = 0; c < char.cuffAngleOptions.length; c++) {
             var cuffAngle = char.cuffAngleOptions[c];
