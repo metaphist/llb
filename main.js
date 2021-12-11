@@ -2530,7 +2530,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   }
 
   /** text label */
-  if (labelsOn) {
+  if (labelsOn && !angle.preview) {
     var reposition = 0 // will turn true if label is too close to another
     var done = false
     do {
@@ -2811,7 +2811,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     }
 
     var arrows = new Group();
-    if (guidesOn) {
+    if (guidesOn && !angle.preview) {
       arrows.addChildren(addArrows(start, vector, 1, true));
     }
 
@@ -3553,7 +3553,9 @@ function draw() {
           if (specialAngle.visible || true) {
             var originalReflections = specialAngle.reflections;
             specialAngle.reflections = 0;
+            specialAngle.preview = true; // we actually don't want to draw it here, just see whether we hit something within the first bounce
             drawAngle(char, specialAngle, specialPoint, mirrored);
+            specialAngle.preview = false;
             specialAngle.reflections = originalReflections;
 
             if (step <= 2 && (specialAngle.hitHurtboxLastBounce || specialAngle.hitHitboxLastBounce)) {
@@ -3571,6 +3573,8 @@ function draw() {
 
               specialAngle.maxDistance = originalMaxDistance;
               break;
+            } else {
+              drawAngle(char, specialAngle, specialPoint, mirrored);
             }
             specialPoint = specialAngle.lastBallLocation;
           }
