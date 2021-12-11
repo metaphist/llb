@@ -1095,6 +1095,7 @@ var characterJSON = {
   "Candyman": {
     "color": "gold",
     "strokeColor": "brown",
+    "candyballStrokeColor": "yellow",
     "img_name": "candy",
     "baseHeight": 152,
     "poses": [
@@ -2091,12 +2092,18 @@ function addCandySpecialToAngle(charName, angleName) {
   var char = loadChar(charName);
   var angle = char.angles.find(function(e){ return e.name == angleName });
 
-  angle.visible = true;
-  if (angle.reflections == 'undefined' || isNaN(angle.reflections)) {
-    angle.reflections = 0;
+  if (!angle.candySpecial) {
+    angle.candySpecial = true;
+  } else if (angle.visible) {
+    angle.candySpecial = false;
   }
 
-  if (!angle.candySpecial) {
+  angle.visible = true;
+  if (angle.reflections == 'undefined' || isNaN(angle.reflections)) {
+    angle.reflections = 1;
+  }
+
+  if (angle.candySpecial) {
     // give at least one reflection to properly visualize candy special
     if (angle.reflections <= 0) {
       angle.reflections = 1;
@@ -2105,7 +2112,6 @@ function addCandySpecialToAngle(charName, angleName) {
       guidesOn = true;
     }
   }
-  angle.candySpecial = !angle.candySpecial;
 }
 
 
@@ -2772,6 +2778,15 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         strokeColor: properties.cuffStrokeColor,
       };
       cuffLine.sendToBack();
+    }
+    var isCandyball = angle.candySpecial && (i < 2 || (candyBallWarpedHorizontal && candyBallWarpedVertical && i < 3));
+    if (isCandyball) {
+      var candyballLine = outerLine.clone();
+      candyballLine.style = {
+        strokeWidth: strokeWidthOuter * 2,
+        strokeColor: properties.candyballStrokeColor,
+      };
+      candyballLine.sendToBack();
     }
 
     var arrows = new Group();
