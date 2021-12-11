@@ -2609,15 +2609,25 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
               hitboxPath = new Path.Rectangle(hitbox);
               hitboxPathExpanded = new Path.Rectangle(hitboxExpanded);
             }
+            var contained = hitboxPathExpanded.contains(start);
             var intersections = line.getIntersections(hitboxPathExpanded);
-            for (var l = 0; l < intersections.length; l++) {
-              var intersection = intersections[l];
-              var dist = start.getDistance(intersection.point);
-              if (!hitHurtBoxCollision || dist < closestDistance) {
+            if (contained) {
+              if (!hitHurtBoxCollision || closestDistance > 0) {
                 hitHurtBoxCollision = true;
-                hitHurtBoxPoint = intersection.point;
+                hitHurtBoxPoint = start;
                 hitHurtBoxPath = hitboxPath;
-                closestDistance = dist;
+                closestDistance = 0;
+              }
+            } else {
+              for (var l = 0; l < intersections.length; l++) {
+                var intersection = intersections[l];
+                var dist = start.getDistance(intersection.point);
+                if (!hitHurtBoxCollision || dist < closestDistance) {
+                  hitHurtBoxCollision = true;
+                  hitHurtBoxPoint = intersection.point;
+                  hitHurtBoxPath = hitboxPath;
+                  closestDistance = dist;
+                }
               }
             }
           }
@@ -2626,47 +2636,62 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
           var hurtbox = entity.getHurtbox();
           var expandedHurtbox = hurtbox.expand(ballDiameter);
           var hurtboxPathExpanded = new Path.Rectangle(expandedHurtbox);
+          var contained = hurtboxPathExpanded.contains(start);
           var intersections = line.getIntersections(hurtboxPathExpanded);
-          for (var l = 0; l < intersections.length; l++) {
-            var intersection = intersections[l];
-            var dist = start.getDistance(intersection.point);
-            var epsilon = 0.0001;
-            if (!hitHurtBoxCollision || dist < closestDistance - epsilon) {
+          if (contained) {
+            if (!hitHurtBoxCollision || closestDistance > 0) {
               hitHurtBoxCollision = true;
-              hitHurtBoxPoint = intersection.point;
+              hitHurtBoxPoint = start;
               hitHurtBoxPath = new Path.Rectangle(hurtbox);
-              closestDistance = dist;
+              closestDistance = 0;
               itHurts = true;
+            }
+          } else {
+            for (var l = 0; l < intersections.length; l++) {
+              var intersection = intersections[l];
+              var dist = start.getDistance(intersection.point);
+              var epsilon = 0.0001;
+              if (!hitHurtBoxCollision || dist < closestDistance - epsilon) {
+                hitHurtBoxCollision = true;
+                hitHurtBoxPoint = intersection.point;
+                hitHurtBoxPath = new Path.Rectangle(hurtbox);
+                closestDistance = dist;
+                itHurts = true;
+              }
             }
           }
         }
       }
     }
 
-    var stopPoint = hitHurtBoxPoint;
+    var stopPoint = new Point();
     var hitStageBoundary = false;
 
-    if (!hitHurtBoxCollision) {
-      // get new starting point from reflection point
-      var intersections = line.getIntersections(ballStageBounds);
-      //for(var i in intersections) console.log(intersections[i].point.x, intersections[i].point.y)
-      var intersectPoint = intersections.length ? intersections[intersections.length-1].point : false
-      if (!intersectPoint) {
-        if (angle.bunt || angle.pong) {
-          intersectPoint = arcTargetPos;
-        } else {
-          break;
-        }
-      } else {
+    var intersections = line.getIntersections(ballStageBounds);
+    var intersectPoint = intersections.length ? intersections[intersections.length - 1].point : false;
+    if (intersectPoint) {
+      var stageHitDistance = start.getDistance(intersectPoint);
+      if (!hitHurtBoxCollision || stageHitDistance < closestDistance) {
+        hitHurtBoxCollision = false;
         hitStageBoundary = true;
         if (angle.bunt) {
           // in case bunted ball hit the ceiling
           velocity.y = 0;
           intersectPoint.y += 1;
         }
+        stopPoint = intersectPoint;
+      } else {
+        stopPoint = hitHurtBoxPoint;
       }
-
-      stopPoint = intersectPoint;
+    } else {
+      if (hitHurtBoxCollision) {
+        stopPoint = hitHurtBoxPoint;
+      } else if (angle.bunt || angle.pong) {
+        stopPoint = arcTargetPos;
+      } else {
+        // ball neither hit stage nor hitbox, so something is wrong
+        break;
+      }
     }
 
     var vector = stopPoint - start;
