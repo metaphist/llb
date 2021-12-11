@@ -1540,12 +1540,14 @@ var characterJSON = {
         "degrees": -(180-8),
         "validWhen": [],
         "customOffset": 125,
+        "pongFollowup": true,
       },
       {
         "name": "floor-pong-forward",
         "degrees": -8,
         "validWhen": [],
         "customOffset": 125,
+        "pongFollowup": true,
       },
     ],
     "specialPongAngles": [
@@ -1554,36 +1556,42 @@ var characterJSON = {
         "degrees": -(180-8),
         "validWhen": [],
         "customOffset": 125,
+        "pongWallFollowup": true,
       },
       {
         "name": "floor-pong",
         "degrees": -8,
         "validWhen": [],
         "customOffset": 125,
+        "pongWallFollowup": true,
       },
       {
         "name": "ceiling-pong",
         "degrees": 180-45,
         "validWhen": [],
         "customOffset": 125,
+        "pongWallFollowup": true,
       },
       {
         "name": "ceiling-pong",
         "degrees": 45,
         "validWhen": [],
         "customOffset": 125,
+        "pongWallFollowup": true,
       },
       {
         "name": "ceiling-glitch",
         "degrees": 180-8,
         "validWhen": [],
         "customOffset": 125,
+        "pongWallFollowup": true,
       },
       {
         "name": "ceiling-glitch",
         "degrees": 8,
         "validWhen": [],
         "customOffset": 125,
+        "pongWallFollowup": true,
       },
     ]
   },
@@ -2394,11 +2402,11 @@ function getFixedReleaseLocationsForAshes(ashesData, ashesFloorPoint) {
 
 function resetCharacter(char) {
   char.angles.forEach(function(angle) {
-    angle.visible = false;
-    angle.reflections = 0;
     if (angle.bubble) {
       toggleJetBubbleForAngle(char.name, angle.name);
     }
+    angle.visible = false;
+    angle.reflections = 0;
     if (angle.isCuffable) {
       angle.cuff = false;
       angle.halfCuffAngleOptions = undefined;
@@ -2479,7 +2487,7 @@ function drawLineSegment(start, end) {
 
 function drawAngle(properties, angle, startingPoint, mirrored) {
   var degrees = (properties.facing == 'left' ^ mirrored) ? (angle.degrees + 180) * -1 : angle.degrees
-  var start = startingPoint;
+  var start = new Point(startingPoint);
 
   if (angle.bubble) {
     if (start.y > trueStageRect.bottom - properties.bubbleMinHeight) {
@@ -3138,7 +3146,7 @@ function draw() {
             }
 
             var relativeOffset = char.getRelativeHurtboxForPose(swingPose, pullFacing);
-            var fullPullIconName = "special";
+            var fullPullIconName = "char";
             if (angle.fullCuffPullEnabled) {
               var nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
               if (pullLeft) {
@@ -3155,6 +3163,7 @@ function draw() {
                   drawAngle(char, cuffAngle, fullPullLocation, false);
                 }
                 if (char.showDirectButtons) {
+                  cuffAngle.cuffFollowup = true;
                   addAngleButtons(char, cuffAngle, fullPullLocation + angleButtonsOffset, char.facing, false, tooltip);
                 }
               }
@@ -3172,7 +3181,7 @@ function draw() {
               }
             }
 
-            var halfPullIconName = "special";
+            var halfPullIconName = "char";
             if (angle.halfCuffPullEnabled) {
               var nitroCuffImg = new Raster("assets/characters/nitro_swing_r.png");
               if (pullLeft) {
@@ -3188,6 +3197,7 @@ function draw() {
                   drawAngle(char, cuffAngle, halfPullLocation, false);
                 }
                 if (char.showDirectButtons) {
+                  cuffAngle.cuffFollowup = true;
                   addAngleButtons(char, cuffAngle, halfPullLocation, char.facing, false, tooltip);
                 }
               }
@@ -3217,6 +3227,7 @@ function draw() {
               drawAngle(char, cuffAngle, cuffEndingPoint, false);
             }
             if (char.showDirectButtons) {
+              cuffAngle.cuffFollowup = true;
               addAngleButtons(char, cuffAngle, cuffEndingPoint, char.facing, false, tooltip);
             }
           }
@@ -3278,6 +3289,7 @@ function draw() {
               }
 
               if (char.showDirectButtons) {
+                angle.ashesFollowup = true;
                 addAngleButtons(char, angle, startingPoint, ashesData.facing, false, tooltip);
               }
             });
@@ -3467,7 +3479,7 @@ function draw() {
         }
       }
       if (char.name == "Doombox" && char.pose.canSpecial) {
-        var icon = createButtonWithTooltip("special", "Toggle Special", tooltip);
+        var icon = createButtonWithTooltip("snipe_special", "Toggle Special", tooltip);
         icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
         iconPosition += iconSpacing;
@@ -3478,7 +3490,7 @@ function draw() {
         }
       }
       if (char.name == "Toxic") {
-        var icon = createButtonWithTooltip("special", "Spray", tooltip);
+        var icon = createButtonWithTooltip("spray_special", "Spray", tooltip);
         icon.position.x = iconsX + iconPosition;
         icon.position.y = iconsY;
         iconPosition += iconSpacing;
@@ -3539,6 +3551,7 @@ function draw() {
             drawAngle(char, specialAngle, specialPoint, mirrored);
           }
           if (step == 3 && char.showDirectButtons) {
+            specialAngle.sonataFollowup = true;
             addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
           }
           specialPoint = char.lastBallLocation;
@@ -3549,7 +3562,7 @@ function draw() {
             if (specialAngle.validForStep.indexOf(step) < 0) {
               continue;
             }
-            var icon = createButtonWithTooltip("special", "Add Special Step", tooltip);
+            var icon = createButtonWithTooltip("sonata_special", "Add Special Step", tooltip);
             var offset = 100;
             var vector = new Point(offset, 0);
             vector = vector.rotate(specialAngle.degrees);
@@ -3622,6 +3635,7 @@ function draw() {
           drawAngle(char, teleportAngle, startingPoint, mirrored);
         }
         if (char.showDirectButtons) {
+          teleportAngle.teleportFollowup = true;
           addAngleButtons(char, teleportAngle, startingPoint, teleportData.facing, false, tooltip);
         }
 
@@ -3656,6 +3670,7 @@ function draw() {
         for (var k = 0; k < char.reticle.angles.length; k++) {
           var snipeAngle = char.reticle.angles[k];
           var nonFlippedFacing = "right";
+          snipeAngle.snipeFollowup = true;
           addAngleButtons(char, snipeAngle, startingPoint, nonFlippedFacing, false, tooltip);
         }
       }
@@ -3754,9 +3769,13 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
   if (angle.onlyCuff && charImagesOn) {
     return;
   }
-  if (angle.pong) {
+  if (angle.pong || angle.bunt) {
+    var iconImg = "pong_special";
+    if (angle.bunt) {
+      iconImg = "bunt";
+    }
     var isVisible = angle.visible;
-    var icon = createButtonWithTooltip("pong_special", getAngleLabelText(angle), tooltip);
+    var icon = createButtonWithTooltip(iconImg, getAngleLabelText(angle), tooltip);
     var vector = new Point(offset, 0);
     vector = vector.rotate(angle.degrees);
     if (facing == 'left') {
@@ -3777,8 +3796,20 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     return;
   }
   var iconImg = "plus";
-  if (angle.bunt) {
-    iconImg = "bunt_plus";
+  if (angle.pongFollowup) {
+    iconImg = "pong_plus";
+  } else if (angle.pongWallFollowup) {
+    iconImg = "pong_wall_plus";
+  } else if (angle.cuffFollowup) {
+    iconImg = "cuff_plus";
+  } else if (angle.sonataFollowup) {
+    iconImg = "sonata_plus";
+  } else if (angle.snipeFollowup) {
+    iconImg = "snipe_plus";
+  } else if (angle.teleportFollowup) {
+    iconImg = "grid_plus";
+  } else if (angle.ashesFollowup) {
+    iconImg = "ashes_plus";
   }
   var icon = createButtonWithTooltip(iconImg, getAngleLabelText(angle) + " (+)", tooltip);
   var vector = new Point(offset, 0);
@@ -3794,10 +3825,22 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     addReflectionsToAngle(this.char, this.angle, 1, updateCharPoseOnButtonUse);
     draw();
   }
-  if (angle.visible && (!angle.alwaysVisible || angle.reflections > 0)) {
+  if (angle.visible && !angle.bunt && (!angle.alwaysVisible || angle.reflections > 0)) {
     iconImg = "minus";
-    if (angle.bunt) {
-      iconImg = "bunt_minus";
+    if (angle.pongFollowup) {
+      iconImg = "pong_minus";
+    } else if (angle.pongWallFollowup) {
+      iconImg = "pong_wall_minus";
+    } else if (angle.cuffFollowup) {
+      iconImg = "cuff_minus";
+    } else if (angle.sonataFollowup) {
+      iconImg = "sonata_minus";
+    } else if (angle.snipeFollowup) {
+      iconImg = "snipe_minus";
+    } else if (angle.teleportFollowup) {
+      iconImg = "grid_minus";
+    } else if (angle.ashesFollowup) {
+      iconImg = "ashes_minus";
     }
     var icon = createButtonWithTooltip(iconImg, getAngleLabelText(angle) + " (-)", tooltip);
     var vector = new Point(offset - 20, 0);
@@ -3819,7 +3862,7 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     }
   }
   if (char.name == "Candyman" && char.pose.canSpecial) {
-    var icon = createButtonWithTooltip("special", getAngleLabelText(angle) + " (Toggle Candywarp)", tooltip);
+    var icon = createButtonWithTooltip("candy_special", getAngleLabelText(angle) + " (Toggle Candywarp)", tooltip);
     var vector = new Point(offset + 20, 0);
     vector = vector.rotate(angle.degrees);
     if (facing == 'left') {
@@ -3851,7 +3894,7 @@ function addAngleButtons(char, angle, position, facing, updateCharPoseOnButtonUs
     }
   }
   if (char.name == "Toxic" && char.pose.canSpecial) {
-    var icon = createButtonWithTooltip("special", getAngleLabelText(angle) + " (Preview Spray)", tooltip);
+    var icon = createButtonWithTooltip("spray_special", getAngleLabelText(angle) + " (Preview Spray)", tooltip);
     var vector = new Point(offset + 20, 0);
     vector = vector.rotate(angle.degrees);
     if (facing == 'left') {
