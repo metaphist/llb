@@ -105,7 +105,7 @@ body {
     font-size: 2em;
     font-weight: bold;
 }
-.plus, .minus, .turn, .special, .bubble {
+.plus, .minus, .turn, .special, .bubble, .resetChar, .mirror, .pose, .declutter {
     padding: 3px 7px;
     background: goldenrod;
     border-radius: 5px;

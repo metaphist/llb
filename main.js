@@ -1807,6 +1807,7 @@ function loadChar(charName) {
     char = characters.find(function(e){ return e.name == charName });
     loadedChars.push(char);
     activeEntities.push(char);
+    $('li#' + charName + ' span.hideable').removeClass("hidden");
     $('li#' + charName + ' ol').removeClass("hidden");
     $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon2.png")');
   }
@@ -1821,6 +1822,7 @@ function unloadChar(charName) {
     loadedChars.splice(i, 1);
     var j = activeEntities.findIndex(function(e){ return e.name == charName });
     activeEntities.splice(j, 1);
+    $('li#' + charName + ' span.hideable').addClass("hidden");
     $('li#' + charName + ' ol').addClass("hidden");
     $('#' + char.name).css('background-image', 'url("assets/characters/' + char.img_name + '_icon.png")');
     if (char.spray) {
@@ -4191,9 +4193,19 @@ $('document').ready(function() {
         }
       }
     }
-    characters.push(char)
+    characters.push(char);
 
-    $('#menu ul').append('<li id='+char.name+'><span class="character">'+char.name+'</span> <span class="turn">&#8634;</span><ol class="angles hidden"></ol></li>')
+    var menuItem = '<li id='+char.name+'>';
+    menuItem += '<span class="character">'+char.name+'</span>';
+    menuItem += ' <span class="turn hideable hidden" title="Flip Character">&#8634;</span>';
+    menuItem += ' <span class="declutter hideable hidden" title="Toggle Buttons">&#8862;</span>';
+    menuItem += ' <span class="pose hideable hidden" title="Next Pose">&#9977;</span>';
+    menuItem += ' <span class="mirror hideable hidden" title="Toggle Mirror Angles">&#10657;</span>';
+    menuItem += ' <span class="resetChar hideable hidden" title="Reset Character">R</span>';
+    menuItem += '<ol class="angles hidden"/>';
+    menuItem += '</li>';
+    $('#menu ul').append(menuItem);
+
     var prevAngle = null // for combining like angles
     for (var j = 0; j < char.angles.length; j++) {
       var angle = char.angles[j]
@@ -4246,10 +4258,60 @@ $('document').ready(function() {
   $('.turn').on('click', function(e) {
     var charName = $(e.target).parent().attr('id')
     var char = loadedChars.find(function(e){ return e.name == charName })
-    if(!char) char = characters.find(function(e){ return e.name == charName })
-    flipDirectionFacing(char);
+
+    if (char) {
+      flipDirectionFacing(char);
+    }
 
     draw()
+  })
+
+  /** toggle button visibility */
+  $('.declutter').on('click', function(e) {
+    var charName = $(e.target).parent().attr('id');
+    var char = loadedChars.find(function(e){ return e.name == charName; });
+
+    if (char) {
+      toggleDirectButtons(char);
+    }
+
+    draw();
+  })
+
+  /** toggle pose */
+  $('.pose').on('click', function(e) {
+    var charName = $(e.target).parent().attr('id');
+    var char = loadedChars.find(function(e){ return e.name == charName; });
+
+    if (char) {
+      nextPose(char);
+    }
+
+    draw();
+  })
+
+  /** toggle mirror angles */
+  $('.mirror').on('click', function(e) {
+    var charName = $(e.target).parent().attr('id');
+    var char = loadedChars.find(function(e){ return e.name == charName; });
+
+    if (char) {
+      toggleMirrorAngles(char);
+    }
+
+    draw();
+  })
+
+  /** reset character */
+  $('.resetChar').on('click', function(e) {
+    var charName = $(e.target).parent().attr('id');
+    var char = loadedChars.find(function(e){ return e.name == charName; });
+
+    if (char) {
+      resetCharacter(char);
+    }
+
+    draw();
   })
 
   /** toggle angles */
