@@ -3426,8 +3426,9 @@ function draw() {
       for (var j = 0; j < char.specialPongAngles.length; j++){
         var angle = char.specialPongAngles[j];
         var startLocation = startingLocations[j];
+        var mirrored = char.facing == 'left';
         if (angle.visible) {
-          drawAngle(char, angle, startLocation, false);
+          drawAngle(char, angle, startLocation, mirrored);
         }
         if (char.showDirectButtons) {
           addAngleButtons(char, angle, startLocation, 'right', false, tooltip);
