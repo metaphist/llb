@@ -2514,6 +2514,8 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   var candyBallWarpedHorizontal = false;
   var candyBallWarpedVertical = false;
   angle.hitBoundaryLastBounce = false;
+  angle.hitHitboxLastBounce = false;
+  angle.hitHurtboxLastBounce = false;
 
   if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
@@ -2749,9 +2751,10 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     distanceTravelled += vector.length;
 
     //ball impact location is finalized for this bounce
-    properties.lastBallLocation = stopPoint.clone();
     angle.lastBallLocation = stopPoint.clone();
     angle.hitBoundaryLastBounce = hitStageBoundary;
+    angle.hitHitboxLastBounce = hitHurtBoxCollision && !itHurts;
+    angle.hitHurtboxLastBounce = hitHurtBoxCollision && itHurts;
 
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
@@ -3547,14 +3550,30 @@ function draw() {
           }
           var mirrored = false;
           var specialAngle = char.sonataSpecialSteps[step - 1];
-          if (specialAngle.visible) {
+          if (specialAngle.visible || true) {
+            var originalReflections = specialAngle.reflections;
+            specialAngle.reflections = 0;
             drawAngle(char, specialAngle, specialPoint, mirrored);
+            specialAngle.reflections = originalReflections;
+
+            if (step <= 2 && (specialAngle.hitHurtboxLastBounce || specialAngle.hitHitboxLastBounce)) {
+              break;
+            }
+            var wallHit = specialAngle.hitBoundaryLastBounce && (specialAngle.lastBallLocation.x <= ballStageRect.left || specialAngle.lastBallLocation.x >= ballStageRect.right);
+            if ((wallHit || step == 3) && char.showDirectButtons) {
+              var originalMaxDistance = specialAngle.maxDistance;
+              specialAngle.maxDistance = undefined;
+              drawAngle(char, specialAngle, specialPoint, mirrored);
+
+              specialAngle.sonataFollowup = true;
+              specialAngle.alwaysVisible = true;
+              addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
+
+              specialAngle.maxDistance = originalMaxDistance;
+              break;
+            }
+            specialPoint = specialAngle.lastBallLocation;
           }
-          if (step == 3 && char.showDirectButtons) {
-            specialAngle.sonataFollowup = true;
-            addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
-          }
-          specialPoint = char.lastBallLocation;
         } else if (char.showDirectButtons) {
           for (var s = 0; s < char.specialAngles.length; s++) {
             var specialAngle = char.specialAngles[s];
@@ -3602,8 +3621,8 @@ function draw() {
           var startingPoint = new Point(char.x, char.y);
           drawAngle(char, currentAngle, startingPoint, false);
 
-          sprayForPreview.x = char.lastBallLocation.x;
-          sprayForPreview.y = char.lastBallLocation.y;
+          sprayForPreview.x = currentAngle.lastBallLocation.x;
+          sprayForPreview.y = currentAngle.lastBallLocation.y;
           var displacement = figureOutSprayWallPlacement(sprayForPreview.getHurtbox());
           //TODO: look into code to see where the spray will land exactly when shot into a corner
           sprayForPreview.x += displacement.x;
