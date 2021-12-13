@@ -1209,6 +1209,7 @@ var characterJSON = {
   "Sonata": {
     "color": "#3349cb",
     "strokeColor": "darkviolet",
+    "sonataSpecialStrokeColor": "violet",
     "img_name": "sonata",
     "baseHeight": 140,
     "poses": [
@@ -1284,6 +1285,7 @@ var characterJSON = {
         "groundOffset": 0,
       },
     ],
+    "specialButtonsCustomOffset": 42,
     "sonataSpecialSteps":[],
     "specialAngles": [
       {
@@ -2191,9 +2193,10 @@ function addSonataSpecialStep(char, angle) {
   char.sonataSpecialSteps.push(copyOfAngle);
   copyOfAngle.reflections = 0;
   copyOfAngle.visible = true;
+  copyOfAngle.customOffset = char.specialButtonsCustomOffset;
+  copyOfAngle.sonataFollowup = true;
   if (char.sonataSpecialSteps.length == 3) {
     copyOfAngle.maxDistance = undefined;
-    copyOfAngle.customOffset = 100;
     copyOfAngle.alwaysVisible = true;
   }
 }
@@ -2809,6 +2812,15 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       };
       candyballLine.sendToBack();
     }
+    var isSonataBall = angle.sonataFollowup && i == 0;
+    if (isSonataBall) {
+      var sonataLine = outerLine.clone();
+      sonataLine.style = {
+        strokeWidth: strokeWidthOuter * 2,
+        strokeColor: properties.sonataSpecialStrokeColor,
+      };
+      sonataLine.sendToBack();
+    }
 
     var arrows = new Group();
     if (guidesOn && !angle.preview) {
@@ -2878,14 +2890,16 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         }
       }
       if (!candyBallWarped && !angle.bunt && !angle.pong && !maxDistanceReached) {
-        var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1
-        var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1
+        var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1;
+        var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1;
+        var movesHorizontally = Math.abs(vector.x) > 0.00001;
+        var movesVertically = Math.abs(vector.y) > 0.00001;
 
-        if(hitSides && hitFloorOrCeiling) {
+        if (movesHorizontally && hitSides && movesVertically && hitFloorOrCeiling) {
           // on corners invert direction
           degrees += 180;
           i++; // corner should count as two reflections
-        } else if(hitSides) {
+        } else if (movesHorizontally && hitSides) {
           // on side reflections flip angle horizontally
           degrees *= -1
           degrees += 180
@@ -3534,13 +3548,19 @@ function draw() {
     }
 
     if (char.name == "Sonata" && char.pose.canSpecial) {
+      var sonataHurtbox = char.getHurtbox();
       var specialPoint = new Point(char.x, char.y);
       for (var step = 1; step <= 3; step++) {
         if (char.sonataSpecialSteps.length >= step) {
           if (step == char.sonataSpecialSteps.length && char.showDirectButtons) {
             var icon = createButtonWithTooltip("back", "Undo Special Step", tooltip);
-            icon.position.x = specialPoint.x;
-            icon.position.y = specialPoint.y;
+            if (step == 1) {
+              icon.position.x = specialPoint.x;
+              icon.position.y = specialPoint.y - 30;
+            } else {
+              icon.position.x = specialPoint.x;
+              icon.position.y = specialPoint.y;
+            }
             icon.char = char;
             icon.onMouseDown = function(event) {
               undoSonataSpecialStep(this.char);
@@ -3567,14 +3587,16 @@ function draw() {
               specialAngle.maxDistance = undefined;
               drawAngle(char, specialAngle, specialPoint, mirrored);
 
-              specialAngle.sonataFollowup = true;
               specialAngle.alwaysVisible = true;
               addAngleButtons(char, specialAngle, specialPoint, char.facing, false, tooltip);
 
               specialAngle.maxDistance = originalMaxDistance;
               break;
             } else {
+              var originalReflections = specialAngle.reflections;
+              specialAngle.reflections = 0;
               drawAngle(char, specialAngle, specialPoint, mirrored);
+              specialAngle.reflections = originalReflections;
             }
             specialPoint = specialAngle.lastBallLocation;
           }
@@ -3586,8 +3608,7 @@ function draw() {
               continue;
             }
             var icon = createButtonWithTooltip("sonata_special", "Add Special Step", tooltip);
-            var offset = 100;
-            var vector = new Point(offset, 0);
+            var vector = new Point(char.specialButtonsCustomOffset, 0);
             vector = vector.rotate(specialAngle.degrees);
             if (char.facing == 'left') {
               vector.x *= -1;
