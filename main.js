@@ -1500,7 +1500,7 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 4.2,
         "maxReflections": 1,
-        "customOffset": 125,
+        "customOffset": 115,
       },
       {
         "name": "spin-up",
@@ -1511,7 +1511,7 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 5.25,
         "maxReflections": 1,
-        "customOffset": 125,
+        "customOffset": 115,
       },
       {
         "name": "spin-down",
@@ -1522,7 +1522,7 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 4,
         "maxReflections": 1,
-        "customOffset": 125,
+        "customOffset": 115,
       },
       {
         "name": "spin-back",
@@ -1533,7 +1533,7 @@ var characterJSON = {
         "pongStep": 2,
         "turnRate": 6,
         "maxReflections": 1,
-        "customOffset": 125,
+        "customOffset": 115,
       },
     ],
     "specialPongFloorAngles": [
@@ -1541,14 +1541,14 @@ var characterJSON = {
         "name": "floor-pong-backward",
         "degrees": -(180-8),
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 37,
         "pongFollowup": true,
       },
       {
         "name": "floor-pong-forward",
         "degrees": -8,
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 37,
         "pongFollowup": true,
       },
     ],
@@ -1557,42 +1557,42 @@ var characterJSON = {
         "name": "floor-pong",
         "degrees": -(180-8),
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 37,
         "pongWallFollowup": true,
       },
       {
         "name": "floor-pong",
         "degrees": -8,
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 37,
         "pongWallFollowup": true,
       },
       {
         "name": "ceiling-pong",
         "degrees": 180-45,
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 37,
         "pongWallFollowup": true,
       },
       {
         "name": "ceiling-pong",
         "degrees": 45,
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 37,
         "pongWallFollowup": true,
       },
       {
         "name": "ceiling-glitch",
         "degrees": 180-8,
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 66,
         "pongWallFollowup": true,
       },
       {
         "name": "ceiling-glitch",
         "degrees": 8,
         "validWhen": [],
-        "customOffset": 125,
+        "customOffset": 66,
         "pongWallFollowup": true,
       },
     ]
@@ -2731,6 +2731,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     }
 
     var vector = stopPoint - start;
+    var ballTravelDirection = new Point(1, 0).rotate(degrees);
 
     var maxDistanceReached = false;
     if (angle.maxDistance !== undefined && bubbleState < 3) {
@@ -2897,16 +2898,13 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         }
       }
       if (!candyBallWarped && !angle.bunt && !angle.pong && !maxDistanceReached) {
-        var hitSides = start.x >= ballStageRect.right - 1 || start.x <= ballStageRect.left + 1;
-        var hitFloorOrCeiling = start.y >= ballStageRect.bottom - 1 || start.y <= ballStageRect.top + 1;
-        var movesHorizontally = Math.abs(vector.x) > 0.00001;
-        var movesVertically = Math.abs(vector.y) > 0.00001;
-
-        if (movesHorizontally && hitSides && movesVertically && hitFloorOrCeiling) {
+        var hitSides = (start.x >= ballStageRect.right - 1 && ballTravelDirection.x > 0) || (start.x <= ballStageRect.left + 1 && ballTravelDirection.x < 0);
+        var hitFloorOrCeiling = (start.y >= ballStageRect.bottom - 1 && ballTravelDirection.y > 0) || (start.y <= ballStageRect.top + 1 && ballTravelDirection.y < 0);
+        if (hitSides && hitFloorOrCeiling) {
           // on corners invert direction
           degrees += 180;
           i++; // corner should count as two reflections
-        } else if (movesHorizontally && hitSides) {
+        } else if (hitSides) {
           // on side reflections flip angle horizontally
           degrees *= -1
           degrees += 180
