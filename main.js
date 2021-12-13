@@ -2971,15 +2971,37 @@ function draw() {
   tooltip.shadowBlur = 3;
   tooltip.content = tooltipText;
 
-  for(var i = 0; i < loadedChars.length; i++) {
-    var char = loadedChars[i]
-    if(!char.x) {
-      char.x = Math.floor(Math.random() * (canvas.getBoundingClientRect().width - 400)) + 200
-      char.y = Math.floor(Math.random() * (canvas.getBoundingClientRect().height - 100)) + 50
+  for (var i = 0; i < loadedChars.length; i++) {
+    var char = loadedChars[i];
+    if (!char.x) {
+      char.x = Math.floor(Math.random() * (canvas.getBoundingClientRect().width - 400)) + 200;
+      char.y = Math.floor(Math.random() * (canvas.getBoundingClientRect().height - 100)) + 50;
     }
 
     // Draw character first so it's below lines and icon buttons
     if (charImagesOn) {
+      // draw hurtbox and hitbox below everything, to act as a preview until the images have loaded
+      var hurtboxPath = new Path.Rectangle(char.getHurtbox().expand(-4));
+      hurtboxPath.strokeWidth = 2;
+      hurtboxPath.strokeColor = '#0000ff';
+      var hitboxes = char.getHitboxes();
+      hitboxes.forEach(function(hitbox) {
+        var hitboxPath;
+        var hitboxSmaller = hitbox.expand(-4);
+        if (char.pose.circle) {
+          hitboxPath = new Path.Circle(hitboxSmaller.center, hitboxSmaller.width / 2);
+          hitboxPath.strokeWidth = 2;
+          hitboxPath.strokeColor = '#00ffff';
+        } else {
+          hitboxPath = new Path.Rectangle(hitboxSmaller);
+          hitboxPath.strokeWidth = 2;
+          if (char.pose.name == 'grab') {
+            hitboxPath.strokeColor = '#00ff00';
+          } else {
+            hitboxPath.strokeColor = '#ff0000';
+          }
+        }
+      });
 
       if (char.reticle && char.pose.canSpecial) {
         var raster = new Raster("assets/characters/" + char.reticle.imageName + ".png");
