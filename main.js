@@ -4274,7 +4274,7 @@ $('document').ready(function() {
 
     $('#myCanvas').css('left', stage.canvasOffset[0])
     $('#myCanvas').css('top', stage.canvasOffset[1])
-    $('#wrapper').css('background-image', 'url(assets/stages/'+stageName+'.png)')
+    $('#wrapper').css('background-image', 'url(assets/stages/'+stageName+'.jpg)')
 
     setTimeout(function() { $(window).trigger('resize'); }, 500)
 
