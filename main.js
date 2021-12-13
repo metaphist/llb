@@ -2076,6 +2076,9 @@ function addReflectionsToAngle(char, angle, amount, updateChar) {
   }
 
   if (angle.visible) {
+    if (amount < 0) {
+      angle.reflections = angle.lastAmountOfBounces;
+    }
     angle.reflections += amount;
   }
 
@@ -2766,6 +2769,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     angle.hitBoundaryLastBounce = hitStageBoundary;
     angle.hitHitboxLastBounce = hitHurtBoxCollision && !itHurts;
     angle.hitHurtboxLastBounce = hitHurtBoxCollision && itHurts;
+    angle.lastAmountOfBounces = i;
 
     // draw ball hitbox at impact location
     if (showBallImpactLocations) {
