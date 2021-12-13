@@ -2050,6 +2050,19 @@ function getAngleLabelText(angle) {
   return content.toUpperCase();
 }
 
+function changePoseToShowAngleIfNecessary(char, angle) {
+  if (angle.visible && charImagesOn) {
+    if (angle.validWhen.indexOf(char.pose.name) < 0) {
+      for (var j = 0; j < char.poses.length; j++) {
+        var pose = char.poses[j];
+        if (angle.validWhen.indexOf(pose.name) >= 0) {
+          changePoseTo(char, pose);
+          break;
+        }
+      }
+    }
+  }
+}
 
 function addReflectionsToAngleByName(charName, angleName, amount) {
   var char = loadChar(charName);
@@ -2085,16 +2098,8 @@ function addReflectionsToAngle(char, angle, amount, updateChar) {
     }
   }
 
-  if (updateChar && angle.visible && charImagesOn) {
-    if (angle.validWhen.indexOf(char.pose.name) < 0) {
-      for (var j = 0; j < char.poses.length; j++) {
-        var pose = char.poses[j];
-        if (angle.validWhen.indexOf(pose.name) >= 0) {
-          changePoseTo(char, pose);
-          break;
-        }
-      }
-    }
+  if (updateChar) {
+    changePoseToShowAngleIfNecessary(char, angle);
   }
 }
 
@@ -2122,6 +2127,7 @@ function addCandySpecialToAngle(charName, angleName) {
       guidesOn = true;
     }
   }
+  changePoseToShowAngleIfNecessary(char, angle);
 }
 
 
@@ -2141,6 +2147,7 @@ function toggleJetBubbleForAngle(charName, angleName) {
     angle.bubble = true;
     angle.maxDistance = char.maxBubbleDistance;
   }
+  changePoseToShowAngleIfNecessary(char, angle);
 }
 
 function toggleToxicSprayPreview(charName, angleName) {
