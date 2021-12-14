@@ -2969,11 +2969,15 @@ function draw() {
   tooltip.shadowBlur = 3;
   tooltip.content = tooltipText;
 
+  var stageBoundsPath = new Path.Rectangle(trueStageRect.expand(12));
+  stageBoundsPath.strokeWidth = 12;
+  stageBoundsPath.strokeColor = '#fff523';
+
   for (var i = 0; i < loadedChars.length; i++) {
     var char = loadedChars[i];
     if (!char.x) {
-      char.x = Math.floor(Math.random() * (canvas.getBoundingClientRect().width - 400)) + 200;
-      char.y = Math.floor(Math.random() * (canvas.getBoundingClientRect().height - 100)) + 50;
+      char.x = Math.floor(Math.random() * (ballStageRect.width - 400)) + ballStageRect.left + 200;
+      char.y = Math.floor(Math.random() * (ballStageRect.height - 100)) + ballStageRect.top + 50;
     }
 
     // Draw character first so it's below lines and icon buttons
@@ -4276,8 +4280,8 @@ $('document').ready(function() {
     var stageName = $(e.target).find(':selected').attr('value');
     var stage = stages.find(function(e) { return e.name == stageName });
 
-    paper.view.viewSize.width = stage.canvasSize[0] + stage.canvasOffset[0] + extraCanvasSpace * 2;
-    paper.view.viewSize.height = stage.canvasSize[1] + stage.canvasOffset[1] + extraCanvasSpace * 2;
+    paper.view.viewSize.width = stage.canvasSize[0] + extraCanvasSpace * 2;
+    paper.view.viewSize.height = stage.canvasSize[1] + extraCanvasSpace * 2;
 
     trueStageRect = new Rectangle(new Point(extraCanvasSpace, extraCanvasSpace), new Size(stage.canvasSize[0], stage.canvasSize[1]));
     ballStageRect = new Rectangle(new Point(extraCanvasSpace + ballRadius, extraCanvasSpace + ballRadius), new Size(stage.canvasSize[0] - ballDiameter, stage.canvasSize[1] - ballDiameter));
