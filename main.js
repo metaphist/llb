@@ -4,6 +4,7 @@ var strokeWidthOuter = 6
 var strokeWidthInner = 2
 var labelFontSize = 20
 var guideColor = 'white'
+var extraCanvasSpace = 60
 
 
 var ballRadius = 10
@@ -1798,11 +1799,6 @@ var tooltipOffset = new Point(-10, -17);
 var tooltipLocation = new Point();
 var tooltipText = '';
 
-window.onresize = function() {
-  offsetX = canvas.getBoundingClientRect().left;
-  offsetY = canvas.getBoundingClientRect().top;
-}
-
 canvas.onmousedown = myDown;
 canvas.onmouseup = myUp;
 canvas.onmousemove = myMove;
@@ -2294,7 +2290,7 @@ function toggleDustSpecial(char, direction) {
       char.ashesSpecial[dirIndex].angles = [];
       char.specialAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(Object.assign({}, e)); });
       var buntAngles = getBuntAngles([]);
-      buntAngles.forEach(function(e) { char.ashesSpecial[dirIndex].angles.push(e); });
+      buntAngles.forEach(function(e) { if (e.name != "bunt-down") {char.ashesSpecial[dirIndex].angles.push(e);} });
     }
   }
 }
@@ -2703,7 +2699,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       }
     }
 
-    var stopPoint = new Point();
+    var stopPoint = new Point(-10, -10);
     var hitStageBoundary = false;
 
     var intersections = line.getIntersections(ballStageBounds);
@@ -2727,9 +2723,6 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         stopPoint = hitHurtBoxPoint;
       } else if (angle.bunt || angle.pong) {
         stopPoint = arcTargetPos;
-      } else {
-        // ball neither hit stage nor hitbox, so something is wrong
-        break;
       }
     }
 
@@ -2763,6 +2756,11 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       }
     }
     distanceTravelled += vector.length;
+
+    if (!trueStageRect.contains(stopPoint)) {
+      // ball is outside of stage, abort
+      break;
+    }
 
     //ball impact location is finalized for this bounce
     angle.lastBallLocation = stopPoint.clone();
@@ -3074,7 +3072,7 @@ function draw() {
           var cuffStartingPoint = nitroHurtbox.center + releaseOffset;
           if (cuffStartingPoint.x < ballStageRect.left) {
             cuffStartingPoint.x = ballStageRect.left;
-          } else if(cuffStartingPoint.x > ballStageRect.right) {
+          } else if (cuffStartingPoint.x > ballStageRect.right) {
             cuffStartingPoint.x = ballStageRect.right;
           }
 
@@ -3204,7 +3202,6 @@ function draw() {
               nitroCuffImg.position.y = nitroFullPullLocation.y - relativeOffset.center.y;
               nitroCuffImg.opacity = 0.5;
 
-              var angleButtonsOffset = new Point(-40 * pullDir, 0); // This offset is currently needed, because otherwise some buttons are outside the canvas
               for (var c = 0; c < angle.pullCuffAngleOptions.length; c++) {
                 var cuffAngle = angle.pullCuffAngleOptions[c];
                 if (cuffAngle.visible) {
@@ -3212,7 +3209,7 @@ function draw() {
                 }
                 if (char.showDirectButtons) {
                   cuffAngle.cuffFollowup = true;
-                  addAngleButtons(char, cuffAngle, fullPullLocation + angleButtonsOffset, char.facing, false, tooltip);
+                  addAngleButtons(char, cuffAngle, fullPullLocation, char.facing, false, tooltip);
                 }
               }
               fullPullIconName = "back";
@@ -4017,11 +4014,9 @@ function clampRectInsideRect(smallRect, bigRect) {
 // handle mousedown events
 function myDown(e) {
 
-  // tell the browser we're handling this mouse event
-  //e.preventDefault();
-  //e.stopPropagation();
-
   // get the current mouse position
+  offsetX = canvas.getBoundingClientRect().left;
+  offsetY = canvas.getBoundingClientRect().top;
   var mx = parseInt(e.clientX - offsetX);
   var my = parseInt(e.clientY - offsetY);
 
@@ -4099,10 +4094,6 @@ function figureOutSprayWallPlacement(sprayHurtbox) {
 
 // handle mouseup events
 function myUp(e) {
-  // tell the browser we're handling this mouse event
-  //e.preventDefault();
-  //e.stopPropagation();
-
   // clear all the dragging flags
   dragok = false;
   for (var i = 0; i < activeEntities.length; i++) {
@@ -4129,11 +4120,9 @@ function myMove(e) {
       return
     }
 
-    // tell the browser we're handling this mouse event
-    //e.preventDefault();
-    //e.stopPropagation();
-
     // get the current mouse position
+    offsetX = canvas.getBoundingClientRect().left;
+    offsetY = canvas.getBoundingClientRect().top;
     var mx = parseInt(e.clientX - offsetX);
     var my = parseInt(e.clientY - offsetY);
 
@@ -4287,16 +4276,18 @@ $('document').ready(function() {
     var stageName = $(e.target).find(':selected').attr('value');
     var stage = stages.find(function(e) { return e.name == stageName });
 
-    paper.view.viewSize.width = stage.canvasSize[0]
-    paper.view.viewSize.height = stage.canvasSize[1]
+    paper.view.viewSize.width = stage.canvasSize[0] + stage.canvasOffset[0] + extraCanvasSpace * 2;
+    paper.view.viewSize.height = stage.canvasSize[1] + stage.canvasOffset[1] + extraCanvasSpace * 2;
 
-    trueStageRect = new Rectangle(new Point(0, 0), new Size(stage.canvasSize[0], stage.canvasSize[1]))
-    ballStageRect = new Rectangle(new Point(ballRadius, ballRadius), new Size(stage.canvasSize[0] - ballDiameter, stage.canvasSize[1] - ballDiameter))
-    ballStageBounds = new Path.Rectangle(ballStageRect)
+    trueStageRect = new Rectangle(new Point(extraCanvasSpace, extraCanvasSpace), new Size(stage.canvasSize[0], stage.canvasSize[1]));
+    ballStageRect = new Rectangle(new Point(extraCanvasSpace + ballRadius, extraCanvasSpace + ballRadius), new Size(stage.canvasSize[0] - ballDiameter, stage.canvasSize[1] - ballDiameter));
+    ballStageBounds = new Path.Rectangle(ballStageRect);
 
-    $('#myCanvas').css('left', stage.canvasOffset[0])
-    $('#myCanvas').css('top', stage.canvasOffset[1])
-    $('#wrapper').css('background-image', 'url(assets/stages/'+stageName+'.jpg)')
+    $('#myCanvas').css('left', 0);
+    $('#myCanvas').css('top', 0);
+    $('#wrapper').css('background-position-x', extraCanvasSpace - stage.canvasOffset[0]);
+    $('#wrapper').css('background-position-y', extraCanvasSpace - stage.canvasOffset[1]);
+    $('#wrapper').css('background-image', 'url(assets/stages/' + stageName + '.jpg)');
 
     setTimeout(function() { $(window).trigger('resize'); }, 500)
 
