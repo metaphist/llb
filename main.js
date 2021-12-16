@@ -837,13 +837,18 @@ var characterJSON = {
         "imgSize": [217, 166],
         "hurtboxes": [[62, 0, 70, 160]],
         "hitboxes": [[87, 0, 130, 160]],
-        "teleportRelease": [122, 80],
-        "teleportAngle": {
-          "name": "straight",
-          "degrees": 0,
-          "maxReflections": 2,
+        "customTeleportPose": {
+          "name": "swing_teleport",
+          "imgSize": [233, 169],
+          "hurtboxes": [[88, 3, 70, 160]],
+          "hitboxes": [],
+          "teleportRelease": [122, 80],
+          "teleportAngle": {
+            "name": "straight",
+            "degrees": 0,
+            "maxReflections": 2,
+          },
         },
-        "teleportImage": "swing_teleport",
       },
       {
         "name": "smash",
@@ -3389,6 +3394,9 @@ function draw() {
           icon.char = char;
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(1, 0));
+            if (this.char.teleport.length >= this.char.maxTeleports) {
+              hideTooltip(tooltip);
+            }
             draw();
           }
           var icon = createButtonWithTooltip("left", "Teleport Left", tooltip);
@@ -3397,6 +3405,9 @@ function draw() {
           icon.char = char;
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(-1, 0));
+            if (this.char.teleport.length >= this.char.maxTeleports) {
+              hideTooltip(tooltip);
+            }
             draw();
           }
           var icon = createButtonWithTooltip("up", "Teleport Up", tooltip);
@@ -3405,6 +3416,9 @@ function draw() {
           icon.char = char;
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(0, -1));
+            if (this.char.teleport.length >= this.char.maxTeleports) {
+              hideTooltip(tooltip);
+            }
             draw();
           }
           var icon = createButtonWithTooltip("down", "Teleport Down", tooltip);
@@ -3413,6 +3427,9 @@ function draw() {
           icon.char = char;
           icon.onMouseDown = function(event) {
             addGridTeleport(this.char, new Point(0, 1));
+            if (this.char.teleport.length >= this.char.maxTeleports) {
+              hideTooltip(tooltip);
+            }
             draw();
           }
         }
@@ -3431,23 +3448,29 @@ function draw() {
           icon.char = char;
           icon.onMouseDown = function(event) {
             undoGridTeleport(this.char);
+            if (this.char.teleport.length <= 0) {
+              hideTooltip(tooltip);
+            }
             draw();
           }
         }
 
         for (var g = 0; g < char.teleport.length; g++) {
-          var teleportData = char.teleport[g];
           var spriteData = getGridTeleportSprite(char, g);
-          var r = new Raster(char.getGridTeleportImageForPose(spriteData[0], spriteData[1]));
+          var teleportData = char.teleport[g];
+          teleportData.pose = spriteData[0];
+          if (teleportData.pose.customTeleportPose) {
+            teleportData.pose = teleportData.pose.customTeleportPose;
+          }
+          teleportData.facing = spriteData[1];
+          var r = new Raster(char.getImageForPose(teleportData.pose, teleportData.facing));
           gridHurtbox.x += teleportData.direction.x * char.teleportDistance;
           gridHurtbox.y += teleportData.direction.y * char.teleportDistance;
           clampRectInsideRect(gridHurtbox, trueStageRect);
 
           teleportData.hurtbox = new Rectangle(gridHurtbox);
-          teleportData.pose = spriteData[0];
-          teleportData.facing = spriteData[1];
 
-          var relativeHurtbox = char.getRelativeHurtboxForPose(spriteData[0], spriteData[1]);
+          var relativeHurtbox = char.getRelativeHurtboxForPose(teleportData.pose, teleportData.facing);
           r.position.x = gridHurtbox.left - relativeHurtbox.left;
           r.position.y = gridHurtbox.top - relativeHurtbox.top;
           r.opacity = 0.5;
@@ -4317,12 +4340,8 @@ $('document').ready(function() {
     char.getImage = function() {
       return "assets/characters/" + this.img_name + "_" + this.pose.name + "_r.png";
     }
-    char.getGridTeleportImageForPose = function(pose, direction) {
-      var poseName = pose.name;
-      if (pose.teleportImage) {
-        poseName = pose.teleportImage;
-      }
-      return "assets/characters/" + this.img_name + "_" + poseName + "_r.png";
+    char.getImageForPose = function(pose, direction) {
+      return "assets/characters/" + this.img_name + "_" + pose.name + "_r.png";
     }
     char.getHurtbox = function() {
       var box = this.pose.hurtboxes[0]
