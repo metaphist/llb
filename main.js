@@ -3572,6 +3572,21 @@ function draw() {
           draw();
         }
       }
+      var icon = createButtonWithTooltip("reset", "Double Click to Reset Character", tooltip);
+      icon.position.x = iconsX + iconPosition + 10;
+      icon.position.y = iconsY;
+      icon.char = char;
+      icon.confirmed = char.resetConfirmed;
+      char.resetConfirmed = false;
+      icon.onMouseDown = function(event) {
+        if (this.confirmed) {
+          resetCharacter(this.char);
+          this.char.resetConfirmed = false;
+        } else {
+          this.char.resetConfirmed = true;
+        }
+        draw();
+      }
     } else {
       new Path.Circle({
         center: [char.x, char.y],
