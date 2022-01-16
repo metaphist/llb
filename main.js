@@ -2421,6 +2421,7 @@ function resetCharacter(char) {
     }
     angle.visible = false;
     angle.reflections = 0;
+    angle.mirrorAngle = null;
     if (angle.isCuffable) {
       angle.cuff = false;
       angle.halfCuffAngleOptions = undefined;
@@ -3336,15 +3337,25 @@ function draw() {
             var mirrored = char.facing != ashesData.facing;
             ashesData.angles.forEach( function(angle) {
               if (angle.visible) {
-                if (ashesData.mirrorAngles && ashesData.pose.canMirror && angle.mirror) {
-                  drawAngle(char, angle, mirroredStartingPoint, !mirrored);
-                }
                 drawAngle(char, angle, startingPoint, mirrored);
+              }
+              if (ashesData.mirrorAngles && ashesData.pose.canMirror && angle.mirror) {
+                if (angle.mirrorAngle == null) {
+                  var copyOfAngle = Object.assign({}, angle);
+                  angle.mirrorAngle = copyOfAngle;
+                }
+                if (angle.mirrorAngle.visible) {
+                  drawAngle(char, angle.mirrorAngle, mirroredStartingPoint, !mirrored);
+                }
               }
 
               if (char.showDirectButtons) {
                 angle.ashesFollowup = true;
                 addAngleButtons(char, angle, startingPoint, ashesData.facing, false, tooltip);
+                if (ashesData.mirrorAngles && ashesData.pose.canMirror && angle.mirror) {
+                  var mirrorFacing = ashesData.facing == 'left' ? 'right' : 'left';
+                  addAngleButtons(char, angle.mirrorAngle, mirroredStartingPoint, mirrorFacing, false, tooltip);
+                }
               }
             });
 
@@ -3795,20 +3806,23 @@ function draw() {
       if ((charImagesOn && currentAngle.validWhen.indexOf(char.pose.name) < 0) || (currentAngle.hidden && !charImagesOn)) {
         continue;
       }
+      var startingPoint = new Point(char.x, char.y);
+      var mirroredStartingPoint = new Point(char.x, char.y);
+      if (char.pose.fixedRelease && charImagesOn) {
+        var fixedReleaseLocations = getFixedReleaseLocations(char);
+        startingPoint = fixedReleaseLocations[0];
+        mirroredStartingPoint = fixedReleaseLocations[1];
+      }
       if (currentAngle.visible) {
-        var startingPoint = new Point(char.x, char.y);
-        var mirroredStartingPoint = new Point(char.x, char.y);
-        if (char.pose.fixedRelease && charImagesOn) {
-          var fixedReleaseLocations = getFixedReleaseLocations(char);
-          startingPoint = fixedReleaseLocations[0];
-          mirroredStartingPoint = fixedReleaseLocations[1];
-        }
-        if (char.mirrorAngles && char.pose.canMirror && currentAngle.mirror) {
-          drawAngle(char, currentAngle, mirroredStartingPoint, true);
-        }
         drawAngle(char, currentAngle, startingPoint, false);
-        if (char.name == "Toxic" && currentAngle.sprayPreview) {
-          char.last
+      }
+      if (char.mirrorAngles && char.pose.canMirror && currentAngle.mirror) {
+        if (currentAngle.mirrorAngle == null) {
+          var copyOfAngle = Object.assign({}, currentAngle);
+          currentAngle.mirrorAngle = copyOfAngle;
+        }
+        if (currentAngle.mirrorAngle.visible) {
+          drawAngle(char, currentAngle.mirrorAngle, mirroredStartingPoint, true);
         }
       }
       if (char.showDirectButtons && (charImagesOn || !currentAngle.hidden)) {
@@ -3816,8 +3830,11 @@ function draw() {
           //angles that are identical to other angles have no labels; skip those
           continue;
         }
-        var position = new Point(char.x, char.y);
-        addAngleButtons(char, currentAngle, position, char.facing, true, tooltip);
+        addAngleButtons(char, currentAngle, startingPoint, char.facing, true, tooltip);
+        if (char.mirrorAngles && char.pose.canMirror && currentAngle.mirror) {
+          var mirrorFacing = char.facing == 'left' ? 'right' : 'left';
+          addAngleButtons(char, currentAngle.mirrorAngle, mirroredStartingPoint, mirrorFacing, true, tooltip);
+        }
       }
     }
 
