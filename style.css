@@ -33,7 +33,7 @@ body {
     float: left;
     position: relative;
     display: block;
-    width: 1492px;
+    width: 1552px;
     height: 650px;
     margin: 0 5px;
     background-repeat: no-repeat;
@@ -64,6 +64,7 @@ body {
     text-transform: uppercase;
     font-size: 12px;
     height: 599px;
+    padding-bottom: 5px;
 }
 #menu ol, #menu ul {
     margin: 0;
@@ -104,7 +105,7 @@ body {
     font-size: 2em;
     font-weight: bold;
 }
-.plus, .minus, .turn, .special {
+.plus, .minus, .turn, .special, .bubble, .resetChar, .mirror, .pose, .declutter {
     padding: 3px 7px;
     background: goldenrod;
     border-radius: 5px;
@@ -113,6 +114,15 @@ body {
     margin-left: 3px;
     background: orangered;
     color: navajowhite;
+}
+.bubble {
+    margin-left: 3px;
+    background: deepskyblue;
+    color: navajowhite;
+}
+.hidden {
+    visibility: hidden;
+    height: 0;
 }
 h1 {
     margin-bottom: 0;
