@@ -1800,6 +1800,7 @@ var guides = [], guidesOn = false
 var charImages = [], charImagesOn = true
 var showBallImpactLocations = true
 var ignoreHitboxCollisions = false
+var showCoverage = false
 var tooltipOffset = new Point(-10, -17);
 var tooltipLocation = new Point();
 var tooltipText = '';
@@ -2532,6 +2533,10 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   angle.hitHitboxLastBounce = false;
   angle.hitHurtboxLastBounce = false;
 
+  var allDrawnInnerLines = [];
+  var allDrawnOuterLines = [];
+  var allDrawnBallBoxes = [];
+
   if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
     velocity = velocity.rotate(degrees);
@@ -2589,7 +2594,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     labels.push(label)
   }
 
-  for(var i = 0; i <= angle.reflections; ++i) {
+  for (var i = 0; i <= angle.reflections; ++i) {
 
     if (angle.bunt) {
       var arcTargetPos = start;
@@ -2743,7 +2748,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       } else if (angle.bubble && bubbleState == 2) {
         nextDistanceMilestone = angle.maxDistance + properties.maxBubbleOutDistance;
       }
-      if (distanceTravelled + vector.length > nextDistanceMilestone){
+      if (distanceTravelled + vector.length > nextDistanceMilestone) {
         var distanceDelta = nextDistanceMilestone - distanceTravelled;
         stopPoint = start + vector.normalize(distanceDelta);
         vector = stopPoint - start;
@@ -2782,6 +2787,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         var ballHitboxPath = new Path.Rectangle(ballHitbox);
         ballHitboxPath.strokeColor = angle.bunt ? 'purple' : 'blue';
         ballHitboxPath.strokeWidth = 4;
+        allDrawnBallBoxes.push(ballHitboxPath);
       }
     }
 
@@ -2797,6 +2803,8 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       strokeWidth: strokeWidthInner,
       strokeColor: properties.color
     };
+    allDrawnOuterLines.push(outerLine);
+    allDrawnInnerLines.push(innerLine);
     if (angle.bubble && bubbleState < 3) {
       var bubbleColor = properties.bubbleStrokeColor;
       if (bubbleState == 1) {
@@ -2941,6 +2949,28 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     }
     if (angle.bunt || angle.pong || (angle.bubble && maxDistanceReached)) {
       i--;
+    }
+  }
+
+
+  if (showCoverage) {
+    var colorOuter = 'grey';
+    var colorInner = 'grey';
+    if (angle.hitHitboxLastBounce) {
+        colorOuter = '#ffc2c4';
+        colorInner = '#ffc2c4';
+    } else if(angle.hitHurtboxLastBounce) {
+        colorOuter = 'blue';
+        colorInner = 'lightskyblue';
+    }
+    for (l = 0; l < allDrawnInnerLines.length; l++) {
+      allDrawnInnerLines[l].strokeColor = colorInner;
+    }
+    for (l = 0; l < allDrawnOuterLines.length; l++) {
+      allDrawnOuterLines[l].strokeColor = colorOuter;
+    }
+    for (l = 0; l < allDrawnBallBoxes.length; l++) {
+      allDrawnBallBoxes[l].strokeColor = colorOuter;
     }
   }
 }
@@ -4669,6 +4699,12 @@ $('#ballImpacts').on('click', function(e) {
 $('#collision').on('click', function(e) {
   e.preventDefault
   ignoreHitboxCollisions = !ignoreHitboxCollisions
+  draw()
+})
+
+$('#coverage').on('click', function(e) {
+  e.preventDefault
+  showCoverage = !showCoverage
   draw()
 })
 
