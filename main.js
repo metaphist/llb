@@ -3040,6 +3040,15 @@ function draw() {
         raster.position.x = char.reticle.x;
         raster.position.y = char.reticle.y;
         raster.scaling = char.reticle.imageScale;
+        raster.onMouseDown = function(event) {
+          myDownHandler(event);
+          raster.onMouseUp = function(event) {
+            myUpHandler(event);
+          }
+        }
+        raster.onMouseDrag = function(event) {
+          myMoveHandler(event);
+        }
       }
 
       if (char.spray) {
@@ -3047,6 +3056,15 @@ function draw() {
         raster.position.x = char.spray.x;
         raster.position.y = char.spray.y;
         raster.scaling = char.spray.imageScale;
+        raster.onMouseDown = function(event) {
+          myDownHandler(event);
+          raster.onMouseUp = function(event) {
+            myUpHandler(event);
+          }
+        }
+        raster.onMouseDrag = function(event) {
+          myMoveHandler(event);
+        }
       }
 
       if (char.parry && char.pose.canParry) {
@@ -3086,13 +3104,13 @@ function draw() {
       }
 
       r.onMouseDown = function(event) {
-          myDownHandler(event);
+        myDownHandler(event);
+        r.onMouseUp = function(event) {
+            myUpHandler(event);
+        }
       }
       r.onMouseDrag = function(event) {
-          myMoveHandler(event);
-      }
-      r.onMouseUp = function(event) {
-          myUpHandler(event);
+        myMoveHandler(event);
       }
 
       if (char.name == "Nitro" && char.pose.canSpecial) {
@@ -3531,13 +3549,13 @@ function draw() {
         ball.position.y = char.y;
 
         ball.onMouseDown = function(event) {
-            myDownHandler(event);
+          myDownHandler(event);
+          ball.onMouseUp = function(event) {
+              myUpHandler(event);
+          }
         }
         ball.onMouseDrag = function(event) {
-            myMoveHandler(event);
-        }
-        ball.onMouseUp = function(event) {
-            myUpHandler(event);
+          myMoveHandler(event);
         }
       }
       var groundOffset = 0;
@@ -3652,13 +3670,13 @@ function draw() {
       });
 
       charCircle.onMouseDown = function(event) {
-          myDownHandler(event);
+        myDownHandler(event);
+        charCircle.onMouseUp = function(event) {
+            myUpHandler(event);
+        }
       }
       charCircle.onMouseDrag = function(event) {
-          myMoveHandler(event);
-      }
-      charCircle.onMouseUp = function(event) {
-          myUpHandler(event);
+        myMoveHandler(event);
       }
     }
 
