@@ -1803,7 +1803,7 @@ var tooltipOffset = new Point(-10, -17);
 var tooltipLocation = new Point();
 var tooltipText = '';
 
-document.documentElement.addEventListener('mouseup', myUp);
+document.documentElement.addEventListener('mouseup', myUpHandler);
 
 var stages = [], characters = [], loadedChars = []
 var activeEntities = [];
