@@ -1791,8 +1791,6 @@ var canvas = document.getElementById('myCanvas')
 var ballStageBounds, startX, startY
 var ballStageRect
 var trueStageRect
-var offsetX = canvas.getBoundingClientRect().left;
-var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
 var listOfCreatedButtons = [];
 var labels = [], labelsOn = false
@@ -1804,10 +1802,6 @@ var showCoverage = false
 var tooltipOffset = new Point(-10, -17);
 var tooltipLocation = new Point();
 var tooltipText = '';
-
-canvas.onmousedown = myDown;
-canvas.onmouseup = myUp;
-canvas.onmousemove = myMove;
 
 document.documentElement.addEventListener('mouseup', myUp);
 
@@ -3091,6 +3085,16 @@ function draw() {
         r.scale(-1, 1);
       }
 
+      r.onMouseDown = function(event) {
+          myDownHandler(event);
+      }
+      r.onMouseDrag = function(event) {
+          myMoveHandler(event);
+      }
+      r.onMouseUp = function(event) {
+          myUpHandler(event);
+      }
+
       if (char.name == "Nitro" && char.pose.canSpecial) {
         var nitroHurtbox = char.getHurtbox();
 
@@ -3525,6 +3529,16 @@ function draw() {
         var ball = new Raster("assets/characters/ball.png");
         ball.position.x = char.x;
         ball.position.y = char.y;
+
+        ball.onMouseDown = function(event) {
+            myDownHandler(event);
+        }
+        ball.onMouseDrag = function(event) {
+            myMoveHandler(event);
+        }
+        ball.onMouseUp = function(event) {
+            myUpHandler(event);
+        }
       }
       var groundOffset = 0;
       if (char.pose.groundOffset) {
@@ -3629,13 +3643,23 @@ function draw() {
         draw();
       }
     } else {
-      new Path.Circle({
+      var charCircle = new Path.Circle({
         center: [char.x, char.y],
         radius: circleRadius,
         fillColor: char.color,
         strokeColor: char.strokeColor,
         strokeWidth: 3
-      })
+      });
+
+      charCircle.onMouseDown = function(event) {
+          myDownHandler(event);
+      }
+      charCircle.onMouseDrag = function(event) {
+          myMoveHandler(event);
+      }
+      charCircle.onMouseUp = function(event) {
+          myUpHandler(event);
+      }
     }
 
     if (char.name == "Dice") {
@@ -4101,15 +4125,14 @@ function clampRectInsideRect(smallRect, bigRect) {
 }
 
 // handle mousedown events
-function myDown(e) {
+function myDownHandler(e) {
 
   // get the current mouse position
-  offsetX = canvas.getBoundingClientRect().left;
-  offsetY = canvas.getBoundingClientRect().top;
-  var mx = parseInt(e.clientX - offsetX);
-  var my = parseInt(e.clientY - offsetY);
+  var mx = e.point.x;
+  var my = e.point.y;
 
   // test each shape to see if mouse is inside
+  //TODO: since we are now attaching the mouseDown handler directly to the specific objects we could save ourselves doing all this checks here
   for (var i = 0; i < activeEntities.length; i++) {
     var s = activeEntities[i];
     // decide if the shape is a rect or circle
@@ -4182,7 +4205,7 @@ function figureOutSprayWallPlacement(sprayHurtbox) {
 }
 
 // handle mouseup events
-function myUp(e) {
+function myUpHandler(e) {
   // clear all the dragging flags
   dragok = false;
   for (var i = 0; i < activeEntities.length; i++) {
@@ -4200,20 +4223,18 @@ function myUp(e) {
 }
 
 // handle mouse moves
-function myMove(e) {
+function myMoveHandler(e) {
   // if we're dragging anything...
   if (dragok) {
     // if the mouse is released outside the browser window, we can miss the mouseup event
-    if(e.buttons == 0) {
-      myUp(e);
+    if (e.buttons == 0) {
+      myUpHandler(e);
       return
     }
 
     // get the current mouse position
-    offsetX = canvas.getBoundingClientRect().left;
-    offsetY = canvas.getBoundingClientRect().top;
-    var mx = parseInt(e.clientX - offsetX);
-    var my = parseInt(e.clientY - offsetY);
+    var mx = e.point.x;
+    var my = e.point.y;
 
     // calculate the distance the mouse has moved
     // since the last mousemove
