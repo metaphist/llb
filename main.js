@@ -351,7 +351,7 @@ var characterJSON = {
         "name": "bunt",
         "imgSize": [159, 177],
         "hurtboxes": [[10, 40, 60, 126]],
-        "hitboxes": [[70, 0, 89, 72]],
+        "hitboxes": [[70, 0, 89, 72], [35, 72, 124, 94]],
       },
       {
         "name": "grab",
