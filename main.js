@@ -1557,6 +1557,14 @@ var characterJSON = {
         "customOffset": 37,
         "pongFollowup": true,
       },
+      {
+        "name": "floor-pong-upward",
+        "degrees": -90,
+        "validWhen": [],
+        "customOffset": 37,
+        "pongFollowup": true,
+        "maxReflections": 1,
+      },
     ],
     "specialPongAngles": [
       {
