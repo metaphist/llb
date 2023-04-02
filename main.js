@@ -351,7 +351,7 @@ var characterJSON = {
         "name": "bunt",
         "imgSize": [159, 177],
         "hurtboxes": [[10, 40, 60, 126]],
-        "hitboxes": [[70, 0, 89, 72]],
+        "hitboxes": [[70, 0, 89, 72], [35, 72, 124, 94]],
       },
       {
         "name": "grab",
@@ -1557,6 +1557,14 @@ var characterJSON = {
         "customOffset": 37,
         "pongFollowup": true,
       },
+      {
+        "name": "floor-pong-upward",
+        "degrees": -90,
+        "validWhen": [],
+        "customOffset": 37,
+        "pongFollowup": true,
+        "maxReflections": 1,
+      },
     ],
     "specialPongAngles": [
       {
@@ -1791,8 +1799,6 @@ var canvas = document.getElementById('myCanvas')
 var ballStageBounds, startX, startY
 var ballStageRect
 var trueStageRect
-var offsetX = canvas.getBoundingClientRect().left;
-var offsetY = canvas.getBoundingClientRect().top;
 var dragok = false;
 var listOfCreatedButtons = [];
 var labels = [], labelsOn = false
@@ -1800,15 +1806,12 @@ var guides = [], guidesOn = false
 var charImages = [], charImagesOn = true
 var showBallImpactLocations = true
 var ignoreHitboxCollisions = false
+var showCoverage = false
 var tooltipOffset = new Point(-10, -17);
 var tooltipLocation = new Point();
 var tooltipText = '';
 
-canvas.onmousedown = myDown;
-canvas.onmouseup = myUp;
-canvas.onmousemove = myMove;
-
-document.documentElement.addEventListener('mouseup', myUp);
+document.documentElement.addEventListener('mouseup', myUpHandler);
 
 var stages = [], characters = [], loadedChars = []
 var activeEntities = [];
@@ -2532,6 +2535,10 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
   angle.hitHitboxLastBounce = false;
   angle.hitHurtboxLastBounce = false;
 
+  var allDrawnInnerLines = [];
+  var allDrawnOuterLines = [];
+  var allDrawnBallBoxes = [];
+
   if (angle.bunt || angle.pong) {
     var velocity = new Point(angle.initialSpeed, 0);
     velocity = velocity.rotate(degrees);
@@ -2589,7 +2596,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
     labels.push(label)
   }
 
-  for(var i = 0; i <= angle.reflections; ++i) {
+  for (var i = 0; i <= angle.reflections; ++i) {
 
     if (angle.bunt) {
       var arcTargetPos = start;
@@ -2743,7 +2750,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       } else if (angle.bubble && bubbleState == 2) {
         nextDistanceMilestone = angle.maxDistance + properties.maxBubbleOutDistance;
       }
-      if (distanceTravelled + vector.length > nextDistanceMilestone){
+      if (distanceTravelled + vector.length > nextDistanceMilestone) {
         var distanceDelta = nextDistanceMilestone - distanceTravelled;
         stopPoint = start + vector.normalize(distanceDelta);
         vector = stopPoint - start;
@@ -2782,6 +2789,7 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
         var ballHitboxPath = new Path.Rectangle(ballHitbox);
         ballHitboxPath.strokeColor = angle.bunt ? 'purple' : 'blue';
         ballHitboxPath.strokeWidth = 4;
+        allDrawnBallBoxes.push(ballHitboxPath);
       }
     }
 
@@ -2797,6 +2805,8 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       strokeWidth: strokeWidthInner,
       strokeColor: properties.color
     };
+    allDrawnOuterLines.push(outerLine);
+    allDrawnInnerLines.push(innerLine);
     if (angle.bubble && bubbleState < 3) {
       var bubbleColor = properties.bubbleStrokeColor;
       if (bubbleState == 1) {
@@ -2943,6 +2953,28 @@ function drawAngle(properties, angle, startingPoint, mirrored) {
       i--;
     }
   }
+
+
+  if (showCoverage) {
+    var colorOuter = 'grey';
+    var colorInner = 'grey';
+    if (angle.hitHitboxLastBounce) {
+        colorOuter = '#ffc2c4';
+        colorInner = '#ffc2c4';
+    } else if(angle.hitHurtboxLastBounce) {
+        colorOuter = 'blue';
+        colorInner = 'lightskyblue';
+    }
+    for (l = 0; l < allDrawnInnerLines.length; l++) {
+      allDrawnInnerLines[l].strokeColor = colorInner;
+    }
+    for (l = 0; l < allDrawnOuterLines.length; l++) {
+      allDrawnOuterLines[l].strokeColor = colorOuter;
+    }
+    for (l = 0; l < allDrawnBallBoxes.length; l++) {
+      allDrawnBallBoxes[l].strokeColor = colorOuter;
+    }
+  }
 }
 
 function addArrows(start, vector, count, cap) {
@@ -3016,6 +3048,15 @@ function draw() {
         raster.position.x = char.reticle.x;
         raster.position.y = char.reticle.y;
         raster.scaling = char.reticle.imageScale;
+        raster.onMouseDown = function(event) {
+          myDownHandler(event);
+          raster.onMouseUp = function(event) {
+            myUpHandler(event);
+          }
+        }
+        raster.onMouseDrag = function(event) {
+          myMoveHandler(event);
+        }
       }
 
       if (char.spray) {
@@ -3023,6 +3064,15 @@ function draw() {
         raster.position.x = char.spray.x;
         raster.position.y = char.spray.y;
         raster.scaling = char.spray.imageScale;
+        raster.onMouseDown = function(event) {
+          myDownHandler(event);
+          raster.onMouseUp = function(event) {
+            myUpHandler(event);
+          }
+        }
+        raster.onMouseDrag = function(event) {
+          myMoveHandler(event);
+        }
       }
 
       if (char.parry && char.pose.canParry) {
@@ -3059,6 +3109,16 @@ function draw() {
       r.position.y = char.y + char.imgOffset.y;
       if (char.facing == "left") { //TODO: use proper image for left/right not just flipping the sprite
         r.scale(-1, 1);
+      }
+
+      r.onMouseDown = function(event) {
+        myDownHandler(event);
+        r.onMouseUp = function(event) {
+            myUpHandler(event);
+        }
+      }
+      r.onMouseDrag = function(event) {
+        myMoveHandler(event);
       }
 
       if (char.name == "Nitro" && char.pose.canSpecial) {
@@ -3495,6 +3555,16 @@ function draw() {
         var ball = new Raster("assets/characters/ball.png");
         ball.position.x = char.x;
         ball.position.y = char.y;
+
+        ball.onMouseDown = function(event) {
+          myDownHandler(event);
+          ball.onMouseUp = function(event) {
+              myUpHandler(event);
+          }
+        }
+        ball.onMouseDrag = function(event) {
+          myMoveHandler(event);
+        }
       }
       var groundOffset = 0;
       if (char.pose.groundOffset) {
@@ -3599,13 +3669,23 @@ function draw() {
         draw();
       }
     } else {
-      new Path.Circle({
+      var charCircle = new Path.Circle({
         center: [char.x, char.y],
         radius: circleRadius,
         fillColor: char.color,
         strokeColor: char.strokeColor,
         strokeWidth: 3
-      })
+      });
+
+      charCircle.onMouseDown = function(event) {
+        myDownHandler(event);
+        charCircle.onMouseUp = function(event) {
+            myUpHandler(event);
+        }
+      }
+      charCircle.onMouseDrag = function(event) {
+        myMoveHandler(event);
+      }
     }
 
     if (char.name == "Dice") {
@@ -4071,15 +4151,14 @@ function clampRectInsideRect(smallRect, bigRect) {
 }
 
 // handle mousedown events
-function myDown(e) {
+function myDownHandler(e) {
 
   // get the current mouse position
-  offsetX = canvas.getBoundingClientRect().left;
-  offsetY = canvas.getBoundingClientRect().top;
-  var mx = parseInt(e.clientX - offsetX);
-  var my = parseInt(e.clientY - offsetY);
+  var mx = e.point.x;
+  var my = e.point.y;
 
   // test each shape to see if mouse is inside
+  //TODO: since we are now attaching the mouseDown handler directly to the specific objects we could save ourselves doing all this checks here
   for (var i = 0; i < activeEntities.length; i++) {
     var s = activeEntities[i];
     // decide if the shape is a rect or circle
@@ -4152,7 +4231,7 @@ function figureOutSprayWallPlacement(sprayHurtbox) {
 }
 
 // handle mouseup events
-function myUp(e) {
+function myUpHandler(e) {
   // clear all the dragging flags
   dragok = false;
   for (var i = 0; i < activeEntities.length; i++) {
@@ -4170,20 +4249,18 @@ function myUp(e) {
 }
 
 // handle mouse moves
-function myMove(e) {
+function myMoveHandler(e) {
   // if we're dragging anything...
   if (dragok) {
     // if the mouse is released outside the browser window, we can miss the mouseup event
-    if(e.buttons == 0) {
-      myUp(e);
+    if (e.buttons == 0) {
+      myUpHandler(e);
       return
     }
 
     // get the current mouse position
-    offsetX = canvas.getBoundingClientRect().left;
-    offsetY = canvas.getBoundingClientRect().top;
-    var mx = parseInt(e.clientX - offsetX);
-    var my = parseInt(e.clientY - offsetY);
+    var mx = e.point.x;
+    var my = e.point.y;
 
     // calculate the distance the mouse has moved
     // since the last mousemove
@@ -4669,6 +4746,12 @@ $('#ballImpacts').on('click', function(e) {
 $('#collision').on('click', function(e) {
   e.preventDefault
   ignoreHitboxCollisions = !ignoreHitboxCollisions
+  draw()
+})
+
+$('#coverage').on('click', function(e) {
+  e.preventDefault
+  showCoverage = !showCoverage
   draw()
 })
 
